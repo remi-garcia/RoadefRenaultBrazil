@@ -4,7 +4,7 @@
 # Celso C. Ribeiro, Daniel Aloise, Thiago F. Noronha, Caroline Rocha, Sebastián Urrutia
 #
 # @Author Boualem Lamraoui, Benoît Le Badezet, Benoit Loger, Jonathan Fontaine, Killian Fretaud, Rémi Garcia
-=#
+# =#
 
 
 
@@ -16,6 +16,39 @@
 #   (4) Use a repair heuristic to make the current solution feasible.
 #   (5) Use an improvement heuristic to optimize the third objective.
 #
+
+
+##===================================================##
+##                Greedy algorithms                  ##
+##===================================================##
+
+# TODO : need to know data representation for this one
+
+#= Idea :
+#
+#   next candidate is car v such that
+#       v induces the smallest number of new violations
+#   tie --> tie breaking criterion to maximize
+#       sum (on j) of (oj = 0) XOR (more oj out than in pi)
+#   tie --> options with high utilization rate first
+#
+# =#
+
+
+##===================================================##
+##                Usefull variables                  ##
+##===================================================##
+
+# Number of neighborhoods for VNS
+k_max = 1
+
+# Must be read in data files
+V = 10 # Number of cars
+W = 3 # Number of cars for the current day
+b0 = V - W # First index for the current day
+
+
+
 
 
 ##===================================================##
@@ -35,9 +68,7 @@ function perturbation(s, Nk)
     return s
 end
 
-
-
-function localSearch(s)
+function move(s, i, j)
     #TODO
     return s
 end
@@ -50,6 +81,39 @@ end
 function isBetter(s1, s2)
     #TODO
     return false
+end
+
+function cost(s)
+    #TODO
+    return 0
+end
+
+function localSearch(s)
+    while true
+        phi = cost(s)
+        for i in b0:size(s) #TODO : is it size(.) ?
+            best_delta = 0
+            L = []
+            for j in b0:size(s) #TODO : is it size(.) ?
+                delta = cost(move(s, i, j)) - cost(s)
+                if delta < best_delta
+                    L = [j]
+                    best_delta = delta
+                else if delta == best_delta
+                    push!(L, j)
+                end
+            end
+            if L != []
+                #TODO : choose k in L randomly
+                s = move(s, i, j)
+            end
+        end
+        if phi = cost(s)
+            break
+        end
+    end
+
+    return s
 end
 
 
@@ -117,9 +181,6 @@ end
 ##                 Algorithm VNS                     ##
 ##===================================================##
 
-
-# Number of neighborhoods
-k_max = 1
 
 function generic_VNS(s)
     S = copy(s)

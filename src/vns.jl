@@ -18,16 +18,60 @@
 #
 
 
-
-
 ##===================================================##
-##                Algorithme ILS                     ##
+##               Usefull algorithms                  ##
 ##===================================================##
 
 
+# For a fixed neighborhood
+function perturbation(s)
+    #TODO
+    return s
+end
+
+# For a given neighborhood
+function perturbation(s, Nk)
+    #TODO
+    return s
+end
 
 
-function ILS(s)
+
+function localSearch(s)
+    #TODO
+    return s
+end
+
+function acceptanceCriterion(s1, s2)
+    #TODO
+    return false
+end
+
+function isBetter(s1, s2)
+    #TODO
+    return false
+end
+
+
+function intensification(s)
+    #TODO
+    return s
+end
+
+function diversification(s)
+    #TODO
+    return s
+end
+
+
+##===================================================##
+##                 Algorithm ILS                     ##
+##===================================================##
+
+
+
+
+function generic_ILS(s)
     S = copy(s)
     cond = false #TODO
     while cond
@@ -44,25 +88,81 @@ function ILS(s)
 end
 
 
-
-function perturbation(s)
-    #TODO
-    return s
+function generic_extended_ILS(s)
+    S = copy(s)
+    cond = false #TODO
+    while cond
+        neighbor = perturbation(s)
+        neighbor = localSearch(neighbor)
+        if acceptanceCriterion(s, neighbor)
+            s = neighbor
+        end
+        intensification_cond = false
+        if intensification_cond
+s = intensification(s)        end
+        diversification_cond = false
+        if diversification_cond
+            s = diversification(s)
+        end
+        if isBetter(s,S)
+            S = s
+        end
+    end
+    return S
 end
 
 
-function localSearch(s)
-    #TODO
-    return s
+
+##===================================================##
+##                 Algorithm VNS                     ##
+##===================================================##
+
+
+# Number of neighborhoods
+k_max = 1
+
+function generic_VNS(s)
+    S = copy(s)
+    cond = false #TODO
+    while cond
+        k = 1
+        while k < k_max
+            neighbor = perturbation(s, Nk)
+            neighbor = localSearch(neighbor)
+            if acceptanceCriterion(s, neighbor)
+                s = neighbor
+                s = 1
+            else
+                k = k + 1
+            end
+            if isBetter(s,S)
+                S = s
+            end
+        end
+    end
+    return S
 end
 
-function acceptanceCriterion(s1, s2)
-    #TODO
-    return false
-end
 
-
-function isBetter(s1, s2)
-    #TODO
-    return false
+function generic_extended_VNS(s)
+    S = copy(s)
+    cond = false #TODO
+    while cond
+        k = 1
+        while k < k_max
+            neighbor = perturbation(s, Nk)
+            neighbor = localSearch(neighbor)
+            if acceptanceCriterion(s, neighbor)
+                s = neighbor
+                s = 1
+            else
+                k = k + 1
+            end
+            s = intensification(s)
+            if isBetter(s,S)
+                S = s
+            end
+        end
+    end
+    return S
 end

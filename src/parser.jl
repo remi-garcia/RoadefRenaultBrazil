@@ -31,8 +31,8 @@ struct Instances
     # ratio constraint
     HPRC::Array{Float64, 1}
     LPRC::Array{Float64, 1}
-    nb_HRPC::Int64
-    nb_LRPC::Int64
+    nb_HPRC::Int64
+    nb_LPRC::Int64
     # sequence vehicle data
     HPRC_flag::Array{Bool, 2}
     LPRC_flag::Array{Bool, 2}

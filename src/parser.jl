@@ -24,7 +24,7 @@ VEHICLES_FILE_NAME = "vehicles.txt"
 struct Instances
     # objectif function
     HPRC_rank::Int64
-    LPRC_rank::Int64 # Si il n'y a pas de LPRC, LPRC_rank = -1
+    LPRC_rank::Int64 # If there is no LPRC, LPRC_rank = -1
     PCB_rank::Int64
     # paint limitation
     nb_paint_limitation::Int64
@@ -40,8 +40,8 @@ struct Instances
 end
 
 # This function is used to read data of an instance from all files, and agregate into an Instance structure.
-function parser(Instance_name::String, instanceType::String, pathFolder::String="../data/Instances_")
-    path = pathFolder * instanceType * "/" * Instance_name * "/"
+function parser(instance_name::String, instance_type::String, path_folder::String="../data/Instances_")
+    path = path_folder * instance_type * "/" * instance_name * "/"
     # table of data
     df_optimisation = CSV.File(path * OPTIMISATION_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
     df_paint = CSV.File(path * PAINT_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
@@ -94,9 +94,10 @@ function parser(Instance_name::String, instanceType::String, pathFolder::String=
 
     color_code = Array{Int64, 1}(df_vehicles[!, 4])
 
-    return Instances(HPRC_rank, LPRC_rank, PCB_rank,
-            nb_paint_limitation,
-            HPRC, LPRC, nb_high, nb_low,
-            HPRC_flag, LPRC_flag, color_code
+    return Instances(
+            HPRC_rank, LPRC_rank, PCB_rank,     # objectives file
+            nb_paint_limitation,                # paint file
+            HPRC, LPRC, nb_high, nb_low,        # ratio file
+            HPRC_flag, LPRC_flag, color_code    # vehicles file
         )
 end

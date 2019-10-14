@@ -15,28 +15,28 @@ using CSV
 using DataFrames
 
 # Constant of the problem
-OPTIMISATION_FILE_NAME = "optimization_objectives.txt"
-PAINT_FILE_NAME = "paint_batch_limit.txt"
-RATIO_FILE_NAME = "ratios.txt"
-VEHICLES_FILE_NAME = "vehicles.txt"
+const OPTIMISATION_FILE_NAME = "optimization_objectives.txt"
+const PAINT_FILE_NAME = "paint_batch_limit.txt"
+const RATIO_FILE_NAME = "ratios.txt"
+const VEHICLES_FILE_NAME = "vehicles.txt"
 
 # An Instance structure that is used to format data as we want.
 struct Instances
     # objectif function
-    HPRC_rank::Int64
-    LPRC_rank::Int64 # If there is no LPRC, LPRC_rank = -1
-    PCB_rank::Int64
+    HPRC_rank::Int
+    LPRC_rank::Int # If there is no LPRC, LPRC_rank = -1
+    PCB_rank::Int
     # paint limitation
-    nb_paint_limitation::Int64
+    nb_paint_limitation::Int
     # ratio constraint
     HPRC::Array{Float64, 1}
     LPRC::Array{Float64, 1}
-    nb_HPRC::Int64
-    nb_LPRC::Int64
+    nb_HPRC::Int
+    nb_LPRC::Int
     # sequence vehicle data
     HPRC_flag::Array{Bool, 2}
     LPRC_flag::Array{Bool, 2}
-    color_code::Array{Int64, 1}
+    color_code::Array{Int, 1}
 end
 
 # This function is used to read data of an instance from all files, and agregate into an Instance structure.
@@ -92,7 +92,7 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
         LPRC_flag = Array{Bool, 2}()
     end
 
-    color_code = Array{Int64, 1}(df_vehicles[!, 4])
+    color_code = Array{Int, 1}(df_vehicles[!, 4])
 
     return Instances(
             HPRC_rank, LPRC_rank, PCB_rank,     # objectives file

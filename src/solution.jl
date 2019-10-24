@@ -1,4 +1,6 @@
 
+include("parser.jl")
+
 mutable struct Solution
     sequence::Array{Int, 1}
         # vector of cars (sequence pi or s in the following algorithms)
@@ -13,10 +15,22 @@ mutable struct Solution
         # M3_ij is the number of subsequences in which the number of
         # cars that require oj is greater than or equal to p(oj)
 
-    Solution(nC,nO) = new(
-        zeros(Int,nC),
+    Solution(nC::Int,nO::Int) = new(
+        collect(1:nC),
         zeros(Int,nO,nC),
         zeros(Int,nO,nC),
         zeros(Int,nO,nC)
     )
+end
+
+# Build an initial
+function init_solution(nom_fichier::String, type_fichier::String)
+    # Read in data files
+    instance = parser(nom_fichier, type_fichier)
+
+    # For following algorithms, let:
+    n = size(instance.HPRC_flag)[1]
+    m = length(instance.HPRC) + length(instance.LPRC)
+    solution = Solution(n,m)
+    return solution
 end

@@ -8,7 +8,7 @@
 
 
 
-# Complete strategy can be summerize as follow :
+# Complete strategy can be summerize as follow:
 #
 #   (1) Use a constructive heuristic to find an initial solution.
 #   (2) Use an improvement heuristic to optimize the first objective.
@@ -20,23 +20,17 @@
 
 
 ##===================================================##
-##                 Data stuctures                    ##
+##           Data stucture and Parser                ##
 ##===================================================##
 
-# vector of cars (sequence pi or s in the following algorithms)
-s = [1 2 3 4 5 6 7 8 9 10] # size n
-# Three matrix m*n (rows = options, columns = cars)
-M1 = []
-    # M1_ij is the number of cars with oj in the subsequence of
-    # q(oj) cars starting at position i of sequence pi
-M2 = []
-    # M2_ij is the number of subsequences of q(oj) cars starting
-    # at positions 1 up to i in which the number of cars that
-    # require oj is greater than p(oj)
-M3 = []
-    # M3_ij is the number of subsequences in which the number of
-    # cars that require oj is greater than or equal to p(oj)
+#TODO: Create Data Structure
 
+# Read in data files
+# TODO: link to parser
+
+# For following algorithms, let:
+n, m = (100,10)
+S = Solution(n,m)
 
 
 
@@ -44,12 +38,12 @@ M3 = []
 ##                Greedy algorithms                  ##
 ##===================================================##
 
-# TODO : need to know data representation for this one
+# TODO: need to know data representation for this one
 
-#= Idea :
+#= Idea:
 #
-#   next candidate is car v such that
-#       v induces the smallest number of new violations
+#   next candidate is car c such that
+#       c induces the smallest number of new violations
 #   tie --> tie breaking criterion to maximize
 #       sum (on j) of (oj = 0) XOR (more oj out than in pi)
 #   tie --> options with high utilization rate first
@@ -58,23 +52,23 @@ M3 = []
 
 
 ##===================================================##
-##                Usefull variables                  ##
+##                 Useful variables                  ##
 ##===================================================##
 
 # Number of neighborhoods for VNS
 k_max = 1
 
 # Must be read in data files
-V = 10 # Number of cars
+C = 10 # Number of cars
 W = 3 # Number of cars for the current day
-b0 = V - W # First index for the current day
+b0 = C - W # First index for the current day
 
 
 
 
 
 ##===================================================##
-##               Usefull algorithms                  ##
+##                Useful algorithms                  ##
 ##===================================================##
 
 
@@ -113,10 +107,10 @@ end
 function localSearch(s)
     while true
         phi = cost(s)
-        for i in b0:size(s) #TODO : is it size(.) ?
+        for i in b0:length(s)
             best_delta = 0
             L = []
-            for j in b0:size(s) #TODO : is it size(.) ?
+            for j in b0:length(s)
                 delta = cost(move(s, i, j)) - cost(s)
                 if delta < best_delta
                     L = [j]
@@ -126,7 +120,7 @@ function localSearch(s)
                 end
             end
             if L != []
-                #TODO : choose k in L randomly
+                #TODO: choose k in L randomly
                 s = move(s, i, j)
             end
         end
@@ -185,7 +179,8 @@ function generic_extended_ILS(s)
         end
         intensification_cond = false
         if intensification_cond
-s = intensification(s)        end
+            s = intensification(s)
+        end
         diversification_cond = false
         if diversification_cond
             s = diversification(s)

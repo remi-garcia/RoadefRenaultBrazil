@@ -121,7 +121,7 @@ function localSearch(s)
                 if delta < best_delta
                     L = [j]
                     best_delta = delta
-                else if delta == best_delta
+                elseif delta == best_delta
                     push!(L, j)
                 end
             end
@@ -130,7 +130,7 @@ function localSearch(s)
                 s = move(s, i, j)
             end
         end
-        if phi = cost(s)
+        if phi == cost(s)
             break
         end
     end

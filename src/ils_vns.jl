@@ -21,17 +21,14 @@ include("parser.jl")
 include("solution.jl")
 
 
-
-
 ##===================================================##
 ##           Data stucture and Parser                ##
 ##===================================================##
 
-nom_fichier = ""
-type_fichier = ""
+nom_fichier = "022_3_4_EP_RAF_ENP"
+type_fichier = "A"
 
 solution = init_solution(nom_fichier, type_fichier)
-
 
 ##===================================================##
 ##                Greedy algorithms                  ##

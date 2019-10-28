@@ -1,4 +1,3 @@
-
 include("parser.jl")
 
 mutable struct Solution
@@ -28,9 +27,8 @@ function init_solution(nom_fichier::String, type_fichier::String)
     # Read in data files
     instance = parser(nom_fichier, type_fichier)
 
-    # For following algorithms, let:
-    n = size(instance.HPRC_flag)[1]
-    m = length(instance.HPRC) + length(instance.LPRC)
+    n = length(instance.color_code)
+    m = length(instance.HPRC) + length(instance.LPRC) # number of ratio
     solution = Solution(n,m)
     return solution
 end

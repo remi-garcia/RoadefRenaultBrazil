@@ -17,22 +17,18 @@
 #   (5) Use an improvement heuristic to optimize the third objective.
 #
 
+include("parser.jl")
+include("solution.jl")
 
 
 ##===================================================##
 ##           Data stucture and Parser                ##
 ##===================================================##
 
-#TODO: Create Data Structure
+nom_fichier = "022_3_4_EP_RAF_ENP"
+type_fichier = "A"
 
-# Read in data files
-# TODO: link to parser
-
-# For following algorithms, let:
-n, m = (100,10)
-S = Solution(n,m)
-
-
+solution = init_solution(nom_fichier, type_fichier)
 
 ##===================================================##
 ##                Greedy algorithms                  ##

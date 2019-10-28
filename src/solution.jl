@@ -28,7 +28,7 @@ function init_solution(nom_fichier::String, type_fichier::String)
     instance = parser(nom_fichier, type_fichier)
 
     n = length(instance.color_code)
-    m = length(instance.HPRC) + length(instance.LPRC) # number of ratio
+    m = instance.nb_HPRC + instance.nb_LPRC # number of ratio
     solution = Solution(n,m)
     return solution
 end

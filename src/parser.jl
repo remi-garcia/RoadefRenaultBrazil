@@ -29,10 +29,10 @@ struct Instances
     # paint limitation
     nb_paint_limitation::Int
     # ratio constraint
-    HPRC_p::Array{Float64, 1}
-    HPRC_q::Array{Float64, 1}
-    LPRC_p::Array{Float64, 1}
-    LPRC_q::Array{Float64, 1}
+    HPRC_p::Array{Int, 1}
+    HPRC_q::Array{Int, 1}
+    LPRC_p::Array{Int, 1}
+    LPRC_q::Array{Int, 1}
     nb_HPRC::Int
     nb_LPRC::Int
     # sequence vehicle data
@@ -69,10 +69,10 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
 
     # Ratio data
     n, m = size(df_ratio)
-    HPRC_p = Array{Float64, 1}()
-    HPRC_q = Array{Float64, 1}()
-    LPRC_p = Array{Float64, 1}()
-    LPRC_q = Array{Float64, 1}()
+    HPRC_p = Array{Int, 1}()
+    HPRC_q = Array{Int, 1}()
+    LPRC_p = Array{Int, 1}()
+    LPRC_q = Array{Int, 1}()
     for i in 1:n
         a, b = parse.(Int, split(df_ratio.Ratio[i], "/"))
         if (df_ratio.Prio[i] == 1)

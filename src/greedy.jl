@@ -25,12 +25,16 @@ function greedy(inst::Instances)
             end
         end
 
+        # First column of M2 and M3 can be update
+        sol.M2[j,1] = (sol.M1[j,1] > inst.HPRC_p[j] ? 1 : 0)
+        sol.M3[j,1] = (sol.M1[j,1] >= inst.HPRC_p[j] ? 1 : 0)
+
         # for each shift of sequence
         for i in 2:inst.nb_late_prec_day
-            sol.M1[j,i] = sol.M1[j,(i-1)]
+            sol.M1[j,i] = sol.M1[j,i-1]
 
             # previous case had flag -> not in anymore
-            if inst.HPRC_flag[(i-1),j]
+            if inst.HPRC_flag[i-1,j]
                 sol.M1[j,i] = sol.M1[j,i] - 1
             end
 
@@ -38,7 +42,12 @@ function greedy(inst::Instances)
             if inst.HPRC_flag[(i+inst.HPRC_q[j]-1),j]
                 sol.M1[j,i] = sol.M1[j,i] + 1
             end
+
+            # First column of M2 and M3 can be update
+            sol.M2[j,i] = sol.M2[j,i-1] + (sol.M1[j,i] > inst.HPRC_p[j] ? 1 : 0)
+            sol.M3[j,i] = sol.M3[j,i-1] + (sol.M1[j,i] >= inst.HPRC_p[j] ? 1 : 0)
         end
+
     end
 
 
@@ -51,12 +60,12 @@ function greedy(inst::Instances)
 
         # I will now compute the number of violations caused by each car
         nb_new_violation = zeros(Int, len)
-        for c in V
+        for c in 1:len
             for j in 1:inst.nb_HPRC
-                if inst.HPRC_flag[pos,j]
+                if inst.HPRC_flag[V[c],j]
                     for i in ((pos - inst.HPRC_q[j])+1):pos
                         if sol.M1[j,i] >= inst.HPRC_p[j]
-                            nb_new_violation[v] = nb_new_violation[v] + 1
+                            nb_new_violation[c] = nb_new_violation[c] + 1
                         end
                     end
                 end

@@ -74,7 +74,7 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     LPRC_p = Array{Float64, 1}()
     LPRC_q = Array{Float64, 1}()
     for i in 1:n
-        a, b = parse.(Float64, split(df_ratio.Ratio[i], "/"))
+        a, b = parse.(Int, split(df_ratio.Ratio[i], "/"))
         if (df_ratio.Prio[i] == 1)
             push!(HPRC_p, a)
             push!(HPRC_q, b)

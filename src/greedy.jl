@@ -2,6 +2,52 @@
 
 
 
+function update_late_violation!(    sol::Solution,
+                                    nb::Int,
+                                    last::Int,
+                                    p::Array{Int, 1},
+                                    q::Array{Int, 1},
+                                    flag::Array{Bool, 2},
+                                    shift::Int=0           )
+
+    # For the nb_late_prec_day first cars
+    # Update M1, M2, M3
+    for j in 1:nb
+        J = j + shift
+        # first sequence is compute wihout smart thoughts
+        for i in 1:q[j]
+            if flag[i,j] # if i has the option, M1 increments
+                sol.M1[J,1] = sol.M1[J,1] + 1
+            end
+        end
+
+        # First column of M2 and M3 can be update
+        sol.M2[J,1] = (sol.M1[J,1] >  p[j] ? 1 : 0)
+        sol.M3[J,1] = (sol.M1[J,1] >= p[j] ? 1 : 0)
+
+        # for each shift of sequence
+        for i in 2:last
+            sol.M1[J,i] = sol.M1[J,i-1]
+
+            # previous case had flag -> not in anymore
+            if flag[i-1,j]
+                sol.M1[J,i] = sol.M1[J,i] - 1
+            end
+
+            # new case has flag -> in now
+            if flag[(i+q[j]-1),j]
+                sol.M1[J,i] = sol.M1[J,i] + 1
+            end
+
+            # First column of M2 and M3 can be update
+            sol.M2[J,i] = sol.M2[J,i-1] + (sol.M1[J,i] >  p[j] ? 1 : 0)
+            sol.M3[J,i] = sol.M3[J,i-1] + (sol.M1[J,i] >= p[j] ? 1 : 0)
+        end
+    end
+end
+
+
+
 
 function greedy(inst::Instances)
 
@@ -14,42 +60,13 @@ function greedy(inst::Instances)
     # We have V the set of cars to be scheduled
     len = (sol.n) - (inst.nb_late_prec_day)
     V = collect((inst.nb_late_prec_day+1):(sol.n))
+    nbH = inst.nb_HPRC
 
     # For the nb_late_prec_day first cars
     # Update M1, M2, M3
-    for j in 1:inst.nb_HPRC
-        # first sequence is compute wihout smart thoughts
-        for i in 1:inst.HPRC_q[j]
-            if inst.HPRC_flag[i,j] # if i has the option, M1 increments
-                sol.M1[j,1] = sol.M1[j,1] + 1
-            end
-        end
-
-        # First column of M2 and M3 can be update
-        sol.M2[j,1] = (sol.M1[j,1] > inst.HPRC_p[j] ? 1 : 0)
-        sol.M3[j,1] = (sol.M1[j,1] >= inst.HPRC_p[j] ? 1 : 0)
-
-        # for each shift of sequence
-        for i in 2:inst.nb_late_prec_day
-            sol.M1[j,i] = sol.M1[j,i-1]
-
-            # previous case had flag -> not in anymore
-            if inst.HPRC_flag[i-1,j]
-                sol.M1[j,i] = sol.M1[j,i] - 1
-            end
-
-            # new case has flag -> in now
-            if inst.HPRC_flag[(i+inst.HPRC_q[j]-1),j]
-                sol.M1[j,i] = sol.M1[j,i] + 1
-            end
-
-            # First column of M2 and M3 can be update
-            sol.M2[j,i] = sol.M2[j,i-1] + (sol.M1[j,i] > inst.HPRC_p[j] ? 1 : 0)
-            sol.M3[j,i] = sol.M3[j,i-1] + (sol.M1[j,i] >= inst.HPRC_p[j] ? 1 : 0)
-        end
-
-    end
-
+    # TODO: clean parameters
+    update_late_violation!(sol, inst.nb_HPRC, inst.nb_late_prec_day, inst.HPRC_p, inst.HPRC_q, inst.HPRC_flag)
+    update_late_violation!(sol, inst.nb_LPRC, inst.nb_late_prec_day, inst.LPRC_p, inst.LPRC_q, inst.LPRC_flag, inst.nb_HPRC)
 
 
 
@@ -96,9 +113,47 @@ function greedy(inst::Instances)
 
     end
 
-
-
-    println(sol)
-
     return sol
 end
+
+
+
+
+
+#
+# # LPRC's redundancy
+#     # For the nb_late_prec_day first cars
+#     # Update M1, M2, M3
+#     for j in 1:inst.nb_LPRC
+#         J = j + inst.nb_HPRC
+#         # first sequence is compute wihout smart thoughts
+#         for i in 1:inst.LPRC_q[j]
+#             if inst.LPRC_flag[i,j] # if i has the option, M1 increments
+#                 sol.M1[J,1] = sol.M1[J,1] + 1
+#             end
+#         end
+#
+#         # First column of M2 and M3 can be update
+#         sol.M2[J,1] = (sol.M1[J,1] > inst.LPRC_p[j] ? 1 : 0)
+#         sol.M3[J,1] = (sol.M1[J,1] >= inst.LPRC_p[j] ? 1 : 0)
+#
+#         # for each shift of sequence
+#         for i in 2:inst.nb_late_prec_day
+#             sol.M1[J,i] = sol.M1[J,i-1]
+#
+#             # previous case had flag -> not in anymore
+#             if inst.LPRC_flag[i-1,j]
+#                 sol.M1[J,i] = sol.M1[J,i] - 1
+#             end
+#
+#             # new case has flag -> in now
+#             if inst.LPRC_flag[(i+inst.LPRC_q[j]-1),j]
+#                 sol.M1[J,i] = sol.M1[J,i] + 1
+#             end
+#
+#             # First column of M2 and M3 can be update
+#             sol.M2[J,i] = sol.M2[J,i-1] + (sol.M1[J,i] > inst.LPRC_p[j] ? 1 : 0)
+#             sol.M3[J,i] = sol.M3[J,i-1] + (sol.M1[J,i] >= inst.LPRC_p[j] ? 1 : 0)
+#         end
+#     end
+# # LRPC's end

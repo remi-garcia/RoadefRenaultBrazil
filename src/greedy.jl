@@ -84,7 +84,9 @@ function greedy(inst::Instances)
 
     # For the nb_late_prec_day first cars
     # Update M1, M2, M3
+    #
     # TODO: clean parameters
+    #
     update_late_violation!(sol, inst.nb_HPRC, inst.nb_late_prec_day, inst.HPRC_p, inst.HPRC_q, inst.HPRC_flag)
     update_late_violation!(sol, inst.nb_LPRC, inst.nb_late_prec_day, inst.LPRC_p, inst.LPRC_q, inst.LPRC_flag, inst.nb_HPRC)
 

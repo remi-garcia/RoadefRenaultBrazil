@@ -15,21 +15,32 @@ function greedy(inst::Instances)
     len = (sol.n) - (inst.nb_late_prec_day)
     V = collect((inst.nb_late_prec_day+1):(sol.n))
 
-    # Update of Mi
     # For the nb_late_prec_day first cars
     # Update M1, M2, M3
-    # for i in 1:(sol.n)
-    #     for j in 1:inst.nb_HPRC
-    #         if inst.HPRC_flag[j]
-    #             M1[i,j] = M1[i,j] + 1
-    #         end
-    #     end
-    #     for j in 1:inst.nb_LPRC
-    #         if inst.HPRC_flag[j + inst.nb_HPRC]
-    #             M1[i,j + inst.nb_HPRC] = M1[i,j + inst.nb_HPRC] + 1
-    #         end
-    #     end
-    # end
+    for j in 1:inst.nb_HPRC
+        # first sequence is compute wihout smart thoughts
+        for i in 1:inst.HPRC_q[j]
+            if inst.HPRC_flag[i,j] # if i has the option, M1 increments
+                sol.M1[j,1] = sol.M1[j,1] + 1
+            end
+        end
+
+        # for each shift of sequence
+        for i in 2:inst.nb_late_prec_day
+            sol.M1[j,i] = sol.M1[j,(i-1)]
+
+            # previous case had flag -> not in anymore
+            if inst.HPRC_flag[(i-1),j]
+                sol.M1[j,i] = sol.M1[j,i] - 1
+            end
+
+            # new case has flag -> in now
+            if inst.HPRC_flag[(i+inst.HPRC_q[j]-1),j]
+                sol.M1[j,i] = sol.M1[j,i] + 1
+            end
+        end
+    end
+
 
 
 

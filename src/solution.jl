@@ -36,3 +36,11 @@ function init_solution(nom_fichier::String, type_fichier::String)
     solution = Solution(n,m)
     return solution
 end
+
+# Build an initial
+function init_solution(instance::Instances)
+    n = length(instance.color_code)
+    m = instance.nb_HPRC + instance.nb_LPRC # number of ratio
+    solution = Solution(n,m)
+    return solution
+end

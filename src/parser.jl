@@ -85,13 +85,13 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     if nb_high > 0
         HPRC_flag = Array{Bool, 2}(df_vehicles[!, 5:5+nb_high-1])
     else
-        HPRC_flag = Array{Bool, 2}()
+        HPRC_flag = Array{Bool, 2}(UndefInitializer(), 0, 0)
     end
 
     if nb_low > 0
         LPRC_flag = Array{Bool, 2}(df_vehicles[!, 5+nb_high:5+nb_high+nb_low-1])
     else
-        LPRC_flag = Array{Bool, 2}()
+        LPRC_flag = Array{Bool, 2}(UndefInitializer(), 0, 0)
     end
 
     color_code = Array{Int, 1}(df_vehicles[!, 4])

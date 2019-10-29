@@ -240,3 +240,61 @@ function generic_extended_VNS(s)
     end
     return S
 end
+
+##===================================================##
+##                 Algorithm VNS_LPRC                ##
+##===================================================##
+
+
+function perturbation_VNS_LPRC(sol::Solution, p::Int, k::Int, instance::Instances)
+    # TODO
+    return Solution(1, 1)
+end
+
+function localSearch_VNS_LPRC(neighbor::Solution, instance::Instances)
+    # TODO
+    return Solution(1, 1)
+end
+
+function intensification_VNS_LPRC(sol::Solution, instance::Instances)
+    # TODO
+    return Solution(1, 1)
+end
+
+function cost_VNS_LPRC(sol::Solution)
+    # TODO
+    return 1
+end
+
+function VNS_LPRC(sol::Solution, instance::Instances)
+    # solutions
+    s_opt = deepcopy(sol)
+    s = deepcopy(sol)
+    # variable of the algorithm
+    const k_min = [3, 5]
+    const k_max = [8, 12]
+    p = 1
+    k = k_min[p+1]
+    nb_intens_not_better = 0
+    while nb_intens_not_better < 150
+        while k < k_max[p+1]
+            neighbor = perturbation_VNS_LPRC(s, p, k, instance)
+            neighbor = localSearch_VNS_LPRC(neighbor, instance)
+            if cost_VNS_LPRC(neighbor) < cost_VNS_LPRC(s)
+                s = neighbor
+                k = k_min[p+1]
+            else
+                k = k + 1
+            end
+            s = intensification_VNS_LPRC(s, instance)
+            nb_intens_not_better += 1
+            if cost_VNS_LPRC(s) < cost_VNS_LPRC(S)
+                s_opt = s
+                nb_intens_not_better = 0
+            end
+        end
+        p = 1 - p
+        k = k_min[p+1]
+    end
+    return s_opt
+end

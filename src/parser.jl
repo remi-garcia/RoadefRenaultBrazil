@@ -80,7 +80,7 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
             push!(HPRC_q, b)
         else
             push!(LPRC_p, a)
-            push!(HPRC_q, b)
+            push!(LPRC_q, b)
         end
     end
 

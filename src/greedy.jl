@@ -161,33 +161,6 @@ function greedy(inst::Instances)
 
         update_sol!(sol, inst.nb_HPRC, pos, pos, inst.HPRC_p, inst.HPRC_q, inst.HPRC_flag)
         update_sol!(sol, inst.nb_LPRC, pos, pos, inst.LPRC_p, inst.LPRC_q, inst.LPRC_flag, inst.nb_HPRC)
-        # # Update M1, M2, M3
-        # for j in 1:inst.nb_HPRC
-        #     J = j
-        #
-        #     # First column of M2 and M3 can be update
-        #     sol.M2[J,1] = (sol.M1[J,1] >  p[j] ? 1 : 0)
-        #     sol.M3[J,1] = (sol.M1[J,1] >= p[j] ? 1 : 0)
-        #
-        #     # for each shift of sequence
-        #     for i in 2:last
-        #         sol.M1[J,i] = sol.M1[J,i-1]
-        #
-        #         # previous case had flag -> not in anymore
-        #         if flag[i-1,j]
-        #             sol.M1[J,i] = sol.M1[J,i] - 1
-        #         end
-        #
-        #         # new case has flag -> in now
-        #         if flag[(i+q[j]-1),j]
-        #             sol.M1[J,i] = sol.M1[J,i] + 1
-        #         end
-        #
-        #         # First column of M2 and M3 can be update
-        #         sol.M2[J,i] = sol.M2[J,i-1] + (sol.M1[J,i] >  p[j] ? 1 : 0)
-        #         sol.M3[J,i] = sol.M3[J,i-1] + (sol.M1[J,i] >= p[j] ? 1 : 0)
-        #     end
-        # end
 
     end
 

@@ -135,7 +135,7 @@ function greedy(inst::Instances)
         #   the sequence.
         #
         if length(candidates) > 1
-
+            #TODO
         end
 
 
@@ -148,9 +148,8 @@ function greedy(inst::Instances)
         # in the sense that they are updated whenever a new car is added at
         # the end of the sequence.
         if length(candidates) > 1
-
+            #TODO
         end
-
 
 
         # The car is not in the list anymore
@@ -158,7 +157,7 @@ function greedy(inst::Instances)
         len = len - 1
         filter!(x->x≠c, V)
 
-
+        # Update M1, M2 and M3
         update_sol!(sol, inst.nb_HPRC, pos, pos, inst.HPRC_p, inst.HPRC_q, inst.HPRC_flag)
         update_sol!(sol, inst.nb_LPRC, pos, pos, inst.LPRC_p, inst.LPRC_q, inst.LPRC_flag, inst.nb_HPRC)
 

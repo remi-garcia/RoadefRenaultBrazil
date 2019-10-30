@@ -1,15 +1,14 @@
-
-
+#=
+This file contains all function used to construct a first valid solution.
+=#
 
 
 function update_late_violation!(    sol::Solution,
-                                    nb::Int,
+                                    nb::Int, # number of options treated
                                     last::Int,
-                                    p::Array{Int, 1},
-                                    q::Array{Int, 1},
+                                    p::Array{Int, 1}, q::Array{Int, 1},
                                     flag::Array{Bool, 2},
-                                    shift::Int=0           )
-
+                                    shift::Int=0   #= for LPRC =#       )
     # For the nb_late_prec_day first cars
     # Update M1, M2, M3
     for j in 1:nb
@@ -30,20 +29,17 @@ function update_late_violation!(    sol::Solution,
 end
 
 
-
-
+# Parameter "first" seems now useless, I thought it would allow us to use the
+# function during the next phase (updating solution after pushing a new car)
 function update_sol!(   sol::Solution,
-                        nb::Int,
-                        first::Int,
-                        last::Int,
-                        p::Array{Int, 1},
-                        q::Array{Int, 1},
+                        nb::Int, # number of options treated
+                        first::Int, last::Int,
+                        p::Array{Int, 1}, q::Array{Int, 1},
                         flag::Array{Bool, 2},
-                        shift::Int=0           )
+                        shift::Int=0  #= for LPRC =#          )
     for j in 1:nb
         J = j + shift
-
-        # for each shift of sequence
+        # for each shift of sequences
         for i in first:last
             sol.M1[J,i] = sol.M1[J,i-1]
 
@@ -69,25 +65,19 @@ function update_sol!(   sol::Solution,
 end
 
 
-function update_sol_atpos!(
-                        sol::Solution,
-                        nb::Int,
-                        pos::Int,
-                        p::Array{Int, 1},
-                        q::Array{Int, 1},
-                        flag::Array{Bool, 2},
-                        shift::Int=0           )
+function update_sol_atpos!( sol::Solution,
+                            nb::Int,
+                            pos::Int,
+                            p::Array{Int, 1}, q::Array{Int, 1},
+                            flag::Array{Bool, 2},
+                            shift::Int=0                        )
     for j in 1:nb
         J = j + shift
-
-        # this car has the option
-
-
         # for each shift of sequence reaching this position
         I = sol.sequence[pos]
         for i in (pos - q[j] + 1):pos
 
-            # new case has flag -> in now
+            # new car has option j -> update M1
             if flag[I,j]
                 sol.M1[J,i] = sol.M1[J,i] + 1
             end
@@ -105,15 +95,10 @@ function update_sol_atpos!(
 end
 
 
-
-
 function greedy(inst::Instances)
-
-# The constructive greedy heuristic starts with
-# a partial sequence formed by the remaining cars
-# from the previous day.
-
-    # We compute an empty sequence with some cars already scheduled
+    # The constructive greedy heuristic starts with a partial sequence formed
+    # by the remaining cars from the previous day. We compute an empty sequence
+    # with some cars already scheduled
     sol = init_solution(inst)
     # We have V the set of cars to be scheduled
     len = (sol.n) - (inst.nb_late_prec_day)
@@ -122,20 +107,16 @@ function greedy(inst::Instances)
 
     # For the nb_late_prec_day first cars
     # Update M1, M2, M3
-    #
     # TODO: clean parameters
-    #
     update_late_violation!(sol, inst.nb_HPRC, inst.nb_late_prec_day, inst.HPRC_p, inst.HPRC_q, inst.HPRC_flag)
     update_late_violation!(sol, inst.nb_LPRC, inst.nb_late_prec_day, inst.LPRC_p, inst.LPRC_q, inst.LPRC_flag, inst.nb_HPRC)
-
-
 
     # The greedy criterion consists in choosing, at each iteration, the car
     # that induces the smallest number of new violations when inserted at
     # the end of the current partial sequence.
     for pos in (inst.nb_late_prec_day+1):(sol.n)
 
-        # I will now compute the number of violations caused by each car
+        # Compute the number of violations caused by each car
         nb_new_violation = zeros(Int, len)
         for c in 1:len
             for j in 1:inst.nb_HPRC
@@ -149,7 +130,7 @@ function greedy(inst::Instances)
             end
         end
 
-        # I will now compute the set of minimal-rapist's indexes
+        # Compute the set of indexes causing minimal-violation
         candidates = [V[1]]
         nb_min = nb_new_violation[1]
         for c in 2:len
@@ -178,8 +159,7 @@ function greedy(inst::Instances)
             #TODO
         end
 
-
-        # If |candidates| =/= 1 : TIE TIE (et grominet) BREAK
+        # If |candidates| =/= 1 : DOUBLE TIE BREAK
         #
         # It may happen that ties still remain after the application of
         # the above tie breaking criterion. In this case, a second criterion
@@ -191,19 +171,14 @@ function greedy(inst::Instances)
             #TODO
         end
 
-
-        # We have a candidate
-        c = candidates[1]
+        c = candidates[1]     # We have a valid candidate
         sol.sequence[pos] = c
-
-        # The car is not in the list anymore
         len = len - 1
-        filter!(x->x≠c, V)
+        filter!(x->x≠c, V)    # The car is not in the list anymore
 
         # Update M1, M2 and M3
         update_sol_atpos!(sol, inst.nb_HPRC, pos, inst.HPRC_p, inst.HPRC_q, inst.HPRC_flag)
         update_sol_atpos!(sol, inst.nb_LPRC, pos, inst.LPRC_p, inst.LPRC_q, inst.LPRC_flag, inst.nb_HPRC)
-
     end
 
     return sol

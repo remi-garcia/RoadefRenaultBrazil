@@ -9,6 +9,9 @@
 include("parser.jl")
 include("solution.jl")
 
+
+const WEIGHTS_OBJECTIVE_FUNCTION = [1e6, 1e3, 1]
+
 function perturbation_VNS_LPRC(sol::Solution, p::Int, k::Int, instance::Instances)
     # TODO
     return Solution(1, 1)
@@ -29,7 +32,7 @@ end
 function cost_VNS_LPRC(sol::Solution, instance::Instances)
     nb_HPRC_violated = sum(sol.M2[i, end] for i in 1:instance.nb_HPRC)
     nb_LPRC_violated = sum(sol.M2[instance.nb_HPRC + i, end] for i in 1:instance.nb_LPRC)
-    cost = nb_HPRC_violated + nb_LPRC_violated
+    cost = WEIGHTS_OBJECTIVE_FUNCTION[1] * nb_HPRC_violated + WEIGHTS_OBJECTIVE_FUNCTION[2] * nb_LPRC_violated
     return cost, nb_HPRC_violated
 end
 

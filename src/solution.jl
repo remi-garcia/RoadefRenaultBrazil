@@ -18,7 +18,7 @@ mutable struct Solution
 
     Solution(nC::Int,nO::Int) = new(
         nC,
-        collect(1:nC),
+        zeros(Int,nC),#collect(1:nC),
         zeros(Int,nO,nC),
         zeros(Int,nO,nC),
         zeros(Int,nO,nC)
@@ -34,6 +34,10 @@ function init_solution(nom_fichier::String, type_fichier::String)
     n = length(instance.color_code)
     m = instance.nb_HPRC + instance.nb_LPRC # number of ratio
     solution = Solution(n,m)
+
+    for i in 1:instance.nb_late_prec_day
+        solution.sequence[i] = i
+    end
     return solution
 end
 
@@ -42,5 +46,9 @@ function init_solution(instance::Instances)
     n = length(instance.color_code)
     m = instance.nb_HPRC + instance.nb_LPRC # number of ratio
     solution = Solution(n,m)
+
+    for i in 1:instance.nb_late_prec_day
+        solution.sequence[i] = i
+    end
     return solution
 end

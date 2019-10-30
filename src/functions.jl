@@ -9,8 +9,10 @@ include("parser.jl")
 
 function move_exchange(solution::Solution, i::Int, j::Int, instance::Instances)
     # TODO
+    return Solution(1,1)
 end
 
 function move_insertion(solution::Solution, i::Int, j::Int, instance::Instances)
     # TODO
+    return Solution(1,1)
 end

@@ -6,6 +6,8 @@
 # @Author Boualem Lamraoui, Benoît Le Badezet, Benoit Loger, Jonathan Fontaine, Killian Fretaud, Rémi Garcia
 # =#
 
+include("parser.jl")
+include("solution.jl")
 
 function perturbation_VNS_LPRC(sol::Solution, p::Int, k::Int, instance::Instances)
     # TODO
@@ -34,7 +36,7 @@ end
 # function that determine if left is better than right.
 function is_better_VNS_LPRC(left::Solution, right::Solution, instance::Instances)
     left_cost = cost_VNS_LPRC(left, instance)
-    right_cost = cost_VNS_LPRC(right, instance))
+    right_cost = cost_VNS_LPRC(right, instance)
     cost_better = left_cost[1] < right_cost[1]
     HPRC_not_worse = left_cost[2] <= right_cost[2]
     return  cost_better && HPRC_not_worse

@@ -9,6 +9,9 @@
 include("parser.jl")
 include("solution.jl")
 
+# TODO: Delete when functions.jl will be merged in master
+move_exchange = (s, i, j, inst) -> s
+move_insertion = (s, i, j, inst) -> s
 
 const WEIGHTS_OBJECTIVE_FUNCTION = [1e6, 1e3, 1]
 
@@ -18,9 +21,42 @@ function perturbation_VNS_LPRC(sol::Solution, p::Int, k::Int, instance::Instance
 end
 
 # The Local Search is based on a car exchange move.
-function localSearch_VNS_LPRC(neighbor::Solution, p::Int, instance::Instances)
-    # TODO
-    return Solution(1, 1)
+function localSearch_VNS_LPRC(solution::Solution, p::Int, instance::Instances)
+
+    # Select the move
+    move = [move_exchange, move_insertion][p+1]
+
+    sol = deepcopy(solution)
+    nb_vehicles = length(sol.sequence)
+    b0 = instance.nb_late_prec_day+1
+
+    improved = true
+    while improved
+        phi = cost(sol)
+        for i in b0:nb_vehicles
+            best_delta = 0
+            list = Array{Int, 1}()
+            for j in b0:nb_vehicles
+                # TODO Accept to move with (i, j) only in specific case.
+                delta = cost_VNS_LPRC(move(sol, i, j)) - cost_VNS_LPRC(sol)
+                if delta < best_delta
+                    list = [j]
+                    best_delta = delta
+                elseif delta == best_delta
+                    push!(list, j)
+                end
+            end
+            if list != []
+                k = rand(list)
+                sol = move(sol, i, k)
+            end
+        end
+        if phi == cost(sol)
+            improved = false
+        end
+    end
+
+    return sol
 end
 
 function intensification_VNS_LPRC(sol::Solution, instance::Instances)
@@ -33,15 +69,20 @@ function cost_VNS_LPRC(sol::Solution, instance::Instances)
     nb_HPRC_violated = sum(sol.M2[i, end] for i in 1:instance.nb_HPRC)
     nb_LPRC_violated = sum(sol.M2[instance.nb_HPRC + i, end] for i in 1:instance.nb_LPRC)
     cost = WEIGHTS_OBJECTIVE_FUNCTION[1] * nb_HPRC_violated + WEIGHTS_OBJECTIVE_FUNCTION[2] * nb_LPRC_violated
-    return cost, nb_HPRC_violated
+    return cost
 end
 
 # function that determine if left is better than right.
 function is_better_VNS_LPRC(left::Solution, right::Solution, instance::Instances)
     left_cost = cost_VNS_LPRC(left, instance)
     right_cost = cost_VNS_LPRC(right, instance)
-    cost_better = left_cost[1] < right_cost[1]
-    HPRC_not_worse = left_cost[2] <= right_cost[2]
+
+    nb_HPRC_violated_left = sum(left.M2[i, end] for i in 1:instance.nb_HPRC)
+    nb_HPRC_violated_right = sum(right.M2[i, end] for i in 1:instance.nb_HPRC)
+
+    cost_better = left_cost < right_cost
+    HPRC_not_worse = nb_HPRC_violated_left <= nb_HPRC_violated_right
+
     return  cost_better && HPRC_not_worse
 end
 

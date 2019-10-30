@@ -48,13 +48,15 @@ function update_sol!(   sol::Solution,
             sol.M1[J,i] = sol.M1[J,i-1]
 
             # previous case had flag -> not in anymore
-            if flag[i-1,j]
+            I = sol.sequence[i-1]
+            if flag[I,j]
                 sol.M1[J,i] = sol.M1[J,i] - 1
             end
 
             # new case has flag -> in now
-            if (i+q[j]-1) < sol.n
-                if flag[(i+q[j]-1),j]
+            if (i+q[j]-1) <= last
+                I = sol.sequence[(i+q[j])-1]
+                if flag[I,j]
                     sol.M1[J,i] = sol.M1[J,i] + 1
                 end
             end
@@ -62,6 +64,42 @@ function update_sol!(   sol::Solution,
             # First column of M2 and M3 can be update
             sol.M2[J,i] = sol.M2[J,i-1] + (sol.M1[J,i] >  p[j] ? 1 : 0)
             sol.M3[J,i] = sol.M3[J,i-1] + (sol.M1[J,i] >= p[j] ? 1 : 0)
+        end
+    end
+end
+
+
+function update_sol_atpos!(
+                        sol::Solution,
+                        nb::Int,
+                        pos::Int,
+                        p::Array{Int, 1},
+                        q::Array{Int, 1},
+                        flag::Array{Bool, 2},
+                        shift::Int=0           )
+    for j in 1:nb
+        J = j + shift
+
+        # this car has the option
+
+
+        # for each shift of sequence reaching this position
+        I = sol.sequence[pos]
+        for i in (pos - q[j] + 1):pos
+
+            # new case has flag -> in now
+            if flag[I,j]
+                sol.M1[J,i] = sol.M1[J,i] + 1
+            end
+
+            # First column of M2 and M3 can be update
+            if i == 1
+                sol.M2[J,i] = 0 + (sol.M1[J,i] >  p[j] ? 1 : 0)
+                sol.M3[J,i] = 0 + (sol.M1[J,i] >= p[j] ? 1 : 0)
+            else
+                sol.M2[J,i] = sol.M2[J,i-1] + (sol.M1[J,i] >  p[j] ? 1 : 0)
+                sol.M3[J,i] = sol.M3[J,i-1] + (sol.M1[J,i] >= p[j] ? 1 : 0)
+            end
         end
     end
 end
@@ -154,14 +192,17 @@ function greedy(inst::Instances)
         end
 
 
-        # The car is not in the list anymore
+        # We have a candidate
         c = candidates[1]
+        sol.sequence[pos] = c
+
+        # The car is not in the list anymore
         len = len - 1
         filter!(x->x≠c, V)
 
         # Update M1, M2 and M3
-        update_sol!(sol, inst.nb_HPRC, pos, pos, inst.HPRC_p, inst.HPRC_q, inst.HPRC_flag)
-        update_sol!(sol, inst.nb_LPRC, pos, pos, inst.LPRC_p, inst.LPRC_q, inst.LPRC_flag, inst.nb_HPRC)
+        update_sol_atpos!(sol, inst.nb_HPRC, pos, inst.HPRC_p, inst.HPRC_q, inst.HPRC_flag)
+        update_sol_atpos!(sol, inst.nb_LPRC, pos, inst.LPRC_p, inst.LPRC_q, inst.LPRC_flag, inst.nb_HPRC)
 
     end
 

@@ -8,14 +8,9 @@
 #-------------------------------------------------------------------------------
 
 
-
-
-#-------------------------------------------------------------------------------
 # DEBUG
-#                         DEPRECIATED functions
-#
-#-------------------------------------------------------------------------------
-
+# DEPRECIATED function
+# --> Call functions in "solution.jl"
 """
     update_late_violation!(solution::Solution, nb::Int, last::Int,
                            p::Array{Int, 1}, q::Array{Int, 1},
@@ -45,6 +40,9 @@ function update_late_violation!(solution::Solution, nb::Int, last::Int,
     return solution
 end
 
+# DEBUG
+# DEPRECIATED and INVALID function (for general case)
+# --> Call functions in "solution.jl"
 """
     update_solution!(solution::Solution, nb::Int, first::Int, last::Int,
                      p::Array{Int, 1}, q::Array{Int, 1},
@@ -83,6 +81,9 @@ function update_solution!(solution::Solution, nb::Int, first::Int, last::Int,
     return solution
 end
 
+# DEBUG
+# DEPRECIATED function
+# --> Call functions in "solution.jl"
 """
     update_solution_at!(solution::Solution, nb::Int, pos::Int,
                         p::Array{Int, 1}, q::Array{Int, 1},
@@ -119,11 +120,9 @@ end
 
 
 
-#-------------------------------------------------------------------------------
-#
-#                         Greedy algorithm
-#
-#-------------------------------------------------------------------------------
+##===================================================##
+##                 Greedy algorithm                  ##
+##===================================================##
 
 """
     greedy(inst::Instance)

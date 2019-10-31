@@ -1,8 +1,10 @@
-#=
-# This file contains functions that are used in VNS and ILS.
-#
-# @Author Boualem Lamraoui, Benoît Le Badezet, Benoit Loger, Jonathan Fontaine, Killian Fretaud, Rémi Garcia
-# =#
+#-------------------------------------------------------------------------------
+# File: functions.jl
+# Description: This file contains functions that are used in VNS and ILS.
+# Date: October 31, 2019
+# Author: Jonathan Fontaine, Killian Fretaud, Rémi Garcia,
+#         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
+#-------------------------------------------------------------------------------
 
 """
     move_exchange!(solution::Solution, i::Int, j::Int, instance::Instance)

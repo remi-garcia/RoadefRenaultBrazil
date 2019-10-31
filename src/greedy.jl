@@ -119,7 +119,7 @@ function greedy(inst::Instances)
     nbH = inst.nb_HPRC
 
     # Compute for each option the number of cars who need it in V
-    # This should probably be done directly in the parser and stocked in
+    # TODO : This should probably be done directly in the parser and stocked in
     # the instance
     rv = sum(inst.HPRC_flag,dims=1)
 
@@ -195,6 +195,7 @@ function greedy(inst::Instances)
             end
 
             # Compute the new candidate list
+            # TODO use popfirst and push to filter candidates instead of copying the table
             tmp_candidates = copy(candidates)
             candidates = [tmp_candidates[1]]
             max_tie_break = tie_break[1]

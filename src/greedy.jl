@@ -65,6 +65,8 @@ function update_solution!(solution::Solution, nb::Int, first::Int, last::Int,
             solution.M3[J, i] = solution.M3[J, i-1] + (solution.M1[J, i] >= p[j] ? 1 : 0)
         end
     end
+
+    return solution
 end
 
 """
@@ -97,9 +99,15 @@ function update_solution_at!(solution::Solution, nb::Int, pos::Int,
             end
         end
     end
+
+    return solution
 end
 
+"""
+    greedy(inst::Instances)
 
+Takes an `Instance` and return a valid `Solution`.
+"""
 function greedy(inst::Instances)
     # The constructive greedy heuristic starts with a partial sequence formed
     # by the remaining cars from the previous day. We compute an empty sequence

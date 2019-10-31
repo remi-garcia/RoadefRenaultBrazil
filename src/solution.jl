@@ -1,5 +1,3 @@
-include("parser.jl")
-
 mutable struct Solution
     n:: Int
         # Size

@@ -66,7 +66,6 @@ function init_solution(instance::Instance)
     return solution
 end
 
-
 """
     update_matrices!(solution::Solution, nb::Int, instance::Instance)
 
@@ -117,7 +116,6 @@ function update_matrices!(solution::Solution, nb::Int, instance::Instance)
         end
     end
 end
-
 
 """
     update_matrices_new_car!(solution::Solution, position::Int, instance::Instance)

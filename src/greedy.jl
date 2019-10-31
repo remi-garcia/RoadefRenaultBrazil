@@ -118,8 +118,6 @@ function update_solution_at!(solution::Solution, nb::Int, pos::Int,
     return solution
 end
 
-
-
 ##===================================================##
 ##                 Greedy algorithm                  ##
 ##===================================================##

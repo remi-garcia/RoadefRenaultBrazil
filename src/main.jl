@@ -19,6 +19,7 @@ include("parser.jl")
 include("solution.jl")
 include("functions.jl")
 include("constants.jl")
+include("greedy.jl")
 
 function main()
     # Instance and initiale solution

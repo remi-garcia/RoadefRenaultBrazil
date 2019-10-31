@@ -1,6 +1,20 @@
-#=
-This file contains all function used to construct a first valid solution.
-=#
+#-------------------------------------------------------------------------------
+# File: greedy.jl
+# Description: This file contains all function used to construct
+#         a first valid solution.
+# Date: October 31, 2019
+# Author: Jonathan Fontaine, Killian Fretaud, Rémi Garcia,
+#         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
+#-------------------------------------------------------------------------------
+
+
+
+
+#-------------------------------------------------------------------------------
+# DEBUG
+#                         DEPRECIATED functions
+#
+#-------------------------------------------------------------------------------
 
 """
     update_late_violation!(solution::Solution, nb::Int, last::Int,
@@ -102,6 +116,14 @@ function update_solution_at!(solution::Solution, nb::Int, pos::Int,
 
     return solution
 end
+
+
+
+#-------------------------------------------------------------------------------
+#
+#                         Greedy algorithm
+#
+#-------------------------------------------------------------------------------
 
 """
     greedy(inst::Instance)

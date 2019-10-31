@@ -218,14 +218,43 @@ function greedy(inst::Instances)
         # in the sense that they are updated whenever a new car is added at
         # the end of the sequence.
         if length(candidates) > 1
-            #TODO
-        end
+            # Compute the utilization rate of each options
+            utilization_rate = Array{AbstractFloat,1}(UndefInitializer(),nbH)
+            for j in 1:nbH
+                utilization_rate[j] = ( (rv[j] - rpi[j])/len ) / ( inst.HPRC_p[j] / inst.HPRC_q[j] )
+            end
+            tie_tie_break = zeros(length(candidates))
+            for i in 1:length(candidates)
+                for j in 1:nbH
+                    tie_tie_break[i] += inst.HPRC_flag[candidates[i],j] * utilization_rate[j]
+                end
+            end
 
+            # Compute the new candidate list
+            # TODO use popfirst and push to filter candidates instead of copying the table
+            tmp_candidates = copy(candidates)
+            candidates = [tmp_candidates[1]]
+            max_tie_tie_break = tie_break[1]
+            for i in 2:length(tmp_candidates)
+              if tie_tie_break[i] > max_tie_tie_break
+                  candidates = [tmp_candidates[i]]
+                  max_tie_tie_break = tie_tie_break[i]
+              elseif tie_tie_break[i] == max_tie_tie_break
+                  push!(candidates, tmp_candidates[i])
+              end
+            end
+        end
+        println(candidates)
         c = candidates[1]     # We have a valid candidate
         solution.sequence[pos] = c
         len = len - 1
         length_pi = length_pi + 1
         filter!(x->x≠c, V)    # The car is not in the list anymore
+
+        # Update rpi with the options of c
+        for j in 1:nbH
+            rpi[j] += Int(inst.HPRC_flag[c,j])
+        end
 
         # Update M1, M2 and M3
         update_solution_at!(solution, inst.nb_HPRC, pos, inst.HPRC_p, inst.HPRC_q, inst.HPRC_flag)

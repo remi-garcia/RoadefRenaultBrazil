@@ -12,7 +12,7 @@ include("parser.jl")
 Interverts the car `i` with the car `j` in `solution.sequence`. Updates
 `solution.M1`, `solution.M2` and `solution.M3`.
 """
-function move_exchange(solution::Solution,i::Int,j::Int, instance::Instances)
+function move_exchange!(solution::Solution,i::Int,j::Int, instance::Instances)
     sol_i=solution.sequence[i]
     solution.sequence[i]=solution.sequence[j]
     solution.sequence[j]=sol_i

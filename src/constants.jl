@@ -86,3 +86,5 @@ const INSTANCES = Dict{String, Array{String, 1}}(
         "035_CH1_RAF_EP_S50_J4"
     ]
 )
+
+const WEIGHTS_OBJECTIVE_FUNCTION = [1000000, 1000, 1]

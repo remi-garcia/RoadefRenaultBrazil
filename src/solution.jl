@@ -1,6 +1,8 @@
 include("parser.jl")
 
 mutable struct Solution
+    n:: Int
+        # Size
     sequence::Array{Int, 1}
         # vector of cars (sequence pi or s in the following algorithms)
     M1::Array{Int, 2}
@@ -15,12 +17,14 @@ mutable struct Solution
         # cars that require oj is greater than or equal to p(oj)
 
     Solution(nC::Int,nO::Int) = new(
-        collect(1:nC),
+        nC,
+        zeros(Int,nC),#collect(1:nC),
         zeros(Int,nO,nC),
         zeros(Int,nO,nC),
         zeros(Int,nO,nC)
     )
 end
+
 
 # Build an initial
 function init_solution(nom_fichier::String, type_fichier::String)
@@ -30,5 +34,21 @@ function init_solution(nom_fichier::String, type_fichier::String)
     n = length(instance.color_code)
     m = instance.nb_HPRC + instance.nb_LPRC # number of ratio
     solution = Solution(n,m)
+
+    for i in 1:instance.nb_late_prec_day
+        solution.sequence[i] = i
+    end
+    return solution
+end
+
+# Build an initial
+function init_solution(instance::Instances)
+    n = length(instance.color_code)
+    m = instance.nb_HPRC + instance.nb_LPRC # number of ratio
+    solution = Solution(n,m)
+
+    for i in 1:instance.nb_late_prec_day
+        solution.sequence[i] = i
+    end
     return solution
 end

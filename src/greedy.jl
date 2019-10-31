@@ -118,11 +118,27 @@ function greedy(inst::Instances)
     V = collect((inst.nb_late_prec_day+1):(solution.n))
     nbH = inst.nb_HPRC
 
+    # Compute for each option the number of cars who need it in V
+    # TODO : This should probably be done directly in the parser and stocked in
+    # the instance
+    rv = sum(inst.HPRC_flag,dims=1)
+
     # For the nb_late_prec_day first cars
     # Update M1, M2, M3
     #TODO: clean parameters
     update_late_violation!(solution, inst.nb_HPRC, inst.nb_late_prec_day, inst.HPRC_p, inst.HPRC_q, inst.HPRC_flag)
     update_late_violation!(solution, inst.nb_LPRC, inst.nb_late_prec_day, inst.LPRC_p, inst.LPRC_q, inst.LPRC_flag, inst.nb_HPRC)
+
+    # Compute for each option the number of cars who need it in Pi
+    length_pi = inst.nb_late_prec_day
+    rpi = zeros(Int,nbH)
+    for j in 1:nbH
+        for i in 1:inst.nb_late_prec_day
+            if inst.HPRC_flag[i,j]
+                rpi[j] = rpi[j]+1
+            end
+        end
+    end
 
     # The greedy criterion consists in choosing, at each iteration, the car
     # that induces the smallest number of new violations when inserted at
@@ -168,7 +184,29 @@ function greedy(inst::Instances)
         #   the sequence.
         #
         if length(candidates) > 1
-            #TODO
+            # Compute the tie break criterion for each candidates
+            tie_break = zeros(Int,length(candidates))
+            for i in 1:length(candidates)
+                for j in 1:nbH
+                    cond1 = !inst.HPRC_flag[candidates[i],j]
+                    cond2 = (rv[j]-rpi[j])/len > (rpi[j])/length_pi
+                    tie_break[i] += Int(xor( cond1 , cond2 ))
+                end
+            end
+
+            # Compute the new candidate list
+            # TODO use popfirst and push to filter candidates instead of copying the table
+            tmp_candidates = copy(candidates)
+            candidates = [tmp_candidates[1]]
+            max_tie_break = tie_break[1]
+            for i in 2:length(tmp_candidates)
+              if tie_break[i] > max_tie_break
+                  candidates = [tmp_candidates[i]]
+                  max_tie_break = tie_break[i]
+              elseif tie_break[i] == max_tie_break
+                  push!(candidates, tmp_candidates[i])
+              end
+            end
         end
 
         # If |candidates| =/= 1 : DOUBLE TIE BREAK
@@ -186,6 +224,7 @@ function greedy(inst::Instances)
         c = candidates[1]     # We have a valid candidate
         solution.sequence[pos] = c
         len = len - 1
+        length_pi = length_pi + 1
         filter!(x->x≠c, V)    # The car is not in the list anymore
 
         # Update M1, M2 and M3

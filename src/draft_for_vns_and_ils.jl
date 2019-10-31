@@ -1,56 +1,8 @@
-#=
-# VNS for the RENAULT Roadef 2005 challenge
-# inspired by work of
-# Celso C. Ribeiro, Daniel Aloise, Thiago F. Noronha, Caroline Rocha, Sebastián Urrutia
-#
-# @Author Boualem Lamraoui, Benoît Le Badezet, Benoit Loger, Jonathan Fontaine, Killian Fretaud, Rémi Garcia
-# =#
-
-
-
-# Complete strategy can be summerize as follow:
-#
-#   (1) Use a constructive heuristic to find an initial solution.
-#   (2) Use an improvement heuristic to optimize the first objective.
-#   (3) Use an improvement heuristic to optimize the second objective.
-#   (4) Use a repair heuristic to make the current solution feasible.
-#   (5) Use an improvement heuristic to optimize the third objective.
-#
-
-include("parser.jl")
-include("solution.jl")
-
-
-##===================================================##
-##           Data stucture and Parser                ##
-##===================================================##
-
-nom_fichier = "022_3_4_EP_RAF_ENP"
-type_fichier = "A"
-
-solution = init_solution(nom_fichier, type_fichier)
-
-##===================================================##
-##                Greedy algorithms                  ##
-##===================================================##
-
-# TODO: need to know data representation for this one
-
-#= Idea:
-#
-#   next candidate is car c such that
-#       c induces the smallest number of new violations
-#   tie --> tie breaking criterion to maximize
-#       sum (on j) of (oj = 0) XOR (more oj out than in pi)
-#   tie --> options with high utilization rate first
-#
-# =#
-
+#TODO This file should be removed when vns.jl and ils.jl are done.
 
 ##===================================================##
 ##                 Useful variables                  ##
 ##===================================================##
-
 # Number of neighborhoods for VNS
 k_max = 1
 
@@ -59,15 +11,9 @@ C = 10 # Number of cars
 W = 3 # Number of cars for the current day
 b0 = C - W # First index for the current day
 
-
-
-
-
 ##===================================================##
 ##                Useful algorithms                  ##
 ##===================================================##
-
-
 # For a fixed neighborhood
 function perturbation(s)
     #TODO
@@ -76,11 +22,6 @@ end
 
 # For a given neighborhood
 function perturbation(s, Nk)
-    #TODO
-    return s
-end
-
-function move(s, i, j)
     #TODO
     return s
 end
@@ -128,7 +69,6 @@ function localSearch(s)
     return s
 end
 
-
 function intensification(s)
     #TODO
     return s
@@ -139,14 +79,9 @@ function diversification(s)
     return s
 end
 
-
 ##===================================================##
 ##                 Algorithm ILS                     ##
 ##===================================================##
-
-
-
-
 function generic_ILS(s)
     S = copy(s)
     cond = false #TODO
@@ -162,7 +97,6 @@ function generic_ILS(s)
     end
     return S
 end
-
 
 function generic_extended_ILS(s)
     S = copy(s)
@@ -188,13 +122,9 @@ function generic_extended_ILS(s)
     return S
 end
 
-
-
 ##===================================================##
 ##                 Algorithm VNS                     ##
 ##===================================================##
-
-
 function generic_VNS(s)
     S = copy(s)
     cond = false #TODO
@@ -216,7 +146,6 @@ function generic_VNS(s)
     end
     return S
 end
-
 
 function generic_extended_VNS(s)
     S = copy(s)

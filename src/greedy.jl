@@ -143,7 +143,7 @@ function greedy(inst::Instance)
     # Compute for each option the number of cars who need it in V
     # TODO : This should probably be done directly in the parser and stocked in
     # the instance
-    rv = sum(inst.HPRC_flag,dims=1)
+    rv = sum(inst.RC_flag,dims=1)
 
     # For the nb_late_prec_day first cars
     # Update M1, M2, M3
@@ -154,7 +154,7 @@ function greedy(inst::Instance)
     rpi = zeros(Int,nbH)
     for j in 1:nbH
         for i in 1:inst.nb_late_prec_day
-            if inst.HPRC_flag[i,j]
+            if inst.RC_flag[i,j]
                 rpi[j] = rpi[j]+1
             end
         end
@@ -208,7 +208,7 @@ function greedy(inst::Instance)
             tie_break = zeros(Int,length(candidates))
             for i in 1:length(candidates)
                 for j in 1:nbH
-                    cond1 = !inst.HPRC_flag[candidates[i],j]
+                    cond1 = !inst.RC_flag[candidates[i],j]
                     cond2 = (rv[j]-rpi[j])/len > (rpi[j])/length_pi
                     tie_break[i] += Int(xor( cond1 , cond2 ))
                 end

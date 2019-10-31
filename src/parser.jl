@@ -29,8 +29,10 @@ struct Instances
     # paint limitation
     nb_paint_limitation::Int
     # ratio constraint
-    HPRC::Array{Float64, 1}
-    LPRC::Array{Float64, 1}
+    HPRC_p::Array{Int, 1}
+    HPRC_q::Array{Int, 1}
+    LPRC_p::Array{Int, 1}
+    LPRC_q::Array{Int, 1}
     nb_HPRC::Int
     nb_LPRC::Int
     # sequence vehicle data
@@ -67,19 +69,23 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
 
     # Ratio data
     n, m = size(df_ratio)
-    HPRC = Array{Float64, 1}()
-    LPRC = Array{Float64, 1}()
+    HPRC_p = Array{Int, 1}()
+    HPRC_q = Array{Int, 1}()
+    LPRC_p = Array{Int, 1}()
+    LPRC_q = Array{Int, 1}()
     for i in 1:n
-        a, b = parse.(Float64, split(df_ratio.Ratio[i], "/"))
+        a, b = parse.(Int, split(df_ratio.Ratio[i], "/"))
         if (df_ratio.Prio[i] == 1)
-            push!(HPRC, a/b)
+            push!(HPRC_p, a)
+            push!(HPRC_q, b)
         else
-            push!(LPRC, a/b)
+            push!(LPRC_p, a)
+            push!(LPRC_q, b)
         end
     end
 
-    nb_high = length(HPRC)
-    nb_low = length(LPRC)
+    nb_high = length(HPRC_p)
+    nb_low = length(LPRC_p)
 
     # vehicles data
     if nb_high > 0
@@ -101,7 +107,7 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     return Instances(
             HPRC_rank, LPRC_rank, PCB_rank,                     # objectives file
             nb_paint_limitation,                                # paint file
-            HPRC, LPRC, nb_high, nb_low,                        # ratio file
+            HPRC_p, HPRC_q, LPRC_p, LPRC_q, nb_high, nb_low,    # ratio file
             HPRC_flag, LPRC_flag, color_code, nb_late_prec_day  # vehicles file
         )
 end

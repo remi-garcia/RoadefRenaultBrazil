@@ -6,8 +6,6 @@
 # @Author Boualem Lamraoui, Benoît Le Badezet, Benoit Loger, Jonathan Fontaine, Killian Fretaud, Rémi Garcia
 # =#
 
-
-
 # Complete strategy can be summerize as follow:
 #
 #   (1) Use a constructive heuristic to find an initial solution.
@@ -19,21 +17,13 @@
 
 include("parser.jl")
 include("solution.jl")
+include("functions.jl")
+include("constants.jl")
 
-
-##===================================================##
-##           Data stucture and Parser                ##
-##===================================================##
-
-nom_fichier = "022_3_4_EP_RAF_ENP"
-type_fichier = "A"
-
-solution = init_solution(nom_fichier, type_fichier)
 
 ##===================================================##
 ##                Greedy algorithms                  ##
 ##===================================================##
-
 # TODO: need to know data representation for this one
 
 #= Idea:
@@ -50,7 +40,6 @@ solution = init_solution(nom_fichier, type_fichier)
 ##===================================================##
 ##                 Useful variables                  ##
 ##===================================================##
-
 # Number of neighborhoods for VNS
 k_max = 1
 
@@ -66,8 +55,6 @@ b0 = C - W # First index for the current day
 ##===================================================##
 ##                Useful algorithms                  ##
 ##===================================================##
-
-
 # For a fixed neighborhood
 function perturbation(s)
     #TODO
@@ -76,11 +63,6 @@ end
 
 # For a given neighborhood
 function perturbation(s, Nk)
-    #TODO
-    return s
-end
-
-function move(s, i, j)
     #TODO
     return s
 end
@@ -143,10 +125,6 @@ end
 ##===================================================##
 ##                 Algorithm ILS                     ##
 ##===================================================##
-
-
-
-
 function generic_ILS(s)
     S = copy(s)
     cond = false #TODO
@@ -193,8 +171,6 @@ end
 ##===================================================##
 ##                 Algorithm VNS                     ##
 ##===================================================##
-
-
 function generic_VNS(s)
     S = copy(s)
     cond = false #TODO
@@ -239,4 +215,14 @@ function generic_extended_VNS(s)
         end
     end
     return S
+end
+
+
+function main()
+    # Instance and initiale solution
+    type_fichier = "A"
+    nom_fichier = INSTANCES[type_fichier][1]
+    solution = init_solution(nom_fichier, type_fichier)
+
+    # Greedy
 end

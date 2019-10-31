@@ -1,3 +1,15 @@
+#=
+# This file contains functions that are used in VNS and ILS.
+#
+# @Author Jonathan Fontaine, Killian Fretaud, Rémi Garcia, Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
+# =#
+
+
+"""
+    Solution
+
+Create a empty sequence with matrices of zeros.
+"""
 mutable struct Solution
     n:: Int
         # Size
@@ -40,7 +52,7 @@ function init_solution(nom_fichier::String, type_fichier::String)
 end
 
 # Build an initial
-function init_solution(instance::Instances)
+function init_solution(instance::Instance)
     n = length(instance.color_code)
     m = instance.nb_HPRC + instance.nb_LPRC # number of ratio
     solution = Solution(n,m)
@@ -49,4 +61,49 @@ function init_solution(instance::Instances)
         solution.sequence[i] = i
     end
     return solution
+end
+
+
+
+function update_matrices!(solution::Solution, nb::Int, instance::Instance)
+    nb_RC = instance.nb_HPRC+instance.nb_LPRC
+
+    # Last column has just one car
+    for option in 1:nb_RC
+        car = solution.sequence[nb]
+        if flag[car,option]
+            solution.M1[option,nb] = 1
+        end
+    end
+
+    for counter in 0:(nb-1)
+        index = nb-counter
+        car = solution.sequence[index]
+        for option in 1:nb_RC
+            if instance.flag[car,option]
+                solution.M1[option,index] = solution.M1[option,index+1] + 1
+            else
+                solution.M1[option,index] = solution.M1[option,index+1]
+            end
+
+            # Is there one car not reach anymore
+            index_first_out = index + instance.RP_q[option]
+            if index_first_out <= nb
+                car_first_out = solution.sequence[index_first_out]
+                if instance.flag[car_first_out,option]
+                    solution.M1[option,index] = solution.M1[option,index] - 1
+                end
+            end
+        end
+    end
+
+    # Update M2 and M3
+    for option in 1:nb_RC
+        solution.M2[option, 1] = (solution.M1[option, 1] >  p[option] ? 1 : 0)
+        solution.M3[option, 1] = (solution.M1[option, 1] >= p[option] ? 1 : 0)
+        for index in 2:nb
+            solution.M2[option, index] = solution.M2[option, index-1] + (solution.M1[option, index] >  p[option] ? 1 : 0)
+            solution.M3[option, index] = solution.M3[option, index-1] + (solution.M1[option, index] >= p[option] ? 1 : 0)
+        end
+    end
 end

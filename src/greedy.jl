@@ -120,9 +120,7 @@ function greedy(inst::Instance)
 
     # For the nb_late_prec_day first cars
     # Update M1, M2, M3
-    #TODO: clean parameters
-    update_late_violation!(solution, inst.nb_HPRC, inst.nb_late_prec_day, inst.HPRC_p, inst.HPRC_q, inst.HPRC_flag)
-    update_late_violation!(solution, inst.nb_LPRC, inst.nb_late_prec_day, inst.LPRC_p, inst.LPRC_q, inst.LPRC_flag, inst.nb_HPRC)
+    update_matrices!(solution, inst.nb_late_prec_day, inst)
 
     # The greedy criterion consists in choosing, at each iteration, the car
     # that induces the smallest number of new violations when inserted at
@@ -132,9 +130,9 @@ function greedy(inst::Instance)
         nb_new_violation = zeros(Int, len)
         for c in 1:len
             for j in 1:inst.nb_HPRC
-                if inst.HPRC_flag[V[c], j]
-                    for i in ((pos - inst.HPRC_q[j])+1):pos
-                        if solution.M1[j, i] >= inst.HPRC_p[j]
+                if inst.RC_flag[V[c], j]
+                    for i in ((pos - inst.RC_q[j])+1):pos
+                        if solution.M1[j, i] >= inst.RC_p[j]
                             nb_new_violation[c] = nb_new_violation[c] + 1
                         end
                     end
@@ -189,8 +187,7 @@ function greedy(inst::Instance)
         filter!(x->x≠c, V)    # The car is not in the list anymore
 
         # Update M1, M2 and M3
-        update_solution_at!(solution, inst.nb_HPRC, pos, inst.HPRC_p, inst.HPRC_q, inst.HPRC_flag)
-        update_solution_at!(solution, inst.nb_LPRC, pos, inst.LPRC_p, inst.LPRC_q, inst.LPRC_flag, inst.nb_HPRC)
+        update_matrices_new_car!(solution, pos, inst)
     end
 
     return solution

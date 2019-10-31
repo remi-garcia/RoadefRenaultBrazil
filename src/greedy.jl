@@ -246,17 +246,30 @@ function greedy(inst::Instances)
 
             # Compute the new candidate list
             # TODO use popfirst and push to filter candidates instead of copying the table
-            tmp_candidates = copy(candidates)
-            candidates = [tmp_candidates[1]]
-            max_tie_tie_break = tie_break[1]
-            for i in 2:length(tmp_candidates)
-              if tie_tie_break[i] > max_tie_tie_break
-                  candidates = [tmp_candidates[i]]
-                  max_tie_tie_break = tie_tie_break[i]
-              elseif tie_tie_break[i] == max_tie_tie_break
-                  push!(candidates, tmp_candidates[i])
-              end
+            tmp_candidates = [candidates[1]]
+            max_tie_tie_break = tie_tie_break[1]
+            for i in 2:length(tie_tie_break)
+                # next candidate...
+                if tie_tie_break[i] > max_tie_tie_break # ...is better (keep only him)
+                    tmp_candidates = [candidates[i]]
+                    max_tie_tie_break = tie_tie_break[i]
+                elseif tie_tie_break[i] == max_tie_tie_break # ...is even (keep him too)
+                    push!(tmp_candidates, candidates[i])
+                end # ...is worse (throw it away)
             end
+            candidates = tmp_candidates
+            # Old version
+            # tmp_candidates = copy(candidates)
+            # candidates = [tmp_candidates[1]]
+            # max_tie_tie_break = tie_break[1]
+            # for i in 2:length(tmp_candidates)
+            #   if tie_tie_break[i] > max_tie_tie_break
+            #       candidates = [tmp_candidates[i]]
+            #       max_tie_tie_break = tie_tie_break[i]
+            #   elseif tie_tie_break[i] == max_tie_tie_break
+            #       push!(candidates, tmp_candidates[i])
+            #   end
+            # end
         end
         println(candidates)
         c = candidates[1]     # We have a valid candidate

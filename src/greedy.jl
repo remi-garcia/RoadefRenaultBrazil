@@ -223,14 +223,13 @@ function greedy(inst::Instances)
         c = candidates[1]     # We have a valid candidate
         solution.sequence[pos] = c
         len = len - 1
-        length_pi = length_pi - 1
+        length_pi = length_pi + 1
         filter!(x->x≠c, V)    # The car is not in the list anymore
 
         # Update M1, M2 and M3
         update_solution_at!(solution, inst.nb_HPRC, pos, inst.HPRC_p, inst.HPRC_q, inst.HPRC_flag)
         update_solution_at!(solution, inst.nb_LPRC, pos, inst.LPRC_p, inst.LPRC_q, inst.LPRC_flag, inst.nb_HPRC)
     end
-
 
     return solution
 end

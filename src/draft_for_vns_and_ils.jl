@@ -1,3 +1,5 @@
+#TODO This file should be removed when vns.jl and ils.jl are done.
+
 ##===================================================##
 ##                 Useful variables                  ##
 ##===================================================##

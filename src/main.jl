@@ -24,7 +24,6 @@ function main()
     # Instance and initiale solution
     type_fichier = "A"
     nom_fichier = INSTANCES[type_fichier][1]
-    solution = init_solution(nom_fichier, type_fichier)
 
     # Greedy
     #TODO apply greedy (see PR #15)

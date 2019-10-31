@@ -104,11 +104,11 @@ function update_solution_at!(solution::Solution, nb::Int, pos::Int,
 end
 
 """
-    greedy(inst::Instances)
+    greedy(inst::Instance)
 
 Takes an `Instance` and return a valid `Solution`.
 """
-function greedy(inst::Instances)
+function greedy(inst::Instance)
     # The constructive greedy heuristic starts with a partial sequence formed
     # by the remaining cars from the previous day. We compute an empty sequence
     # with some cars already scheduled

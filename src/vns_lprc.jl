@@ -32,13 +32,6 @@ function perturbation_VNS_LPRC(solution::Solution, p::Int, k::Int, instance::Ins
     end
 end
 
-# Return true if car i and car j are invovled in the same HPRC.
-function same_HPRC(solution::Solution, i::Int, j::Int)
-    nb_HPRC_violated_i = sum(solution.M2[k, i] for k in 1:instance.nb_HPRC)
-    nb_HPRC_violated_j = sum(solution.M2[k, j] for k in 1:instance.nb_HPRC)
-    return nb_HPRC_violated_i == nb_HPRC_violated_j
-end
-
 # The Local Search is based on a car exchange move.
 function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, instance::Instances)
 

@@ -1,128 +1,166 @@
-#=
-This file contains all function used to construct a first valid solution.
-=#
+#-------------------------------------------------------------------------------
+# File: greedy.jl
+# Description: This file contains all function used to construct
+#         a first valid solution.
+# Date: October 31, 2019
+# Author: Jonathan Fontaine, Killian Fretaud, Rémi Garcia,
+#         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
+#-------------------------------------------------------------------------------
 
 
-function update_late_violation!(    sol::Solution,
-                                    nb::Int, # number of options treated
-                                    last::Int,
-                                    p::Array{Int, 1}, q::Array{Int, 1},
-                                    flag::Array{Bool, 2},
-                                    shift::Int=0   #= for LPRC =#       )
-    # For the nb_late_prec_day first cars
-    # Update M1, M2, M3
+"""
+    update_late_violation!(solution::Solution, nb::Int, last::Int,
+                           p::Array{Int, 1}, q::Array{Int, 1},
+                           flag::Array{Bool, 2}, shift::Int = 0)
+
+Update `solution.M1`, `solution.M2` and `solution.M3` with cars from the day
+before. `shift` parameter is used for LPRC.
+"""
+function update_late_violation!(solution::Solution, nb::Int, last::Int,
+                                p::Array{Int, 1}, q::Array{Int, 1},
+                                flag::Array{Bool, 2}, shift::Int = 0)
+    @warn "Function update_late_violation! deprecated -> call functions in solution.jl"
+    # Update M1, M2 and M3 for the first car
     for j in 1:nb
         J = j + shift
-
-        # first sequence is compute wihout smart thoughts
         for i in 1:q[j]
-            if flag[i,j] # if i has the option, M1 increments
-                sol.M1[J,1] = sol.M1[J,1] + 1
+            if flag[i,j]
+                solution.M1[J,1] = solution.M1[J,1] + 1
             end
         end
         # First column of M2 and M3 can be update
-        sol.M2[J,1] = (sol.M1[J,1] >  p[j] ? 1 : 0)
-        sol.M3[J,1] = (sol.M1[J,1] >= p[j] ? 1 : 0)
-
-        update_sol!(sol, nb, 2, last, p, q, flag, shift)
+        solution.M2[J,1] = (solution.M1[J,1] >  p[j] ? 1 : 0)
+        solution.M3[J,1] = (solution.M1[J,1] >= p[j] ? 1 : 0)
     end
+
+    update_solution!(solution, nb, 2, last, p, q, flag, shift)
+    return solution
 end
 
+"""
+    update_solution!(solution::Solution, nb::Int, first::Int, last::Int,
+                     p::Array{Int, 1}, q::Array{Int, 1},
+                     flag::Array{Bool, 2}, shift::Int = 0)
 
-# Parameter "first" seems now useless, I thought it would allow us to use the
-# function during the next phase (updating solution after pushing a new car)
-function update_sol!(   sol::Solution,
-                        nb::Int, # number of options treated
-                        first::Int, last::Int,
-                        p::Array{Int, 1}, q::Array{Int, 1},
-                        flag::Array{Bool, 2},
-                        shift::Int=0  #= for LPRC =#          )
+Update `solution.M1`, `solution.M2` and `solution.M3` with cars from the day
+before. The first column has already been updated in `update_late_violation!()`.
+`shift` parameter is used for LPRC.
+"""
+function update_solution!(solution::Solution, nb::Int, first::Int, last::Int,
+                          p::Array{Int, 1}, q::Array{Int, 1},
+                          flag::Array{Bool, 2}, shift::Int = 0)
+    @warn "Function update_solution! deprecated -> call functions in solution.jl"
     for j in 1:nb
         J = j + shift
         # for each shift of sequences
         for i in first:last
-            sol.M1[J,i] = sol.M1[J,i-1]
-
+            solution.M1[J, i] = solution.M1[J, i-1]
             # previous case had flag -> not in anymore
-            I = sol.sequence[i-1]
+            I = solution.sequence[i-1]
             if flag[I,j]
-                sol.M1[J,i] = sol.M1[J,i] - 1
+                solution.M1[J, i] = solution.M1[J, i] - 1
             end
-
             # new case has flag -> in now
             if (i+q[j]-1) <= last
-                I = sol.sequence[(i+q[j])-1]
-                if flag[I,j]
-                    sol.M1[J,i] = sol.M1[J,i] + 1
+                I = solution.sequence[(i+q[j])-1]
+                if flag[I, j]
+                    solution.M1[J, i] = solution.M1[J, i] + 1
                 end
             end
-
             # First column of M2 and M3 can be update
-            sol.M2[J,i] = sol.M2[J,i-1] + (sol.M1[J,i] >  p[j] ? 1 : 0)
-            sol.M3[J,i] = sol.M3[J,i-1] + (sol.M1[J,i] >= p[j] ? 1 : 0)
+            solution.M2[J, i] = solution.M2[J, i-1] + (solution.M1[J, i] >  p[j] ? 1 : 0)
+            solution.M3[J, i] = solution.M3[J, i-1] + (solution.M1[J, i] >= p[j] ? 1 : 0)
         end
     end
+
+    return solution
 end
 
+"""
+    update_solution_at!(solution::Solution, nb::Int, pos::Int,
+                        p::Array{Int, 1}, q::Array{Int, 1},
+                        flag::Array{Bool, 2}, shift::Int = 0)
 
-function update_sol_atpos!( sol::Solution,
-                            nb::Int,
-                            pos::Int,
-                            p::Array{Int, 1}, q::Array{Int, 1},
-                            flag::Array{Bool, 2},
-                            shift::Int=0                        )
+Update column `pos` of `solution.M1`, `solution.M2` and `solution.M3`. `shift`
+parameter is used for LPRC.
+"""
+function update_solution_at!(solution::Solution, nb::Int, pos::Int,
+                           p::Array{Int, 1}, q::Array{Int, 1},
+                           flag::Array{Bool, 2}, shift::Int = 0)
+    @warn "Function update_solution_at! deprecated -> call functions in solution.jl"
     for j in 1:nb
         J = j + shift
         # for each shift of sequence reaching this position
-        I = sol.sequence[pos]
+        I = solution.sequence[pos]
         for i in (pos - q[j] + 1):pos
-
             # new car has option j -> update M1
-            if flag[I,j]
-                sol.M1[J,i] = sol.M1[J,i] + 1
+            if flag[I, j]
+                solution.M1[J, i] = solution.M1[J, i] + 1
             end
-
             # First column of M2 and M3 can be update
             if i == 1
-                sol.M2[J,i] = 0 + (sol.M1[J,i] >  p[j] ? 1 : 0)
-                sol.M3[J,i] = 0 + (sol.M1[J,i] >= p[j] ? 1 : 0)
+                solution.M2[J, i] = 0 + (solution.M1[J, i] >  p[j] ? 1 : 0)
+                solution.M3[J, i] = 0 + (solution.M1[J, i] >= p[j] ? 1 : 0)
             else
-                sol.M2[J,i] = sol.M2[J,i-1] + (sol.M1[J,i] >  p[j] ? 1 : 0)
-                sol.M3[J,i] = sol.M3[J,i-1] + (sol.M1[J,i] >= p[j] ? 1 : 0)
+                solution.M2[J, i] = solution.M2[J, i-1] + (solution.M1[J, i] >  p[j] ? 1 : 0)
+                solution.M3[J, i] = solution.M3[J, i-1] + (solution.M1[J, i] >= p[j] ? 1 : 0)
             end
         end
     end
+
+    return solution
 end
 
+##===================================================##
+##                 Greedy algorithm                  ##
+##===================================================##
 
-function greedy(inst::Instances)
+"""
+    greedy(instance::Instance)
+
+Takes an `Instance` and return a valid `Solution`.
+"""
+function greedy(instance::Instance)
     # The constructive greedy heuristic starts with a partial sequence formed
     # by the remaining cars from the previous day. We compute an empty sequence
     # with some cars already scheduled
-    sol = init_solution(inst)
+    solution = init_solution(instance)
     # We have V the set of cars to be scheduled
-    len = (sol.n) - (inst.nb_late_prec_day)
-    V = collect((inst.nb_late_prec_day+1):(sol.n))
-    nbH = inst.nb_HPRC
+    len = (solution.n) - (instance.nb_late_prec_day)
+    V = collect((instance.nb_late_prec_day+1):(solution.n))
+    nbH = instance.nb_HPRC
+
+    # Compute for each option the number of cars who need it in V
+    # TODO : This should probably be done directly in the parser and stocked in
+    # the instance
+    rv = sum(instance.RC_flag,dims=1)
 
     # For the nb_late_prec_day first cars
     # Update M1, M2, M3
-    # TODO: clean parameters
-    update_late_violation!(sol, inst.nb_HPRC, inst.nb_late_prec_day, inst.HPRC_p, inst.HPRC_q, inst.HPRC_flag)
-    update_late_violation!(sol, inst.nb_LPRC, inst.nb_late_prec_day, inst.LPRC_p, inst.LPRC_q, inst.LPRC_flag, inst.nb_HPRC)
+    update_matrices!(solution, instance.nb_late_prec_day, instance)
+
+    # Compute for each option the number of cars who need it in Pi
+    length_pi = instance.nb_late_prec_day
+    rpi = zeros(Int,nbH)
+    for j in 1:nbH
+        for i in 1:instance.nb_late_prec_day
+            if instance.RC_flag[i,j]
+                rpi[j] = rpi[j]+1
+            end
+        end
+    end
 
     # The greedy criterion consists in choosing, at each iteration, the car
     # that induces the smallest number of new violations when inserted at
     # the end of the current partial sequence.
-    for pos in (inst.nb_late_prec_day+1):(sol.n)
-
+    for pos in (instance.nb_late_prec_day+1):(solution.n)
         # Compute the number of violations caused by each car
         nb_new_violation = zeros(Int, len)
         for c in 1:len
-            for j in 1:inst.nb_HPRC
-                if inst.HPRC_flag[V[c],j]
-                    for i in ((pos - inst.HPRC_q[j])+1):pos
-                        if sol.M1[j,i] >= inst.HPRC_p[j]
+            for j in 1:instance.nb_HPRC
+                if instance.RC_flag[V[c], j]
+                    for i in ((pos - instance.RC_q[j])+1):pos
+                        if solution.M1[j, i] >= instance.RC_p[j]
                             nb_new_violation[c] = nb_new_violation[c] + 1
                         end
                     end
@@ -156,7 +194,29 @@ function greedy(inst::Instances)
         #   the sequence.
         #
         if length(candidates) > 1
-            #TODO
+            # Compute the tie break criterion for each candidates
+            tie_break = zeros(Int,length(candidates))
+            for i in 1:length(candidates)
+                for j in 1:nbH
+                    cond1 = !instance.RC_flag[candidates[i],j]
+                    cond2 = (rv[j]-rpi[j])/len > (rpi[j])/length_pi
+                    tie_break[i] += Int(xor( cond1 , cond2 ))
+                end
+            end
+
+            # Compute the new candidate list
+            # TODO use popfirst and push to filter candidates instead of copying the table
+            tmp_candidates = copy(candidates)
+            candidates = [tmp_candidates[1]]
+            max_tie_break = tie_break[1]
+            for i in 2:length(tmp_candidates)
+              if tie_break[i] > max_tie_break
+                  candidates = [tmp_candidates[i]]
+                  max_tie_break = tie_break[i]
+              elseif tie_break[i] == max_tie_break
+                  push!(candidates, tmp_candidates[i])
+              end
+            end
         end
 
         # If |candidates| =/= 1 : DOUBLE TIE BREAK
@@ -172,14 +232,14 @@ function greedy(inst::Instances)
         end
 
         c = candidates[1]     # We have a valid candidate
-        sol.sequence[pos] = c
+        solution.sequence[pos] = c
         len = len - 1
+        length_pi = length_pi + 1
         filter!(x->x≠c, V)    # The car is not in the list anymore
 
         # Update M1, M2 and M3
-        update_sol_atpos!(sol, inst.nb_HPRC, pos, inst.HPRC_p, inst.HPRC_q, inst.HPRC_flag)
-        update_sol_atpos!(sol, inst.nb_LPRC, pos, inst.LPRC_p, inst.LPRC_q, inst.LPRC_flag, inst.nb_HPRC)
+        update_matrices_new_car!(solution, pos, instance)
     end
 
-    return sol
+    return solution
 end

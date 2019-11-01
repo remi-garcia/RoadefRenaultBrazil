@@ -8,9 +8,6 @@
 #-------------------------------------------------------------------------------
 
 
-# DEBUG
-# DEPRECIATED function
-# --> Call functions in "solution.jl"
 """
     update_late_violation!(solution::Solution, nb::Int, last::Int,
                            p::Array{Int, 1}, q::Array{Int, 1},
@@ -22,6 +19,7 @@ before. `shift` parameter is used for LPRC.
 function update_late_violation!(solution::Solution, nb::Int, last::Int,
                                 p::Array{Int, 1}, q::Array{Int, 1},
                                 flag::Array{Bool, 2}, shift::Int = 0)
+    @warn "Depreciated -> call functions in solution.jl"
     # Update M1, M2 and M3 for the first car
     for j in 1:nb
         J = j + shift
@@ -40,9 +38,6 @@ function update_late_violation!(solution::Solution, nb::Int, last::Int,
     return solution
 end
 
-# DEBUG
-# DEPRECIATED and INVALID function (for general case)
-# --> Call functions in "solution.jl"
 """
     update_solution!(solution::Solution, nb::Int, first::Int, last::Int,
                      p::Array{Int, 1}, q::Array{Int, 1},
@@ -55,6 +50,7 @@ before. The first column has already been updated in `update_late_violation!()`.
 function update_solution!(solution::Solution, nb::Int, first::Int, last::Int,
                           p::Array{Int, 1}, q::Array{Int, 1},
                           flag::Array{Bool, 2}, shift::Int = 0)
+    @warn "Depreciated -> call functions in solution.jl"
     for j in 1:nb
         J = j + shift
         # for each shift of sequences
@@ -81,9 +77,6 @@ function update_solution!(solution::Solution, nb::Int, first::Int, last::Int,
     return solution
 end
 
-# DEBUG
-# DEPRECIATED function
-# --> Call functions in "solution.jl"
 """
     update_solution_at!(solution::Solution, nb::Int, pos::Int,
                         p::Array{Int, 1}, q::Array{Int, 1},
@@ -95,6 +88,7 @@ parameter is used for LPRC.
 function update_solution_at!(solution::Solution, nb::Int, pos::Int,
                            p::Array{Int, 1}, q::Array{Int, 1},
                            flag::Array{Bool, 2}, shift::Int = 0)
+    @warn "Depreciated -> call functions in solution.jl"
     for j in 1:nb
         J = j + shift
         # for each shift of sequence reaching this position
@@ -123,35 +117,35 @@ end
 ##===================================================##
 
 """
-    greedy(inst::Instance)
+    greedy(instance::Instance)
 
 Takes an `Instance` and return a valid `Solution`.
 """
-function greedy(inst::Instance)
+function greedy(instance::Instance)
     # The constructive greedy heuristic starts with a partial sequence formed
     # by the remaining cars from the previous day. We compute an empty sequence
     # with some cars already scheduled
-    solution = init_solution(inst)
+    solution = init_solution(instance)
     # We have V the set of cars to be scheduled
-    len = (solution.n) - (inst.nb_late_prec_day)
-    V = collect((inst.nb_late_prec_day+1):(solution.n))
-    nbH = inst.nb_HPRC
+    len = (solution.n) - (instance.nb_late_prec_day)
+    V = collect((instance.nb_late_prec_day+1):(solution.n))
+    nbH = instance.nb_HPRC
 
     # Compute for each option the number of cars who need it in V
     # TODO : This should probably be done directly in the parser and stocked in
     # the instance
-    rv = sum(inst.RC_flag,dims=1)
+    rv = sum(instance.RC_flag,dims=1)
 
     # For the nb_late_prec_day first cars
     # Update M1, M2, M3
-    update_matrices!(solution, inst.nb_late_prec_day, inst)
+    update_matrices!(solution, instance.nb_late_prec_day, instance)
 
     # Compute for each option the number of cars who need it in Pi
-    length_pi = inst.nb_late_prec_day
+    length_pi = instance.nb_late_prec_day
     rpi = zeros(Int,nbH)
     for j in 1:nbH
-        for i in 1:inst.nb_late_prec_day
-            if inst.RC_flag[i,j]
+        for i in 1:instance.nb_late_prec_day
+            if instance.RC_flag[i,j]
                 rpi[j] = rpi[j]+1
             end
         end
@@ -160,14 +154,14 @@ function greedy(inst::Instance)
     # The greedy criterion consists in choosing, at each iteration, the car
     # that induces the smallest number of new violations when inserted at
     # the end of the current partial sequence.
-    for pos in (inst.nb_late_prec_day+1):(solution.n)
+    for pos in (instance.nb_late_prec_day+1):(solution.n)
         # Compute the number of violations caused by each car
         nb_new_violation = zeros(Int, len)
         for c in 1:len
-            for j in 1:inst.nb_HPRC
-                if inst.RC_flag[V[c], j]
-                    for i in ((pos - inst.RC_q[j])+1):pos
-                        if solution.M1[j, i] >= inst.RC_p[j]
+            for j in 1:instance.nb_HPRC
+                if instance.RC_flag[V[c], j]
+                    for i in ((pos - instance.RC_q[j])+1):pos
+                        if solution.M1[j, i] >= instance.RC_p[j]
                             nb_new_violation[c] = nb_new_violation[c] + 1
                         end
                     end
@@ -205,7 +199,7 @@ function greedy(inst::Instance)
             tie_break = zeros(Int,length(candidates))
             for i in 1:length(candidates)
                 for j in 1:nbH
-                    cond1 = !inst.RC_flag[candidates[i],j]
+                    cond1 = !instance.RC_flag[candidates[i],j]
                     cond2 = (rv[j]-rpi[j])/len > (rpi[j])/length_pi
                     tie_break[i] += Int(xor( cond1 , cond2 ))
                 end
@@ -245,7 +239,7 @@ function greedy(inst::Instance)
         filter!(x->x≠c, V)    # The car is not in the list anymore
 
         # Update M1, M2 and M3
-        update_matrices_new_car!(solution, pos, inst)
+        update_matrices_new_car!(solution, pos, instance)
     end
 
     return solution

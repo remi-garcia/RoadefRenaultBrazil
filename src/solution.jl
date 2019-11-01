@@ -46,7 +46,7 @@ function init_solution(nom_fichier::String, type_fichier::String)
 
     n = length(instance.color_code)
     m = instance.nb_HPRC + instance.nb_LPRC # number of ratio
-    solution = Solution(n,m)
+    solution = Solution(n, m)
 
     for i in 1:instance.nb_late_prec_day
         solution.sequence[i] = i
@@ -58,7 +58,7 @@ end
 function init_solution(instance::Instance)
     n = length(instance.color_code)
     m = instance.nb_HPRC + instance.nb_LPRC # number of ratio
-    solution = Solution(n,m)
+    solution = Solution(n, m)
 
     for i in 1:instance.nb_late_prec_day
         solution.sequence[i] = i
@@ -69,29 +69,29 @@ end
 """
     update_matrices!(solution::Solution, nb::Int, instance::Instance)
 
-Update `solution.M1`, `solution.M2` and `solution.M3` for known cars at positions 1 to nb.
+Updates `solution.M1`, `solution.M2` and `solution.M3` for known cars at positions 1 to `nb`.
 """
 function update_matrices!(solution::Solution, nb::Int, instance::Instance)
-    nb_RC = instance.nb_HPRC+instance.nb_LPRC
+    nb_RC = instance.nb_HPRC + instance.nb_LPRC
 
     # Last column has just one car
     for option in 1:nb_RC
         car = solution.sequence[nb]
-        if instance.RC_flag[car,option]
-            solution.M1[option,nb] = 1
+        if instance.RC_flag[car, option]
+            solution.M1[option, nb] = 1
         end
     end
 
     # Dynamic (right to left)
     for counter in 0:(nb-1)
-        index = nb-counter
+        index = nb - counter
         car = solution.sequence[index]
         for option in 1:nb_RC
             # Has option -> next sequence + 1
-            if instance.RC_flag[car,option]
-                solution.M1[option,index] = solution.M1[option,index+1] + 1
+            if instance.RC_flag[car, option]
+                solution.M1[option, index] = solution.M1[option, index+1] + 1
             else
-                solution.M1[option,index] = solution.M1[option,index+1]
+                solution.M1[option, index] = solution.M1[option, index+1]
             end
 
             # Is there one car not reach anymore ?
@@ -99,8 +99,8 @@ function update_matrices!(solution::Solution, nb::Int, instance::Instance)
             if index_first_out <= nb
                 car_first_out = solution.sequence[index_first_out]
                 # It had option -> sequence - 1
-                if instance.RC_flag[car_first_out,option]
-                    solution.M1[option,index] = solution.M1[option,index] - 1
+                if instance.RC_flag[car_first_out, option]
+                    solution.M1[option, index] = solution.M1[option, index] - 1
                 end
             end
         end
@@ -108,11 +108,22 @@ function update_matrices!(solution::Solution, nb::Int, instance::Instance)
 
     # Update M2 and M3 (left to right)
     for option in 1:nb_RC
-        solution.M2[option, 1] = (solution.M1[option, 1] >  instance.RC_p[option] ? 1 : 0)
-        solution.M3[option, 1] = (solution.M1[option, 1] >= instance.RC_p[option] ? 1 : 0)
-        for index in 2:nb
-            solution.M2[option, index] = solution.M2[option, index-1] + (solution.M1[option, index] >  instance.RC_p[option] ? 1 : 0)
-            solution.M3[option, index] = solution.M3[option, index-1] + (solution.M1[option, index] >= instance.RC_p[option] ? 1 : 0)
+        for index in 1:nb
+            if index > 1
+                solution.M2[option, index] = solution.M2[option, index-1]
+                solution.M3[option, index] = solution.M3[option, index-1]
+            # else
+            #    solution.M2[option, index] = 0
+            #    solution.M3[option, index] = 0
+            end
+            # M3 is >=
+            if solution.M1[option, index] >= instance.RC_p[option]
+                solution.M3[option, index] += 1
+                # M2 is >
+                if solution.M1[option, index] > instance.RC_p[option]
+                    solution.M2[option, index] += 1
+                end
+            end
         end
     end
 end
@@ -120,29 +131,39 @@ end
 """
     update_matrices_new_car!(solution::Solution, position::Int, instance::Instance)
 
-Update `solution.M1`, `solution.M2` and `solution.M3` for a new car add at a given position.
-DOES NOT update columns for sequences excluding the position. Assert made : the function is called
-when we add a car in an tail-less sequence.
+Updates `solution.M1`, `solution.M2` and `solution.M3` for a new car add at a given position.
+DOES NOT update columns for sequences excluding the position. Assert made: the function is called
+when we add a car in a tail-less sequence.
 """
 function update_matrices_new_car!(solution::Solution, position::Int, instance::Instance)
-    nb_RC = instance.nb_HPRC+instance.nb_LPRC
+    nb_RC = instance.nb_HPRC + instance.nb_LPRC
     car = solution.sequence[position]
 
     for option in 1:nb_RC
         for index in (position - instance.RC_q[option] + 1):position
             if index > 0
+                # TODO: flag not raise -> index loop skipped
                 # new car has option -> update M1
-                if instance.RC_flag[car,option]
-                    solution.M1[option,index] = solution.M1[option,index] + 1
+                if instance.RC_flag[car, option]
+                    solution.M1[option, index] = solution.M1[option, index] + 1
                 end
 
                 # Columns of M2 and M3 can be update
-                if index == 1
-                    solution.M2[option,index] = 0 + (solution.M1[option,index] >  instance.RC_p[option] ? 1 : 0)
-                    solution.M3[option,index] = 0 + (solution.M1[option,index] >= instance.RC_p[option] ? 1 : 0)
-                else
-                    solution.M2[option,index] = solution.M2[option,index-1] + (solution.M1[option,index] >  instance.RC_p[option] ? 1 : 0)
-                    solution.M3[option,index] = solution.M3[option,index-1] + (solution.M1[option,index] >= instance.RC_p[option] ? 1 : 0)
+                if index > 1
+                    solution.M2[option, index] = solution.M2[option, index-1]
+                    solution.M3[option, index] = solution.M3[option, index-1]
+                # else
+                #    solution.M2[option, index] = 0
+                #    solution.M3[option, index] = 0
+                end
+
+                # M3 is >=
+                if solution.M1[option, index] >= instance.RC_p[option]
+                    solution.M3[option, index] += 1
+                    # M2 is >
+                    if solution.M1[option, index] > instance.RC_p[option]
+                        solution.M2[option, index] += 1
+                    end
                 end
             end
         end

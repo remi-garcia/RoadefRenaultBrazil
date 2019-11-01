@@ -1,10 +1,10 @@
-#=
-# VNS_LPRC for the RENAULT Roadef 2005 challenge
-# inspired by work of
-# Celso C. Ribeiro, Daniel Aloise, Thiago F. Noronha, Caroline Rocha, Sebastián Urrutia
-#
-# @Author Boualem Lamraoui, Benoît Le Badezet, Benoit Loger, Jonathan Fontaine, Killian Fretaud, Rémi Garcia
-# =#
+#-------------------------------------------------------------------------------
+# File: vns_lprc.jl
+# Description: This files contains all function that are used in VNS_LPRC.
+# Date: October 31, 2019
+# Author: Jonathan Fontaine, Killian Fretaud, Rémi Garcia,
+#         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
+#-------------------------------------------------------------------------------
 
 include("parser.jl")
 include("solution.jl")
@@ -75,7 +75,7 @@ function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::I
         # Compute offset of each index after moving cars i
         for iter in (k+1):n
             # Booleans can be seen as 0 or 1 and can be used in Math like that.
-            array_insertion[iter] += (j_best < array_insertion[iter]) - (i < array_insertion[iter]) 
+            array_insertion[iter] += (j_best < array_insertion[iter]) - (i < array_insertion[iter])
         end
     end
 

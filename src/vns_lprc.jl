@@ -8,7 +8,7 @@
 
 include("parser.jl")
 include("solution.jl")
-include("fonctions.jl")
+include("functions.jl")
 include("constants.jl")
 
 function perturbation_VNS_LPRC(sol::Solution, p::Int, k::Int, instance::Instances)

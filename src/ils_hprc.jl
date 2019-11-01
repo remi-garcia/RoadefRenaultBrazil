@@ -67,10 +67,10 @@ function criticalCars(s::Solution, inst::Instance)
     for i in 1:inst.nb_HPRC
         j = 1
         while j <= s.n
-            if s.M2[i,j] > inst.p[i]
+            if s.M2[i,j] > inst.RC_p[i]
                 k = 0
-                while k < p[i] && (j+k) <= s.n
-                    if inst.RC_flag[i, j + k] == true && criticars[j + k] == 0
+                while k < inst.RC_p[i] && (j+k) <= s.n
+                    if inst.RC_flag[j + k, i] == true && criticars[j + k] == 0
                         criticars[j + k] = 1
                         nb_crit = nb_crit + 1
                     end
@@ -137,10 +137,10 @@ function ILS_HPRC(sol::Solution, inst::Instance)
             s = neighbor
             i = 0                       # So the number of iteration since the last improvement return to 0
         end
-        if i = alpha
+        if i == alpha
             s = intensification(s, inst)
         end
-        if i = beta
+        if i == beta
             if isEqual(neighbor,s, inst)
                 s = restart(s, inst)
             else

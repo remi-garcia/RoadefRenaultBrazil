@@ -234,7 +234,7 @@ function greedy(instance::Instance)
         # Cars that require options with higher utilization rates should enter.
         if length(candidates) > 1
             # Compute the utilization rate of each options
-            utilization_rate = Array{AbstractFloat,1}(UndefInitializer(),instance.nb_HPRC)
+            utilization_rate = Array{Float64,1}(UndefInitializer(),instance.nb_HPRC)
             for j in 1:instance.nb_HPRC
                 utilization_rate[j] = ( (rv[j] - rpi[j])/len ) / ( instance.RC_p[j] / instance.RC_q[j] )
             end
@@ -257,11 +257,11 @@ function greedy(instance::Instance)
             nb_new_violation = zeros(Int, length(candidates))
             for ind in 1:length(candidates)
                 c = candidates[ind]
-                for j in (instance.nb_HPRC+1):(instance.nb_LPRC+instance.nb_LPRC)
+                for j in (instance.nb_HPRC+1):(instance.nb_HPRC+instance.nb_LPRC)
                     if instance.RC_flag[c, j]
                         for i in ((position - instance.RC_q[j])+1):position
                             if solution.M1[j, i] >= instance.RC_p[j]
-                                nb_new_violation[c] = nb_new_violation[c] + 1
+                                nb_new_violation[ind] = nb_new_violation[ind] + 1
                             end
                         end
                     end
@@ -270,7 +270,7 @@ function greedy(instance::Instance)
             candidates = filter_on_min_criterion(candidates, nb_new_violation)
         end
 
-        c = rand([candidates])     # We have a valid candidate
+        c = rand(candidates)     # We have a valid candidate
         solution.sequence[position] = c
         len = len - 1
         length_pi = length_pi + 1

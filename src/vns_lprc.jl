@@ -12,7 +12,7 @@ include("functions.jl")
 include("constants.jl")
 
 # Make k randomly exchange, each exchange occurs in the same HPRC level, to avoid increase it.
-function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::Instances)
+function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::Instance)
     # Dict that contain for each HRPC level an array of all index that have this HPRC level.
     all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
     current_HPRC = -1
@@ -44,7 +44,7 @@ function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::In
 end
 
 # Delete k vehicles from the sequence and add them in the sequence according a greedy criterion.
-function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::Instances)
+function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::Instance)
     sol = deepcopy(solution)
 
     array_insertion = Array{Int, 1}()
@@ -66,7 +66,7 @@ function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::I
 end
 
 # Perturbation of VNS_LPRC
-function perturbation_VNS_LPRC(solution::Solution, p::Int, k::Int, instance::Instances)
+function perturbation_VNS_LPRC(solution::Solution, p::Int, k::Int, instance::Instance)
     if p == 1
         return perturbation_VNS_LPRC_exchange(solution, k, instance)
     else
@@ -75,7 +75,7 @@ function perturbation_VNS_LPRC(solution::Solution, p::Int, k::Int, instance::Ins
 end
 
 # The Local Search is based on a car exchange move.
-function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, instance::Instances)
+function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, instance::Instance)
 
     # useful variables
     nb_vehicles = length(solution.sequence)
@@ -110,7 +110,7 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
 end
 
 
-function localSearch_intensification_VNS_LPRC!(solution::Solution, alpha::Int, cost_move::Function, move!::Function, instance::Instances)
+function localSearch_intensification_VNS_LPRC!(solution::Solution, alpha::Int, cost_move::Function, move!::Function, instance::Instance)
     # useful variables
     nb_vehicles = length(solution.sequence)
     b0 = instance.nb_late_prec_day+1
@@ -143,13 +143,13 @@ function localSearch_intensification_VNS_LPRC!(solution::Solution, alpha::Int, c
 end
 
 # Apply two local search, first one with insertion move, and the second one with exchange move.
-function intensification_VNS_LPRC!(solution::Solution, instance::Instances)
+function intensification_VNS_LPRC!(solution::Solution, instance::Instance)
     localSearch_intensification_VNS_LPRC!(solution, VNS_LPRC_ALPHA_PERTURBATION, cost_move_insertion, move_insertion!, instance)
     localSearch_intensification_VNS_LPRC!(solution, VNS_LPRC_ALPHA_PERTURBATION, cost_move_exchange, move_exchange!, instance)
 end
 
 # Return a tuple of solution, first element is the cost,and the second one is the number of HRPC violated.
-function cost_VNS_LPRC(solution::Solution, instance::Instances)
+function cost_VNS_LPRC(solution::Solution, instance::Instance)
     nb_HPRC_violated = sum(solution.M2[i, end] for i in 1:instance.nb_HPRC)
     nb_LPRC_violated = sum(solution.M2[instance.nb_HPRC + i, end] for i in 1:instance.nb_LPRC)
     cost = WEIGHTS_OBJECTIVE_FUNCTION[1] * nb_HPRC_violated + WEIGHTS_OBJECTIVE_FUNCTION[2] * nb_LPRC_violated
@@ -157,7 +157,7 @@ function cost_VNS_LPRC(solution::Solution, instance::Instances)
 end
 
 # function that determine if left is better than right.
-function is_better_VNS_LPRC(left::Solution, right::Solution, instance::Instances)
+function is_better_VNS_LPRC(left::Solution, right::Solution, instance::Instance)
     left_cost = cost_VNS_LPRC(left, instance)
     right_cost = cost_VNS_LPRC(right, instance)
 
@@ -171,7 +171,7 @@ function is_better_VNS_LPRC(left::Solution, right::Solution, instance::Instances
 end
 
 # VNS-LPRC algorithm describe in section 6.
-function VNS_LPRC(solution::Solution, instance::Instances)
+function VNS_LPRC(solution::Solution, instance::Instance)
 
     # We note that p = 0 is for insertion move and p = 1 is for exchange move
     # because section 6.1 and 6.5 contradict themselves

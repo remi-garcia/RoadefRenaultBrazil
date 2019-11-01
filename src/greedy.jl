@@ -24,9 +24,8 @@ function update_late_violation!(solution::Solution, nb::Int, last::Int,
         # First column of M2 and M3 can be update
         solution.M2[J,1] = (solution.M1[J,1] >  p[j] ? 1 : 0)
         solution.M3[J,1] = (solution.M1[J,1] >= p[j] ? 1 : 0)
-
-        update_solution!(solution, nb, 2, last, p, q, flag, shift)
     end
+    update_solution!(solution, nb, 2, last, p, q, flag, shift)
 
     return solution
 end
@@ -45,7 +44,7 @@ function update_solution!(solution::Solution, nb::Int, first::Int, last::Int,
                           flag::Array{Bool, 2}, shift::Int = 0)
     for j in 1:nb
         J = j + shift
-        # for each shift of sequences
+        # for each shift of sequence
         for i in first:last
             solution.M1[J, i] = solution.M1[J, i-1]
             # previous case had flag -> not in anymore

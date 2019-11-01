@@ -45,7 +45,7 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
         for i in b0:nb_vehicles
             best_delta = 0
             list = Array{Int, 1}()
-            for j in b0:nb_vehicles
+            for j in (i+1):nb_vehicles # exchange (i, j) is the same as exchange (j, i)
                 if !perturbation_exchange || same_HPRC(solution, i, j)
                     delta = cost_move_exchange(solution, i, j, instance, 2)
                     if delta < best_delta
@@ -119,8 +119,8 @@ function is_better_VNS_LPRC(left::Solution, right::Solution, instance::Instances
     left_cost = cost_VNS_LPRC(left, instance)
     right_cost = cost_VNS_LPRC(right, instance)
 
-    nb_HPRC_violated_left = sum(left.M2[i, end] for i in 1:instance.nb_HPRC)
-    nb_HPRC_violated_right = sum(right.M2[i, end] for i in 1:instance.nb_HPRC)
+    nb_HPRC_violated_left = HPRC_level(left, left.n)
+    nb_HPRC_violated_right = HPRC_level(right, left.n)
 
     cost_better = left_cost < right_cost
     HPRC_not_worse = nb_HPRC_violated_left <= nb_HPRC_violated_right

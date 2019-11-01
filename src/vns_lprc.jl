@@ -6,11 +6,6 @@
 #         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
 #-------------------------------------------------------------------------------
 
-include("parser.jl")
-include("solution.jl")
-include("functions.jl")
-include("constants.jl")
-
 # Make k randomly exchange, each exchange occurs in the same HPRC level, to avoid increase it.
 function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::Instance)
     # Dict that contain for each HRPC level an array of all index that have this HPRC level.

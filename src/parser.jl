@@ -21,7 +21,7 @@ const RATIO_FILE_NAME = "ratios.txt"
 const VEHICLES_FILE_NAME = "vehicles.txt"
 
 # An Instance structure that is used to format data as we want.
-struct Instances
+struct Instance
     # objectif function
     HPRC_rank::Int
     LPRC_rank::Int # If there is no LPRC, LPRC_rank = -1
@@ -29,15 +29,12 @@ struct Instances
     # paint limitation
     nb_paint_limitation::Int
     # ratio constraint
-    HPRC_p::Array{Int, 1}
-    HPRC_q::Array{Int, 1}
-    LPRC_p::Array{Int, 1}
-    LPRC_q::Array{Int, 1}
+    RC_p::Array{Int, 1}
+    RC_q::Array{Int, 1}
     nb_HPRC::Int
     nb_LPRC::Int
     # sequence vehicle data
-    HPRC_flag::Array{Bool, 2}
-    LPRC_flag::Array{Bool, 2}
+    RC_flag::Array{Bool, 2}
     color_code::Array{Int, 1}
     # Number of vehicles that weren't build the precedet day.
     nb_late_prec_day::Int # Usage 1:nb_late_prec_day give the list of index of those vehicles.
@@ -69,45 +66,30 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
 
     # Ratio data
     n, m = size(df_ratio)
-    HPRC_p = Array{Int, 1}()
-    HPRC_q = Array{Int, 1}()
-    LPRC_p = Array{Int, 1}()
-    LPRC_q = Array{Int, 1}()
+    RC_p = Array{Int, 1}()
+    RC_q = Array{Int, 1}()
+    nb_high = 0
     for i in 1:n
         a, b = parse.(Int, split(df_ratio.Ratio[i], "/"))
-        if (df_ratio.Prio[i] == 1)
-            push!(HPRC_p, a)
-            push!(HPRC_q, b)
-        else
-            push!(LPRC_p, a)
-            push!(LPRC_q, b)
+        push!(RC_p, a)
+        push!(RC_q, b)
+        if df_ratio.Prio[i] == 1
+            nb_high += 1
         end
     end
-
-    nb_high = length(HPRC_p)
-    nb_low = length(LPRC_p)
+    nb_low = n - nb_high
 
     # vehicles data
-    if nb_high > 0
-        HPRC_flag = Array{Bool, 2}(df_vehicles[!, 5:5+nb_high-1])
-    else
-        HPRC_flag = Array{Bool, 2}(UndefInitializer(), 0, 0)
-    end
-
-    if nb_low > 0
-        LPRC_flag = Array{Bool, 2}(df_vehicles[!, 5+nb_high:5+nb_high+nb_low-1])
-    else
-        LPRC_flag = Array{Bool, 2}(UndefInitializer(), 0, 0)
-    end
+    RC_flag = Array{Bool, 2}(df_vehicles[!, 5:5+n-1])
 
     color_code = Array{Int, 1}(df_vehicles[!, 4])
 
     nb_late_prec_day = findall(x -> x == 1, df_vehicles[!, 2])[1] - 1
 
-    return Instances(
-            HPRC_rank, LPRC_rank, PCB_rank,                     # objectives file
-            nb_paint_limitation,                                # paint file
-            HPRC_p, HPRC_q, LPRC_p, LPRC_q, nb_high, nb_low,    # ratio file
-            HPRC_flag, LPRC_flag, color_code, nb_late_prec_day  # vehicles file
+    return Instance(
+            HPRC_rank, LPRC_rank, PCB_rank,        # objectives file
+            nb_paint_limitation,                   # paint file
+            RC_p, RC_q, nb_high, nb_low,           # ratio file
+            RC_flag, color_code, nb_late_prec_day  # vehicles file
         )
 end

@@ -1,3 +1,11 @@
+#-------------------------------------------------------------------------------
+# File: constants.jl
+# Description:
+# Date: October 31, 2019
+# Author: Jonathan Fontaine, Killian Fretaud, Rémi Garcia,
+#         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
+#-------------------------------------------------------------------------------
+
 const INSTANCES = Dict{String, Array{String, 1}}(
     "A" => [
         "022_3_4_EP_RAF_ENP",

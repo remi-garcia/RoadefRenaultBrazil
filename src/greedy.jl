@@ -149,22 +149,20 @@ function greedy(instance::Instance)
     # We have V the set of cars to be scheduled
     len = (solution.n) - (instance.nb_late_prec_day)
     V = collect((instance.nb_late_prec_day+1):(solution.n))
-    nbH = instance.nb_HPRC
 
     # Compute for each option the number of cars who need it in V
-    # TODO : This should probably be done directly in the parser and stocked in
-    # the instance
+    # TODO : Could be done in the parser and stocked in the instance
     rv = sum(instance.RC_flag,dims=1)
 
-    # For the nb_late_prec_day first cars
-    # Update M1, M2, M3
+    # For the nb_late_prec_day first cars, update M1, M2, M3
     update_matrices!(solution, instance.nb_late_prec_day, instance)
 
+    # Initialization for first tie-break criterion
     # Compute for each option the number of cars who need it in Pi
     length_pi = instance.nb_late_prec_day
-    rpi = zeros(Int,nbH)
-    for j in 1:nbH
-        for i in 1:instance.nb_late_prec_day
+    rpi = zeros(Int,instance.nb_HPRC)
+    for i in 1:instance.nb_late_prec_day
+        for j in 1:instance.nb_HPRC
             if instance.RC_flag[i,j]
                 rpi[j] = rpi[j]+1
             end
@@ -174,13 +172,13 @@ function greedy(instance::Instance)
     # The greedy criterion consists in choosing, at each iteration, the car
     # that induces the smallest number of new violations when inserted at
     # the end of the current partial sequence.
-    for pos in (instance.nb_late_prec_day+1):(solution.n)
+    for position in (instance.nb_late_prec_day+1):(solution.n)
         # Compute the number of violations caused by each car
         nb_new_violation = zeros(Int, len)
         for c in 1:len
             for j in 1:instance.nb_HPRC
                 if instance.RC_flag[V[c], j]
-                    for i in ((pos - instance.RC_q[j])+1):pos
+                    for i in ((position - instance.RC_q[j])+1):position
                         if solution.M1[j, i] >= instance.RC_p[j]
                             nb_new_violation[c] = nb_new_violation[c] + 1
                         end
@@ -201,114 +199,58 @@ function greedy(instance::Instance)
             end
         end
 
-        # If |candidates| =/= 1 : TIE BREAK
-        #
-        # We will pass by tie breaking criterion
-        # This criterion encourages a more homogeneous distribution of
-        # the required options among the cars already in the partial sequence
-        # and those still to be scheduled.
-        # The distribution is based on the following idea:
-        #
-        #   If the average number of cars demanding a given option in the
-        #   partial sequence p is lower than that in the whole set V of
-        #   vehicles, then these cars should be encouraged to enter in
-        #   the sequence.
-        #
+        # Two candidates or more - First tie break
+        # If the average number of cars demanding a given option in the
+        # partial sequence π is lower than that in the whole set V of vehicles,
+        # then these cars should be encouraged to enter in the sequence.
         if length(candidates) > 1
             # Compute the tie break criterion for each candidates
             tie_break = zeros(Int,length(candidates))
             for i in 1:length(candidates)
-                for j in 1:nbH
+                for j in 1:instance.nb_HPRC
                     cond1 = !instance.RC_flag[candidates[i],j]
                     cond2 = (rv[j]-rpi[j])/len > (rpi[j])/length_pi
                     tie_break[i] += Int(xor( cond1 , cond2 ))
                 end
             end
 
-            #DEBUG
-            #println("first: ", candidates)
-            #println(tie_break)
-
             # Compute the new candidate list
-            # TODO use popfirst and push to filter candidates instead of copying the table
-            # since maximal tie_break is found on the fly, we need to pass by a second array
             candidates = filter_on_max_criterion(candidates, tie_break)
-            # Old version was :
-            # tmp_candidates = copy(candidates)
-            # candidates = [tmp_candidates[1]]
-            # max_tie_break = tie_break[1]
-            # for i in 2:length(tmp_candidates)
-            #   if tie_break[i] > max_tie_break
-            #       candidates = [tmp_candidates[i]]
-            #       max_tie_break = tie_break[i]
-            #   elseif tie_break[i] == max_tie_break
-            #       push!(candidates, tmp_candidates[i])
-            #   end
-            # end
-
-            #DEBUG
-            #println(candidates,"-------\n\n")
-
         end
 
-        # If |candidates| =/= 1 : DOUBLE TIE BREAK
-        #
-        # It may happen that ties still remain after the application of
-        # the above tie breaking criterion. In this case, a second criterion
-        # is added, favoring cars that require options with higher
-        # utilization rates. The utilization rates are dynamically computed,
-        # in the sense that they are updated whenever a new car is added at
-        # the end of the sequence.
+        # Two candidates or more - Second tie break
+        # Cars that require options with higher utilization rates should enter.
         if length(candidates) > 1
             # Compute the utilization rate of each options
-            utilization_rate = Array{AbstractFloat,1}(UndefInitializer(),nbH)
-            for j in 1:nbH
+            utilization_rate = Array{AbstractFloat,1}(UndefInitializer(),instance.nb_HPRC)
+            for j in 1:instance.nb_HPRC
                 utilization_rate[j] = ( (rv[j] - rpi[j])/len ) / ( instance.RC_p[j] / instance.RC_q[j] )
             end
             tie_break = zeros(length(candidates))
             for i in 1:length(candidates)
-                for j in 1:nbH
+                for j in 1:instance.nb_HPRC
                     tie_break[i] += instance.RC_flag[candidates[i],j] * utilization_rate[j]
                 end
             end
 
-            #DEBUG
-            #println("second: ")#, candidates)
-            #println(tie_break)
             # Compute the new candidate list
-            # TODO use popfirst and push to filter candidates instead of copying the table
             candidates = filter_on_max_criterion(candidates, tie_break)
-
-            #Old version
-            # tmp_candidates = copy(candidates)
-            # candidates = [tmp_candidates[1]]
-            # max_tie_tie_break = tie_tie_break[1]
-            # for i in 2:length(tmp_candidates)
-            #   if tie_tie_break[i] > max_tie_tie_break
-            #       candidates = [tmp_candidates[i]]
-            #       max_tie_tie_break = tie_tie_break[i]
-            #   elseif tie_tie_break[i] == max_tie_tie_break
-            #       push!(candidates, tmp_candidates[i])
-            #   end
-            # end
-
-            #DEBUG
-            #println(candidates,"-------\n\n")
         end
         #println(candidates)
         c = candidates[1]     # We have a valid candidate
-        solution.sequence[pos] = c
+        solution.sequence[position] = c
         len = len - 1
         length_pi = length_pi + 1
         filter!(x->x≠c, V)    # The car is not in the list anymore
 
+        # The utilization rates components are dynamically updated.
         # Update rpi with the options of c
-        for j in 1:nbH
+        for j in 1:instance.nb_HPRC
             rpi[j] += Int(instance.RC_flag[c,j])
         end
 
         # Update M1, M2 and M3
-        update_matrices_new_car!(solution, pos, instance)
+        update_matrices_new_car!(solution, position, instance)
     end
 
     return solution

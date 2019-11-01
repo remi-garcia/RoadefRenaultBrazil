@@ -69,11 +69,11 @@ function cost_move_insertion(solution::Solution, i::Int, j::Int,
 end
 
 # Return the HPRC level of a car in a solution.
-function HPRC_level(solution::Solution, index::Int)
+function HPRC_level(solution::Solution, index::Int, instance::Instance)
     return sum(solution.M2[k, index] for k in 1:instance.nb_HPRC)
 end
 
 # Return true if car i and car j are invovled in the same HPRC.
-function same_HPRC(solution::Solution, i::Int, j::Int)
-    return HPRC_level(solution, i) == HPRC_level(solution, j)
+function same_HPRC(solution::Solution, i::Int, j::Int, instance::Instance)
+    return HPRC_level(solution, i, instance) == HPRC_level(solution, j, instance)
 end

@@ -17,7 +17,7 @@ function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::In
     all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
     current_HPRC = -1
     for i in 1:solution.n
-        temp_HPRC = HPRC_level(solution, i)
+        temp_HPRC = HPRC_level(solution, i, instance)
         if temp_HPRC != current_HPRC
             current_HPRC = temp_HPRC
             all_list_same_HPRC[current_HPRC] = Array{Int, 1}()
@@ -30,7 +30,7 @@ function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::In
     sol = deepcopy(solution)
 
     for iterator in 1:k
-        same_HPRC_array = rand(all_list_same_HPRC)
+        same_HPRC_array = rand(all_list_same_HPRC).second
         i = rand(same_HPRC_array)
         j = rand(same_HPRC_array)
         # Cannot be the same
@@ -69,7 +69,7 @@ function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::I
                 cost_best = cost
             end
         end
-        move_insertion!(sol, i, j, instance)
+        move_insertion!(sol, i, j_best, instance)
     end
 
     return sol
@@ -98,7 +98,7 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
             best_delta = 0
             list = Array{Int, 1}()
             for j in (i+1):nb_vehicles # exchange (i, j) is the same as exchange (j, i)
-                if !perturbation_exchange || same_HPRC(solution, i, j)
+                if !perturbation_exchange || same_HPRC(solution, i, j, instance)
                     delta = cost_move_exchange(solution, i, j, instance, 2)
                     if delta < best_delta
                         list = [j]
@@ -110,7 +110,7 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
             end
             if list != []
                 k = rand(list)
-                move_exchange!(solution, i, k)
+                move_exchange!(solution, i, k, instance)
             end
         end
         if phi == cost_VNS_LPRC(solution, instance)
@@ -142,7 +142,7 @@ function localSearch_intensification_VNS_LPRC!(solution::Solution, alpha::Int, c
             end
             if list != []
                 k = rand(list)
-                move!(solution, i, k)
+                move!(solution, i, k, instance)
             end
         end
         nb_non_improved += 1
@@ -171,8 +171,8 @@ function is_better_VNS_LPRC(left::Solution, right::Solution, instance::Instance)
     left_cost = cost_VNS_LPRC(left, instance)
     right_cost = cost_VNS_LPRC(right, instance)
 
-    nb_HPRC_violated_left = HPRC_level(left, left.n)
-    nb_HPRC_violated_right = HPRC_level(right, left.n)
+    nb_HPRC_violated_left = HPRC_level(left, left.n, instance)
+    nb_HPRC_violated_right = HPRC_level(right, left.n, instance)
 
     cost_better = left_cost < right_cost
     HPRC_not_worse = nb_HPRC_violated_left <= nb_HPRC_violated_right

@@ -15,8 +15,8 @@ function move_exchange!(solution::Solution, i::Int, j::Int, instance::Instances)
     solution.sequence[j] = sol_i
     for k in 1:(instance.nb_HPRC + instance.nb_LPRC)
         if k <= instance.nb_HPRC
-            if instance.HPRC_flag[i , k] == false && instance.HPRC_flag[j, k] == true
-                pos1 = i - ( instance.HPRC_q[k ]-1)
+            if instance.HPRC_flag[i, k] == false && instance.HPRC_flag[j, k] == true
+                pos1 = i - ( instance.HPRC_q[k]-1)
                 for l in pos1:i
                     solution.M1[k, l] += 1
                 end
@@ -50,9 +50,9 @@ function move_exchange!(solution::Solution, i::Int, j::Int, instance::Instances)
                for l in pos2:j
                    solution.M1[k, l] += 1
                end
-               cpt1 = solution.M2[k, pos1 - 1]
-               cpt2 = solution.M3[k, pos1 - 1]
-               for l in pos1 : solution.n
+               cpt1 = solution.M2[k, pos1-1]
+               cpt2 = solution.M3[k, pos1-1]
+               for l in pos1:solution.n
                    if solution.M1[k, l] > instance.HPRC_p[k]
                        cpt1 += 1
                        solution.M2[k, l] = cpt1
@@ -68,55 +68,55 @@ function move_exchange!(solution::Solution, i::Int, j::Int, instance::Instances)
                end
             end
         else
-            if instance.LPRC_flag[i , k - instance.HPRC_q[k]] == false && instance.LPRC_flag[j, k - instance.HPRC_q[k]] == true
+            if instance.LPRC_flag[i, k - instance.HPRC_q[k]] == false && instance.LPRC_flag[j, k - instance.HPRC_q[k]] == true
                 pos1 = i - (instance.LPRC_q[k - instance.HPRC_q[k]]-1)
-                for l in pos1 : i
+                for l in pos1:i
                     solution.M1[k, l] += 1
                 end
                 pos2 = j - (instance.LPRC_q[k - instance.HPRC_q[k]]-1)
-                for l in pos2 : j
+                for l in pos2:j
                     solution.M1[k, l] -= 1
                 end
-                cpt1 = solution.M2[ k , pos1 - 1]
-                cpt2 = solution.M3[ k , pos1 - 1 ]
-                for l in pos1 : solution.n
-                    if solution.M1[ k , l ] > instance.LPRC_p[ k - instance.HPRC_q[ k ]  ]
+                cpt1 = solution.M2[k, pos1-1]
+                cpt2 = solution.M3[k, pos1-1]
+                for l in pos1:solution.n
+                    if solution.M1[k, l] > instance.LPRC_p[k - instance.HPRC_q[k] ]
                         cpt1 += 1
-                        solution.M2[ k , l ] = cpt1
+                        solution.M2[k, l] = cpt1
                     else
-                        solution.M2[ k , l ] = cpt1
+                        solution.M2[k, l] = cpt1
                     end
-                    if solution.M1[ k , l ] >= instance.LPRC_p[ k - instance.HPRC_q[ k ]  ]
+                    if solution.M1[k, l] >= instance.LPRC_p[k - instance.HPRC_q[k] ]
                         cpt2 += 1
-                        solution.M3[ k , l ] = cpt2
+                        solution.M3[k, l] = cpt2
                     else
-                        solution.M3[ k , l ] = cpt2
+                        solution.M3[k, l] = cpt2
                     end
                 end
             end
-            if instance.LPRC_flag[ i , k - instance.HPRC_q[ k ] ] == true && instance.LPRC_flag[ j , k - instance.HPRC_q[ k ] ] == false
-               pos1 = i - (instance.LPRC_q[ k - instance.HPRC_q[ k ] ] - 1)
-               for l in pos1 : i
-                   solution.M1[ k , l ] -= 1
+            if instance.LPRC_flag[i, k - instance.HPRC_q[k]] == true && instance.LPRC_flag[j, k - instance.HPRC_q[k]] == false
+               pos1 = i - (instance.LPRC_q[k - instance.HPRC_q[k]] - 1)
+               for l in pos1:i
+                   solution.M1[k, l] -= 1
                end
-               pos2 = j - (instance.LPRC_q[ k - instance.HPRC_q[ k ] ]-1)
-               for l in pos2 : j
-                   solution.M1[ k , l ] += 1
+               pos2 = j - (instance.LPRC_q[k - instance.HPRC_q[k]]-1)
+               for l in pos2:j
+                   solution.M1[k, l] += 1
                end
-               cpt1 = solution.M2[ k , pos1 - 1]
-               cpt2 = solution.M3[ k , pos1 - 1 ]
-               for l in pos1 : solution.n
-                   if solution.M1[ k , l ] > instance.LPRC_p[ k - instance.HPRC_q[ k ]  ]
+               cpt1 = solution.M2[k, pos1-1]
+               cpt2 = solution.M3[k, pos1-1]
+               for l in pos1:solution.n
+                   if solution.M1[k, l] > instance.LPRC_p[k - instance.HPRC_q[k] ]
                        cpt1 += 1
-                       solution.M2[ k , l ] = cpt1
+                       solution.M2[k, l] = cpt1
                    else
-                       solution.M2[ k , l ] = cpt1
+                       solution.M2[k, l] = cpt1
                    end
-                   if solution.M1[ k , l ] >= instance.LPRC_p[ k - instance.HPRC_q[ k ] ]
+                   if solution.M1[k, l] >= instance.LPRC_p[k - instance.HPRC_q[k]]
                        cpt2 += 1
-                       solution.M3[ k , l ] = cpt2
+                       solution.M3[k, l] = cpt2
                    else
-                       solution.M3[ k , l ] = cpt2
+                       solution.M3[k, l] = cpt2
                    end
                end
             end

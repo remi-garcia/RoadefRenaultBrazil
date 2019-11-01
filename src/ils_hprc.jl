@@ -55,7 +55,33 @@ function localSearch(s::Solution, inst::Instance)
 end
 
 function fastLocalSearch(s::Solution, inst::Instance, crit::Array{Int, 1})
-    #TODO
+    while true
+        phi = costHPRC(s, inst)
+        b0 = inst.nb_late_prec_day + 1      #First car of the current production day
+        for i in b0:s.n
+            if crit(i) == 1
+                best_delta = 0
+                L = []
+                for j in b0:s.n
+                    delta = costHPRC(move(s, i, j), inst) - costHPRC(s, inst)
+                    if delta < best_delta
+                        L = [j]
+                        best_delta = delta
+                    elseif delta == best_delta
+                        push!(L, j)
+                    end
+                end
+                if L != []
+                    k = rand(L)
+                    s = move(s, i, k)
+                end
+            end
+        end
+        if phi == costHPRC(s)
+            break
+        end
+    end
+
     return s
 end
 

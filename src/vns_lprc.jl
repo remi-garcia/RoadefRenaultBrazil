@@ -11,47 +11,46 @@ include("solution.jl")
 include("functions.jl")
 include("constants.jl")
 
-function perturbation_VNS_LPRC_exchange(sol::Solution, k::Int, instance::Instances)
+function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::Instances)
     # TODO
     return Solution(1, 1)
 end
 
-function perturbation_VNS_LPRC_insertion(sol::Solution, k::Int, instance::Instances)
+function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::Instances)
     # TODO
     return Solution(1, 1)
 end
 
 # Perturbation of VNS_LPRC
-function perturbation_VNS_LPRC(sol::Solution, p::Int, k::Int, instance::Instances)
+function perturbation_VNS_LPRC(solution::Solution, p::Int, k::Int, instance::Instances)
     if p == 0
-        return perturbation_VNS_LPRC_exchange(sol, k, instance)
+        return perturbation_VNS_LPRC_exchange(solution, k, instance)
     else
-        return perturbation_VNS_LPRC_insertion(sol, k, instance)
+        return perturbation_VNS_LPRC_insertion(solution, k, instance)
     end
 end
 
 # The Local Search is based on a car exchange move.
-function localSearch_VNS_LPRC(solution::Solution, p::Int, instance::Instances)
+function localSearch_VNS_LPRC!(solution::Solution, instance::Instances)
 
     # TODO only move_exchange allowed
-
+    p = 0
     # Select the move
     move! = [move_exchange!, move_insertion!][p+1]
     cost_move = [cost_move_exchange, cost_move_insertion][p+1]
 
-    sol = deepcopy(solution)
-    nb_vehicles = length(sol.sequence)
+    nb_vehicles = length(solution.sequence)
     b0 = instance.nb_late_prec_day+1
 
     improved = true
     while improved
-        phi = cost(sol)
+        phi = cost(solution)
         for i in b0:nb_vehicles
             best_delta = 0
             list = Array{Int, 1}()
             for j in b0:nb_vehicles
                 # TODO Accept to move with (i, j) only in specific case.
-                delta = cost_move(sol, i, j, instance, 2)
+                delta = cost_move(solution, i, j, instance, 2)
                 if delta < best_delta
                     list = [j]
                     best_delta = delta
@@ -61,26 +60,24 @@ function localSearch_VNS_LPRC(solution::Solution, p::Int, instance::Instances)
             end
             if list != []
                 k = rand(list)
-                move!(sol, i, k)
+                move!(solution, i, k)
             end
         end
-        if phi == cost(sol)
+        if phi == cost(solution)
             improved = false
         end
     end
-
-    return sol
 end
 
-function intensification_VNS_LPRC(sol::Solution, instance::Instances)
+function intensification_VNS_LPRC(solution::Solution, instance::Instances)
     # TODO
     return Solution(1, 1)
 end
 
 # Return a tuple of solution, first element is the cost,and the second one is the number of HRPC violated.
-function cost_VNS_LPRC(sol::Solution, instance::Instances)
-    nb_HPRC_violated = sum(sol.M2[i, end] for i in 1:instance.nb_HPRC)
-    nb_LPRC_violated = sum(sol.M2[instance.nb_HPRC + i, end] for i in 1:instance.nb_LPRC)
+function cost_VNS_LPRC(solution::Solution, instance::Instances)
+    nb_HPRC_violated = sum(solution.M2[i, end] for i in 1:instance.nb_HPRC)
+    nb_LPRC_violated = sum(solution.M2[instance.nb_HPRC + i, end] for i in 1:instance.nb_LPRC)
     cost = WEIGHTS_OBJECTIVE_FUNCTION[1] * nb_HPRC_violated + WEIGHTS_OBJECTIVE_FUNCTION[2] * nb_LPRC_violated
     return cost
 end
@@ -100,9 +97,9 @@ function is_better_VNS_LPRC(left::Solution, right::Solution, instance::Instances
 end
 
 # VNS-LPRC algorithm describe in section 6.
-function VNS_LPRC(sol::Solution, instance::Instances)
+function VNS_LPRC(solution::Solution, instance::Instances)
     # solutions
-    s = deepcopy(sol)
+    s = deepcopy(solution)
     s_opt = s
     # variable of the algorithm
     # According to the paper, cf 6.1
@@ -114,7 +111,7 @@ function VNS_LPRC(sol::Solution, instance::Instances)
     while nb_intens_not_better < 150
         while k < k_max[p+1]
             neighbor = perturbation_VNS_LPRC(s, p, k, instance)
-            neighbor = localSearch_VNS_LPRC(neighbor, p, instance)
+            localSearch_VNS_LPRC!(neighbor, instance)
             if is_better_VNS_LPRC(neighbor, s, instance)
                 s = neighbor
                 k = k_min[p+1]
@@ -124,7 +121,7 @@ function VNS_LPRC(sol::Solution, instance::Instances)
             s = intensification_VNS_LPRC(s, instance)
             nb_intens_not_better += 1
 
-            if is_better_VNS_LPRC(s, S, instance)
+            if is_better_VNS_LPRC(s, s_opt, instance)
                 s_opt = s
                 nb_intens_not_better = 0
             end

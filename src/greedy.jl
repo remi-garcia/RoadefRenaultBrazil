@@ -137,6 +137,27 @@ function filter_on_max_criterion(candidates::Array{Int64,1}, criterion) # TODO: 
 end
 
 """
+    filter_on_min_criterion!(candidates::Array{Int64,1}, criterion)
+
+Takes a set of candidates and removes all elements with bad criterion.
+"""
+function filter_on_min_criterion(candidates::Array{Int64,1}, criterion) # TODO: criterion is Int or Float
+    tmp_candidates = [candidates[1]]
+    min_criterion = criterion[1]
+    for i in 2:length(criterion)
+        # next candidate...
+        if criterion[i] < min_criterion # ...is better (keep only him)
+            tmp_candidates = [candidates[i]]
+            min_criterion = criterion[i]
+        elseif criterion[i] == min_criterion # ...is even (keep him too)
+            push!(tmp_candidates, candidates[i])
+        end # ...is worse (throw it away)
+    end
+    #candidates = tmp_candidates
+    return tmp_candidates
+end
+
+"""
     greedy(instance::Instances)
 
 Takes an `Instance` and return a valid `Solution`.
@@ -188,16 +209,7 @@ function greedy(instance::Instance)
         end
 
         # Compute the set of indexes causing minimal-violation
-        candidates = [V[1]]
-        nb_min = nb_new_violation[1]
-        for c in 2:len
-            if nb_new_violation[c] < nb_min
-                nb_min = nb_new_violation[c]
-                candidates = [V[c]]
-            elseif nb_new_violation[c] == nb_min
-                push!(candidates, V[c])
-            end
-        end
+        candidates = filter_on_min_criterion(V, nb_new_violation)
 
         # Two candidates or more - First tie break
         # If the average number of cars demanding a given option in the
@@ -236,8 +248,29 @@ function greedy(instance::Instance)
             # Compute the new candidate list
             candidates = filter_on_max_criterion(candidates, tie_break)
         end
-        #println(candidates)
-        c = candidates[1]     # We have a valid candidate
+
+        # Two candidates or more - LPRC criterion
+        # Choose the car that induces the smallest number of new violations of LPRC
+        # when inserted at the end of the current partial sequence.
+        if length(candidates) > 1
+            # Compute the number of violations caused by each car
+            nb_new_violation = zeros(Int, length(candidates))
+            for ind in 1:length(candidates)
+                c = candidates[ind]
+                for j in (instance.nb_HPRC+1):(instance.nb_LPRC+instance.nb_LPRC)
+                    if instance.RC_flag[c, j]
+                        for i in ((position - instance.RC_q[j])+1):position
+                            if solution.M1[j, i] >= instance.RC_p[j]
+                                nb_new_violation[c] = nb_new_violation[c] + 1
+                            end
+                        end
+                    end
+                end
+            end
+            candidates = filter_on_min_criterion(candidates, nb_new_violation)
+        end
+
+        c = rand([candidates])     # We have a valid candidate
         solution.sequence[position] = c
         len = len - 1
         length_pi = length_pi + 1

@@ -19,7 +19,7 @@ before. `shift` parameter is used for LPRC.
 function update_late_violation!(solution::Solution, nb::Int, last::Int,
                                 p::Array{Int, 1}, q::Array{Int, 1},
                                 flag::Array{Bool, 2}, shift::Int = 0)
-    @warn "Depreciated -> call functions in solution.jl"
+    @warn "Function update_late_violation! depreciated -> call functions in solution.jl"
     # Update M1, M2 and M3 for the first car
     for j in 1:nb
         J = j + shift
@@ -31,10 +31,9 @@ function update_late_violation!(solution::Solution, nb::Int, last::Int,
         # First column of M2 and M3 can be update
         solution.M2[J,1] = (solution.M1[J,1] >  p[j] ? 1 : 0)
         solution.M3[J,1] = (solution.M1[J,1] >= p[j] ? 1 : 0)
-
-        update_solution!(solution, nb, 2, last, p, q, flag, shift)
     end
 
+    update_solution!(solution, nb, 2, last, p, q, flag, shift)
     return solution
 end
 
@@ -50,7 +49,7 @@ before. The first column has already been updated in `update_late_violation!()`.
 function update_solution!(solution::Solution, nb::Int, first::Int, last::Int,
                           p::Array{Int, 1}, q::Array{Int, 1},
                           flag::Array{Bool, 2}, shift::Int = 0)
-    @warn "Depreciated -> call functions in solution.jl"
+    @warn "Function update_solution! depreciated -> call functions in solution.jl"
     for j in 1:nb
         J = j + shift
         # for each shift of sequences
@@ -88,7 +87,7 @@ parameter is used for LPRC.
 function update_solution_at!(solution::Solution, nb::Int, pos::Int,
                            p::Array{Int, 1}, q::Array{Int, 1},
                            flag::Array{Bool, 2}, shift::Int = 0)
-    @warn "Depreciated -> call functions in solution.jl"
+    @warn "Function update_solution_at! depreciated -> call functions in solution.jl"
     for j in 1:nb
         J = j + shift
         # for each shift of sequence reaching this position

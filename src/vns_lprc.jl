@@ -102,8 +102,8 @@ end
 
 # Apply two local search, first one with insertion move, and the second one with exchange move.
 function intensification_VNS_LPRC!(solution::Solution, instance::Instances)
-    localSearch_intensification_VNS_LPRC!(solution, 25, cost_move_insertion, move_insertion!, instance)
-    localSearch_intensification_VNS_LPRC!(solution, 25, cost_move_exchange, move_exchange!, instance)
+    localSearch_intensification_VNS_LPRC!(solution, ALPHA_PERTURBATION_LPRC, cost_move_insertion, move_insertion!, instance)
+    localSearch_intensification_VNS_LPRC!(solution, ALPHA_PERTURBATION_LPRC, cost_move_exchange, move_exchange!, instance)
 end
 
 # Return a tuple of solution, first element is the cost,and the second one is the number of HRPC violated.
@@ -138,12 +138,12 @@ function VNS_LPRC(solution::Solution, instance::Instances)
     s = deepcopy(solution)
     s_opt = s
     # variable of the algorithm
-    k_min = [3, 5]
-    k_max = [8, 12]
+    k_min = [VNS_LPRC_MIN_INSERT, VNS_LPRC_MIN_EXCHANGE]
+    k_max = [VNS_LPRC_MAX_INSERT, VNS_LPRC_MAX_EXCHANGE]
     p = 1
     k = k_min[p+1]
     nb_intens_not_better = 0
-    while nb_intens_not_better < 150
+    while nb_intens_not_better < VNS_LPRC_MAX_NON_IMPROVEMENT
         while k < k_max[p+1]
             neighbor = perturbation_VNS_LPRC(s, p, k, instance)
             localSearch_VNS_LPRC!(neighbor, instance)

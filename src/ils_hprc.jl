@@ -127,7 +127,12 @@ function ILS_HPRC(sol::Solution, inst::Instance)
     cond = false #TODO
     while cond
         neighbor = perturbation(s, int)
-        neighbor = localSearch(s, inst)
+        crit = criticalCars(s, inst)
+        if crit[2] > (s.n * 0.6)
+            neighbor = localSearch(s, inst)
+        else
+            neighbor = fastLocalSearch(s, inst, crit[1])
+        end
         if isBeq(nieghbor,s, inst)         # There is an improvement
             s = neighbor
             i = 0                       # So the number of iteration since the last improvement return to 0

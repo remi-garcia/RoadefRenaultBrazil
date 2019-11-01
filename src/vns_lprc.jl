@@ -22,14 +22,14 @@ function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::In
             current_HPRC = temp_HPRC
             all_list_same_HPRC[current_HPRC] = Array{Int, 1}()
         end
-        all_list_same_HPRC[current_HPRC].push(i)
+        push!(all_list_same_HPRC[current_HPRC], i)
     end
     # Delete all HPRC with length less than 2 (Can't exchange 2 vehicles if there is less than 2)
     filter!(x -> length(x.second) >= 2, all_list_same_HPRC)
 
     sol = deepcopy(solution)
 
-    for i in 1:k
+    for iterator in 1:k
         same_HPRC_array = rand(all_list_same_HPRC)
         i = rand(same_HPRC_array)
         j = rand(same_HPRC_array)
@@ -45,8 +45,24 @@ end
 
 # Delete k vehicles from the sequence and add them in the sequence according a greedy criterion.
 function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::Instances)
-    # TODO
-    return Solution(1, 1)
+    sol = deepcopy(solution)
+
+    array_insertion = Array{Int, 1}()
+
+    push!(array_insertion, rand(1:solution.n))
+
+    for iterator in 2:k
+        r = rand(1:solution.n)
+        while r in array_insertion
+            r = rand(1:solution.n)
+        end
+        push!(array_insertion, r)
+    end
+
+    # TODO find a way to compute a greedy criterion to insert index from the list array_insertion.
+
+
+    return sol
 end
 
 # Perturbation of VNS_LPRC

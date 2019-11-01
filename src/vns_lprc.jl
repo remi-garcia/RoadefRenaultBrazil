@@ -49,18 +49,28 @@ function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::I
 
     array_insertion = Array{Int, 1}()
 
-    push!(array_insertion, rand(1:solution.n))
+    push!(array_insertion, rand(1:sol.n))
 
     for iterator in 2:k
-        r = rand(1:solution.n)
+        r = rand(1:sol.n)
         while r in array_insertion
-            r = rand(1:solution.n)
+            r = rand(1:sol.n)
         end
         push!(array_insertion, r)
     end
 
-    # TODO find a way to compute a greedy criterion to insert index from the list array_insertion.
-
+    for i in array_insertion
+        j_best = 1
+        cost_best = cost_move_insertion(sol, i, j_best, instance, 2)
+        for j in 2:sol.n
+            cost = cost_move_insertion(sol, i, j, instance, 2)
+            if cost < cost_best
+                j_best = j
+                cost_best = cost
+            end
+        end
+        move_insertion!(sol, i, j, instance)
+    end
 
     return sol
 end

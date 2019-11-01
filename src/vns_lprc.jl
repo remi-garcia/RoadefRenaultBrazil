@@ -11,11 +11,13 @@ include("solution.jl")
 include("functions.jl")
 include("constants.jl")
 
+# Make k randomly exchange, each exchange occurs in the same HPRC level, to avoid increase it.
 function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::Instances)
     # TODO
     return Solution(1, 1)
 end
 
+# Delete k vehicles from the sequence and add them in the sequence according a greedy criterion.
 function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::Instances)
     # TODO
     return Solution(1, 1)
@@ -23,7 +25,7 @@ end
 
 # Perturbation of VNS_LPRC
 function perturbation_VNS_LPRC(solution::Solution, p::Int, k::Int, instance::Instances)
-    if p == 0
+    if p == 1
         return perturbation_VNS_LPRC_exchange(solution, k, instance)
     else
         return perturbation_VNS_LPRC_insertion(solution, k, instance)
@@ -33,18 +35,46 @@ end
 # The Local Search is based on a car exchange move.
 function localSearch_VNS_LPRC!(solution::Solution, instance::Instances)
 
-    # TODO only move_exchange allowed
-    p = 0
-    # Select the move
-    move! = [move_exchange!, move_insertion!][p+1]
-    cost_move = [cost_move_exchange, cost_move_insertion][p+1]
-
+    # useful variables
     nb_vehicles = length(solution.sequence)
     b0 = instance.nb_late_prec_day+1
 
     improved = true
     while improved
-        phi = cost(solution)
+        phi = cost_VNS_LPRC(solution, instance)
+        for i in b0:nb_vehicles
+            best_delta = 0
+            list = Array{Int, 1}()
+            for j in b0:nb_vehicles
+                # TODO Accept to move with (i, j) only in specific case.
+                delta = cost_move_exchange(solution, i, j, instance, 2)
+                if delta < best_delta
+                    list = [j]
+                    best_delta = delta
+                elseif delta == best_delta
+                    push!(list, j)
+                end
+            end
+            if list != []
+                k = rand(list)
+                move_exchange!(solution, i, k)
+            end
+        end
+        if phi == cost_VNS_LPRC(solution, instance)
+            improved = false
+        end
+    end
+end
+
+
+function localSearch_intensification_VNS_LPRC!(solution::Solution, alpha::Int, cost_move::Function, move!::Function, instance::Instances)
+    # useful variables
+    nb_vehicles = length(solution.sequence)
+    b0 = instance.nb_late_prec_day+1
+
+    nb_non_improved = 0
+    while nb_non_improved < alpha
+        phi = cost_VNS_LPRC(solution, instance)
         for i in b0:nb_vehicles
             best_delta = 0
             list = Array{Int, 1}()
@@ -63,15 +93,17 @@ function localSearch_VNS_LPRC!(solution::Solution, instance::Instances)
                 move!(solution, i, k)
             end
         end
-        if phi == cost(solution)
-            improved = false
+        nb_non_improved += 1
+        if phi < cost_VNS_LPRC(solution, instance)
+            nb_non_improved = 0
         end
     end
 end
 
-function intensification_VNS_LPRC(solution::Solution, instance::Instances)
-    # TODO
-    return Solution(1, 1)
+# Apply two local search, first one with insertion move, and the second one with exchange move.
+function intensification_VNS_LPRC!(solution::Solution, instance::Instances)
+    localSearch_intensification_VNS_LPRC!(solution, 25, cost_move_insertion, move_insertion!, instance)
+    localSearch_intensification_VNS_LPRC!(solution, 25, cost_move_exchange, move_exchange!, instance)
 end
 
 # Return a tuple of solution, first element is the cost,and the second one is the number of HRPC violated.
@@ -98,11 +130,14 @@ end
 
 # VNS-LPRC algorithm describe in section 6.
 function VNS_LPRC(solution::Solution, instance::Instances)
+
+    # We note that p = 0 is for insertion move and p = 1 is for exchange move
+    # because section 6.1 and 6.5 contradict themselves
+
     # solutions
     s = deepcopy(solution)
     s_opt = s
     # variable of the algorithm
-    # According to the paper, cf 6.1
     k_min = [3, 5]
     k_max = [8, 12]
     p = 1
@@ -118,7 +153,7 @@ function VNS_LPRC(solution::Solution, instance::Instances)
             else
                 k = k + 1
             end
-            s = intensification_VNS_LPRC(s, instance)
+            intensification_VNS_LPRC!(s, instance)
             nb_intens_not_better += 1
 
             if is_better_VNS_LPRC(s, s_opt, instance)

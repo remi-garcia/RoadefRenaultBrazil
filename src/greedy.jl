@@ -237,23 +237,23 @@ function greedy(inst::Instances)
             for j in 1:nbH
                 utilization_rate[j] = ( (rv[j] - rpi[j])/len ) / ( inst.HPRC_p[j] / inst.HPRC_q[j] )
             end
-            tie_tie_break = zeros(length(candidates))
+            tie_break = zeros(length(candidates))
             for i in 1:length(candidates)
                 for j in 1:nbH
-                    tie_tie_break[i] += inst.HPRC_flag[candidates[i],j] * utilization_rate[j]
+                    tie_break[i] += inst.HPRC_flag[candidates[i],j] * utilization_rate[j]
                 end
             end
 
             # Compute the new candidate list
             # TODO use popfirst and push to filter candidates instead of copying the table
             tmp_candidates = [candidates[1]]
-            max_tie_tie_break = tie_tie_break[1]
-            for i in 2:length(tie_tie_break)
+            max_tie_break = tie_break[1]
+            for i in 2:length(tie_break)
                 # next candidate...
-                if tie_tie_break[i] > max_tie_tie_break # ...is better (keep only him)
+                if tie_break[i] > max_tie_break # ...is better (keep only him)
                     tmp_candidates = [candidates[i]]
-                    max_tie_tie_break = tie_tie_break[i]
-                elseif tie_tie_break[i] == max_tie_tie_break # ...is even (keep him too)
+                    max_tie_break = tie_break[i]
+                elseif tie_break[i] == max_tie_break # ...is even (keep him too)
                     push!(tmp_candidates, candidates[i])
                 end # ...is worse (throw it away)
             end

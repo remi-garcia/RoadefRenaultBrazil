@@ -104,6 +104,27 @@ function update_solution_at!(solution::Solution, nb::Int, pos::Int,
 end
 
 """
+    filter_on_max_criterion!(candidates::Array{Int64,1}, criterion)
+
+Takes a set of candidates and removes all elements with bad criterion.
+"""
+function filter_on_max_criterion(candidates::Array{Int64,1}, criterion) # TODO: criterion is Int or Float
+    tmp_candidates = [candidates[1]]
+    max_criterion = criterion[1]
+    for i in 2:length(criterion)
+        # next candidate...
+        if criterion[i] > max_criterion # ...is better (keep only him)
+            tmp_candidates = [candidates[i]]
+            max_criterion = criterion[i]
+        elseif criterion[i] == max_criterion # ...is even (keep him too)
+            push!(tmp_candidates, candidates[i])
+        end # ...is worse (throw it away)
+    end
+    #candidates = tmp_candidates
+    return tmp_candidates
+end
+
+"""
     greedy(inst::Instances)
 
 Takes an `Instance` and return a valid `Solution`.
@@ -194,21 +215,14 @@ function greedy(inst::Instances)
                 end
             end
 
+            #DEBUG
+            #println("first: ", candidates)
+            #println(tie_break)
+
             # Compute the new candidate list
             # TODO use popfirst and push to filter candidates instead of copying the table
             # since maximal tie_break is found on the fly, we need to pass by a second array
-            tmp_candidates = [candidates[1]]
-            max_tie_break = tie_break[1]
-            for i in 2:length(tie_break)
-                # next candidate...
-                if tie_break[i] > max_tie_break # ...is better (keep only him)
-                    tmp_candidates = [candidates[i]]
-                    max_tie_break = tie_break[i]
-                elseif tie_break[i] == max_tie_break # ...is even (keep him too)
-                    push!(tmp_candidates, candidates[i])
-                end # ...is worse (throw it away)
-            end
-            candidates = tmp_candidates
+            candidates = filter_on_max_criterion(candidates, tie_break)
             # Old version was :
             # tmp_candidates = copy(candidates)
             # candidates = [tmp_candidates[1]]
@@ -221,6 +235,10 @@ function greedy(inst::Instances)
             #       push!(candidates, tmp_candidates[i])
             #   end
             # end
+
+            #DEBUG
+            #println(candidates,"-------\n\n")
+
         end
 
         # If |candidates| =/= 1 : DOUBLE TIE BREAK
@@ -244,24 +262,17 @@ function greedy(inst::Instances)
                 end
             end
 
+            #DEBUG
+            #println("second: ", candidates)
+            #println(tie_break)
             # Compute the new candidate list
             # TODO use popfirst and push to filter candidates instead of copying the table
-            tmp_candidates = [candidates[1]]
-            max_tie_break = tie_break[1]
-            for i in 2:length(tie_break)
-                # next candidate...
-                if tie_break[i] > max_tie_break # ...is better (keep only him)
-                    tmp_candidates = [candidates[i]]
-                    max_tie_break = tie_break[i]
-                elseif tie_break[i] == max_tie_break # ...is even (keep him too)
-                    push!(tmp_candidates, candidates[i])
-                end # ...is worse (throw it away)
-            end
-            candidates = tmp_candidates
-            # Old version
+            candidates = filter_on_max_criterion(candidates, tie_break)
+
+            #Old version
             # tmp_candidates = copy(candidates)
             # candidates = [tmp_candidates[1]]
-            # max_tie_tie_break = tie_break[1]
+            # max_tie_tie_break = tie_tie_break[1]
             # for i in 2:length(tmp_candidates)
             #   if tie_tie_break[i] > max_tie_tie_break
             #       candidates = [tmp_candidates[i]]
@@ -270,8 +281,11 @@ function greedy(inst::Instances)
             #       push!(candidates, tmp_candidates[i])
             #   end
             # end
+
+            #DEBUG
+            #println(candidates,"-------\n\n")
         end
-        println(candidates)
+        #println(candidates)
         c = candidates[1]     # We have a valid candidate
         solution.sequence[pos] = c
         len = len - 1

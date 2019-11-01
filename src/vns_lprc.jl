@@ -13,8 +13,34 @@ include("constants.jl")
 
 # Make k randomly exchange, each exchange occurs in the same HPRC level, to avoid increase it.
 function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::Instances)
-    # TODO
-    return Solution(1, 1)
+    # Dict that contain for each HRPC level an array of all index that have this HPRC level.
+    all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
+    current_HPRC = -1
+    for i in 1:solution.n
+        temp_HPRC = HPRC_level(solution, i)
+        if temp_HPRC != current_HPRC
+            current_HPRC = temp_HPRC
+            all_list_same_HPRC[current_HPRC] = Array{Int, 1}()
+        end
+        all_list_same_HPRC[current_HPRC].push(i)
+    end
+    # Delete all HPRC with length less than 2 (Can't exchange 2 vehicles if there is less than 2)
+    filter!(x -> length(x.second) >= 2, all_list_same_HPRC)
+
+    sol = deepcopy(solution)
+
+    for i in 1:k
+        same_HPRC_array = rand(all_list_same_HPRC)
+        i = rand(same_HPRC_array)
+        j = rand(same_HPRC_array)
+        # Cannot be the same
+        while i == j
+            j = rand(same_HPRC_array)
+        end
+        move_exchange!(sol, i, j, instance)
+    end
+
+    return sol
 end
 
 # Delete k vehicles from the sequence and add them in the sequence according a greedy criterion.

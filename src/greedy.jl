@@ -263,8 +263,8 @@ function greedy(inst::Instances)
             end
 
             #DEBUG
-            #println("second: ", candidates)
-            #println(tie_break)
+            println("second: ")#, candidates)
+            println(tie_break)
             # Compute the new candidate list
             # TODO use popfirst and push to filter candidates instead of copying the table
             candidates = filter_on_max_criterion(candidates, tie_break)

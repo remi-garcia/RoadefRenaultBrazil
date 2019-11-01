@@ -232,7 +232,7 @@ function greedy(instance::Instance)
         # Cars that require options with higher utilization rates should enter.
         if length(candidates) > 1
             # Compute the utilization rate of each options
-            utilization_rate = Array{AbstractFloat,1}(UndefInitializer(),instance.nb_HPRC)
+            utilization_rate = Array{Float64,1}(UndefInitializer(),instance.nb_HPRC)
             for j in 1:instance.nb_HPRC
                 utilization_rate[j] = ( (rv[j] - rpi[j])/len ) / ( instance.RC_p[j] / instance.RC_q[j] )
             end

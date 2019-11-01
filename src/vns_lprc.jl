@@ -32,8 +32,14 @@ function perturbation_VNS_LPRC(solution::Solution, p::Int, k::Int, instance::Ins
     end
 end
 
+# Return true if car i and car j are invovled in the same HPRC.
+function same_HPRC(solution::Solution, i::Int, j::Int)
+    # TODO
+    return false
+end
+
 # The Local Search is based on a car exchange move.
-function localSearch_VNS_LPRC!(solution::Solution, instance::Instances)
+function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, instance::Instances)
 
     # useful variables
     nb_vehicles = length(solution.sequence)
@@ -46,13 +52,14 @@ function localSearch_VNS_LPRC!(solution::Solution, instance::Instances)
             best_delta = 0
             list = Array{Int, 1}()
             for j in b0:nb_vehicles
-                # TODO Accept to move with (i, j) only in specific case.
-                delta = cost_move_exchange(solution, i, j, instance, 2)
-                if delta < best_delta
-                    list = [j]
-                    best_delta = delta
-                elseif delta == best_delta
-                    push!(list, j)
+                if !perturbation_exchange || same_HPRC(solution, i, j)
+                    delta = cost_move_exchange(solution, i, j, instance, 2)
+                    if delta < best_delta
+                        list = [j]
+                        best_delta = delta
+                    elseif delta == best_delta
+                        push!(list, j)
+                    end
                 end
             end
             if list != []
@@ -145,7 +152,7 @@ function VNS_LPRC(solution::Solution, instance::Instances)
     while nb_intens_not_better < VNS_LPRC_MAX_NON_IMPROVEMENT
         while k < k_max[p+1]
             neighbor = perturbation_VNS_LPRC(s, p, k, instance)
-            localSearch_VNS_LPRC!(neighbor, instance)
+            localSearch_VNS_LPRC!(neighbor, p == 1, instance)
             if is_better_VNS_LPRC(neighbor, s, instance)
                 s = neighbor
                 k = k_min[p+1]

@@ -11,13 +11,29 @@ include("solution.jl")
 include("functions.jl")
 include("constants.jl")
 
-function perturbation_VNS_LPRC(sol::Solution, p::Int, k::Int, instance::Instances)
+function perturbation_VNS_LPRC_exchange(sol::Solution, k::Int, instance::Instances)
     # TODO
     return Solution(1, 1)
 end
 
+function perturbation_VNS_LPRC_insertion(sol::Solution, k::Int, instance::Instances)
+    # TODO
+    return Solution(1, 1)
+end
+
+# Perturbation of VNS_LPRC
+function perturbation_VNS_LPRC(sol::Solution, p::Int, k::Int, instance::Instances)
+    if p == 0
+        return perturbation_VNS_LPRC_exchange(sol, k, instance)
+    else
+        return perturbation_VNS_LPRC_insertion(sol, k, instance)
+    end
+end
+
 # The Local Search is based on a car exchange move.
 function localSearch_VNS_LPRC(solution::Solution, p::Int, instance::Instances)
+
+    # TODO only move_exchange allowed
 
     # Select the move
     move! = [move_exchange!, move_insertion!][p+1]

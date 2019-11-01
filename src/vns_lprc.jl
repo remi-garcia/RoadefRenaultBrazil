@@ -79,9 +79,8 @@ function localSearch_intensification_VNS_LPRC!(solution::Solution, alpha::Int, c
             best_delta = 0
             list = Array{Int, 1}()
             for j in b0:nb_vehicles
-                # TODO Accept to move with (i, j) only in specific case.
                 delta = cost_move(solution, i, j, instance, 2)
-                if delta < best_delta
+                if delta <= best_delta
                     list = [j]
                     best_delta = delta
                 elseif delta == best_delta

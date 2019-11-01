@@ -8,12 +8,8 @@
 
 include("parser.jl")
 include("solution.jl")
-
-# TODO: Delete when functions.jl will be merged in master
-move_exchange = (s, i, j, inst) -> s
-move_insertion = (s, i, j, inst) -> s
-
-const WEIGHTS_OBJECTIVE_FUNCTION = [1e6, 1e3, 1]
+include("fonctions.jl")
+include("constants.jl")
 
 function perturbation_VNS_LPRC(sol::Solution, p::Int, k::Int, instance::Instances)
     # TODO
@@ -24,7 +20,8 @@ end
 function localSearch_VNS_LPRC(solution::Solution, p::Int, instance::Instances)
 
     # Select the move
-    move = [move_exchange, move_insertion][p+1]
+    move! = [move_exchange!, move_insertion!][p+1]
+    cost_move = [cost_move_exchange, cost_move_insertion][p+1]
 
     sol = deepcopy(solution)
     nb_vehicles = length(sol.sequence)
@@ -38,7 +35,7 @@ function localSearch_VNS_LPRC(solution::Solution, p::Int, instance::Instances)
             list = Array{Int, 1}()
             for j in b0:nb_vehicles
                 # TODO Accept to move with (i, j) only in specific case.
-                delta = cost_VNS_LPRC(move(sol, i, j)) - cost_VNS_LPRC(sol)
+                delta = cost_move(sol, i, j, instance, 2)
                 if delta < best_delta
                     list = [j]
                     best_delta = delta
@@ -48,7 +45,7 @@ function localSearch_VNS_LPRC(solution::Solution, p::Int, instance::Instances)
             end
             if list != []
                 k = rand(list)
-                sol = move(sol, i, k)
+                move!(sol, i, k)
             end
         end
         if phi == cost(sol)

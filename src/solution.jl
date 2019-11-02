@@ -14,7 +14,7 @@
 Create a empty sequence with matrices of zeros.
 """
 mutable struct Solution
-    n:: Int
+    n::Int
         # Size
     sequence::Array{Int, 1}
         # vector of cars (sequence pi or s in the following algorithms)
@@ -83,7 +83,7 @@ function update_matrices!(solution::Solution, nb::Int, instance::Instance)
     end
 
     # Dynamic (right to left)
-    for counter in 0:(nb-1)
+    for counter in 1:(nb-1)
         index = nb - counter
         car = solution.sequence[index]
         for option in 1:nb_RC

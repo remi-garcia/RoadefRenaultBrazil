@@ -17,13 +17,24 @@ function remove(s::Solution, inst::Instance, crit::Array{Int,1})
     i = inst.nb_late_prec_day
     removed = []
     while i < = s.n && length(removed) <= n_perturbation_HPRC
-
-
+        #TODO plutot que de prendre les n premiers peut être faire un tirage aléatoire
+        if crit[i] == 1
+            push!(removed, s.sequence[i])
+            deleteat!(s.sequence, i)
+            s.n = s.n - 1
+            compute_matrices!(s, inst)
+            deleteat!(crit, i)
+        else
+            i = i + 1
+        end
+    end
+    return s, removed
 end
 
 
 function greedyadd(s::Solution, inst::Instance, car::Int)
     #TODO
+
 end
 
 

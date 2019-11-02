@@ -119,6 +119,7 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
             improved = false
         end
     end
+    return solution
 end
 
 
@@ -152,12 +153,14 @@ function localSearch_intensification_VNS_LPRC!(solution::Solution, alpha::Int, c
             nb_non_improved = 0
         end
     end
+    return solution
 end
 
 # Apply two local search, first one with insertion move, and the second one with exchange move.
 function intensification_VNS_LPRC!(solution::Solution, instance::Instance)
     localSearch_intensification_VNS_LPRC!(solution, VNS_LPRC_ALPHA_PERTURBATION, cost_move_insertion, move_insertion!, instance)
     localSearch_intensification_VNS_LPRC!(solution, VNS_LPRC_ALPHA_PERTURBATION, cost_move_exchange, move_exchange!, instance)
+    return solution
 end
 
 # Return a tuple of solution, first element is the cost,and the second one is the number of HRPC violated.

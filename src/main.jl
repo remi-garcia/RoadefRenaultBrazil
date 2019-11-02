@@ -25,6 +25,7 @@ include("functions.jl")
 include("constants.jl")
 include("greedy.jl")
 include("ils_hprc.jl")
+include("vns_lprc.jl")
 
 function main()
     # Instance and initiale solution

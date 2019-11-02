@@ -8,10 +8,10 @@ using Test
     @testset "update_matrices!" begin
         solution_test = deepcopy(solution)
         update_matrices!(solution_test, solution_test.n, instance)
-        @test solution.n == solution2.n
-        @test solution.sequence == solution2.sequence
-        @test solution.M1 == solution2.M1
-        @test solution.M2 == solution2.M2
-        @test solution.M3 == solution2.M3
+        @test solution.n == solution_test.n
+        @test solution.sequence == solution_test.sequence
+        @test solution.M1 == solution_test.M1
+        @test solution.M2 == solution_test.M2
+        @test solution.M3 == solution_test.M3
     end;
 end;

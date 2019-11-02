@@ -6,15 +6,32 @@
 # @Author Boualem Lamraoui, Benoît Le Badezet, Benoit Loger, Jonathan Fontaine, Killian Fretaud, Rémi Garcia
 # =#
 
-
-
+#= CONSTANTATES TEMPORAIRES =#
+const n_perturbation_HPRC = 5
 
 ##=====================================##
 ##        USEFUL ALGORITHMS            ##
 ##=====================================##
 
-function perturbation(s::Solution, inst::Instance)
+function remove(s::Solution, inst::Instance, crit::Array{Int,1})
+    i = inst.nb_late_prec_day
+    removed = []
+    while i < = s.n && length(removed) <= n_perturbation_HPRC
+
+
+end
+
+
+function greedyadd(s::Solution, inst::Instance, car::Int)
     #TODO
+end
+
+
+function perturbation(s::Solution, inst::Instance, crit::Array{Int,1})
+    sol, removed = remove(s, inst, crit)
+    for i in removed
+        s = greedyadd(s, inst, i)
+    end
     return s
 end
 
@@ -25,7 +42,7 @@ function costHPRC(s::Solution, inst::Instance)
 end
 
 
-function localSearch(s::Solution, inst::Instance)
+function localSearch(s::Solution, inst::Instance, move!::Function, cost_move::Function)
     while true
         phi = costHPRC(s, inst)
         b0 = inst.nb_late_prec_day + 1      #First car of the current production day
@@ -33,7 +50,7 @@ function localSearch(s::Solution, inst::Instance)
             best_delta = 0
             L = []
             for j in b0:s.n
-                delta = costHPRC(move(s, i, j), inst) - costHPRC(s, inst)
+                delta = cost_move(s, i, j, inst, 1) - costHPRC(s, inst)
                 if delta < best_delta
                     L = [j]
                     best_delta = delta
@@ -43,10 +60,10 @@ function localSearch(s::Solution, inst::Instance)
             end
             if L != []
                 k = rand(L)
-                s = move(s, i, k)
+                move!(s, i, k)
             end
         end
-        if phi == costHPRC(s)
+        if phi == costHPRC(s, inst)
             break
         end
     end
@@ -54,7 +71,7 @@ function localSearch(s::Solution, inst::Instance)
     return s
 end
 
-function fastLocalSearch(s::Solution, inst::Instance, crit::Array{Int, 1})
+function fastLocalSearch(s::Solution, inst::Instance, move!::Function, cost_move::Function, crit::Array{Int, 1})
     while true
         phi = costHPRC(s, inst)
         b0 = inst.nb_late_prec_day + 1      #First car of the current production day
@@ -63,7 +80,7 @@ function fastLocalSearch(s::Solution, inst::Instance, crit::Array{Int, 1})
                 best_delta = 0
                 L = []
                 for j in b0:s.n
-                    delta = costHPRC(move(s, i, j), inst) - costHPRC(s, inst)
+                    delta = cost_move(s, i, j, inst, 1) - costHPRC(s, inst)
                     if delta < best_delta
                         L = [j]
                         best_delta = delta
@@ -73,11 +90,11 @@ function fastLocalSearch(s::Solution, inst::Instance, crit::Array{Int, 1})
                 end
                 if L != []
                     k = rand(L)
-                    s = move(s, i, k)
+                    move!(s, i, k, inst)
                 end
             end
         end
-        if phi == costHPRC(s)
+        if phi == costHPRC(s, inst)
             break
         end
     end
@@ -155,9 +172,9 @@ function ILS_HPRC(sol::Solution, inst::Instance)
         neighbor = perturbation(s, int)
         crit = criticalCars(s, inst)
         if crit[2] > (s.n * 0.6)
-            neighbor = localSearch(s, inst)
+            neighbor = localSearch(s, inst, move_exchange, cost_move_exchange)
         else
-            neighbor = fastLocalSearch(s, inst, crit[1])
+            neighbor = fastLocalSearch(s, inst, move_exchange, cost_move_exchange, crit[1])
         end
         if isBeq(nieghbor,s, inst)         # There is an improvement
             s = neighbor

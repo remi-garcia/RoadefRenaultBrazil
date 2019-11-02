@@ -21,15 +21,25 @@ function move_exchange!(solution::Solution, i::Int, j::Int, instance::Instance)
                 plusminusone = -1
             end
             pos1 = i - (instance.RC_q[k] - 1)
+            if pos1 < 1
+                pos1 = 1
+            end
             for l in pos1:i
                 solution.M1[k, l] += plusminusone
             end
             pos2 = j - (instance.RC_q[k] - 1)
+            if pos2 < 1
+                pos2 = 1
+            end
             for l in pos2:j
                 solution.M1[k, l] -= plusminusone
             end
-            cpt1 = solution.M2[k, pos1-1]
-            cpt2 = solution.M3[k, pos1-1]
+            pos1 -= 1
+            if pos1 < 1
+                pos1 = 1
+            end
+            cpt1 = solution.M2[k, pos1]
+            cpt2 = solution.M3[k, pos1]
             for l in pos1:solution.n
                 if solution.M1[k, l] > instance.RC_p[k]
                     cpt1 += 1

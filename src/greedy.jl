@@ -1,6 +1,12 @@
-#=
-This file contains all function used to construct a first valid solution.
-=#
+#-------------------------------------------------------------------------------
+# File: greedy.jl
+# Description: This file contains all function used to construct
+#         a first valid solution.
+# Date: October 31, 2019
+# Author: Jonathan Fontaine, Killian Fretaud, Rémi Garcia,
+#         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
+#-------------------------------------------------------------------------------
+
 
 """
     update_late_violation!(solution::Solution, nb::Int, last::Int,
@@ -13,6 +19,7 @@ before. `shift` parameter is used for LPRC.
 function update_late_violation!(solution::Solution, nb::Int, last::Int,
                                 p::Array{Int, 1}, q::Array{Int, 1},
                                 flag::Array{Bool, 2}, shift::Int = 0)
+    @warn "Function update_late_violation! deprecated -> call functions in solution.jl"
     # Update M1, M2 and M3 for the first car
     for j in 1:nb
         J = j + shift
@@ -24,10 +31,9 @@ function update_late_violation!(solution::Solution, nb::Int, last::Int,
         # First column of M2 and M3 can be update
         solution.M2[J,1] = (solution.M1[J,1] >  p[j] ? 1 : 0)
         solution.M3[J,1] = (solution.M1[J,1] >= p[j] ? 1 : 0)
-
-        update_solution!(solution, nb, 2, last, p, q, flag, shift)
     end
 
+    update_solution!(solution, nb, 2, last, p, q, flag, shift)
     return solution
 end
 
@@ -43,6 +49,7 @@ before. The first column has already been updated in `update_late_violation!()`.
 function update_solution!(solution::Solution, nb::Int, first::Int, last::Int,
                           p::Array{Int, 1}, q::Array{Int, 1},
                           flag::Array{Bool, 2}, shift::Int = 0)
+    @warn "Function update_solution! deprecated -> call functions in solution.jl"
     for j in 1:nb
         J = j + shift
         # for each shift of sequences
@@ -80,6 +87,7 @@ parameter is used for LPRC.
 function update_solution_at!(solution::Solution, nb::Int, pos::Int,
                            p::Array{Int, 1}, q::Array{Int, 1},
                            flag::Array{Bool, 2}, shift::Int = 0)
+    @warn "Function update_solution_at! deprecated -> call functions in solution.jl"
     for j in 1:nb
         J = j + shift
         # for each shift of sequence reaching this position
@@ -103,38 +111,56 @@ function update_solution_at!(solution::Solution, nb::Int, pos::Int,
     return solution
 end
 
+##===================================================##
+##                 Greedy algorithm                  ##
+##===================================================##
+
 """
-    greedy(inst::Instances)
+    greedy(instance::Instance)
 
 Takes an `Instance` and return a valid `Solution`.
 """
-function greedy(inst::Instances)
+function greedy(instance::Instance)
     # The constructive greedy heuristic starts with a partial sequence formed
     # by the remaining cars from the previous day. We compute an empty sequence
     # with some cars already scheduled
-    solution = init_solution(inst)
+    solution = init_solution(instance)
     # We have V the set of cars to be scheduled
-    len = (solution.n) - (inst.nb_late_prec_day)
-    V = collect((inst.nb_late_prec_day+1):(solution.n))
-    nbH = inst.nb_HPRC
+    len = (solution.n) - (instance.nb_late_prec_day)
+    V = collect((instance.nb_late_prec_day+1):(solution.n))
+    nbH = instance.nb_HPRC
+
+    # Compute for each option the number of cars who need it in V
+    # TODO : This should probably be done directly in the parser and stocked in
+    # the instance
+    rv = sum(instance.RC_flag,dims=1)
 
     # For the nb_late_prec_day first cars
     # Update M1, M2, M3
-    #TODO: clean parameters
-    update_late_violation!(solution, inst.nb_HPRC, inst.nb_late_prec_day, inst.HPRC_p, inst.HPRC_q, inst.HPRC_flag)
-    update_late_violation!(solution, inst.nb_LPRC, inst.nb_late_prec_day, inst.LPRC_p, inst.LPRC_q, inst.LPRC_flag, inst.nb_HPRC)
+    update_matrices!(solution, instance.nb_late_prec_day, instance)
+
+    # Compute for each option the number of cars who need it in Pi
+    length_pi = instance.nb_late_prec_day
+    rpi = zeros(Int,nbH)
+    for j in 1:nbH
+        for i in 1:instance.nb_late_prec_day
+            if instance.RC_flag[i,j]
+                rpi[j] = rpi[j]+1
+            end
+        end
+    end
 
     # The greedy criterion consists in choosing, at each iteration, the car
     # that induces the smallest number of new violations when inserted at
     # the end of the current partial sequence.
-    for pos in (inst.nb_late_prec_day+1):(solution.n)
+    for pos in (instance.nb_late_prec_day+1):(solution.n)
         # Compute the number of violations caused by each car
         nb_new_violation = zeros(Int, len)
         for c in 1:len
-            for j in 1:inst.nb_HPRC
-                if inst.HPRC_flag[V[c], j]
-                    for i in ((pos - inst.HPRC_q[j])+1):pos
-                        if solution.M1[j, i] >= inst.HPRC_p[j]
+            for j in 1:instance.nb_HPRC
+                if instance.RC_flag[V[c], j]
+                    for i in ((pos - instance.RC_q[j])+1):pos
+                        if solution.M1[j, i] >= instance.RC_p[j]
                             nb_new_violation[c] = nb_new_violation[c] + 1
                         end
                     end
@@ -168,7 +194,29 @@ function greedy(inst::Instances)
         #   the sequence.
         #
         if length(candidates) > 1
-            #TODO
+            # Compute the tie break criterion for each candidates
+            tie_break = zeros(Int,length(candidates))
+            for i in 1:length(candidates)
+                for j in 1:nbH
+                    cond1 = !instance.RC_flag[candidates[i],j]
+                    cond2 = (rv[j]-rpi[j])/len > (rpi[j])/length_pi
+                    tie_break[i] += Int(xor( cond1 , cond2 ))
+                end
+            end
+
+            # Compute the new candidate list
+            # TODO use popfirst and push to filter candidates instead of copying the table
+            tmp_candidates = copy(candidates)
+            candidates = [tmp_candidates[1]]
+            max_tie_break = tie_break[1]
+            for i in 2:length(tmp_candidates)
+              if tie_break[i] > max_tie_break
+                  candidates = [tmp_candidates[i]]
+                  max_tie_break = tie_break[i]
+              elseif tie_break[i] == max_tie_break
+                  push!(candidates, tmp_candidates[i])
+              end
+            end
         end
 
         # If |candidates| =/= 1 : DOUBLE TIE BREAK
@@ -186,11 +234,11 @@ function greedy(inst::Instances)
         c = candidates[1]     # We have a valid candidate
         solution.sequence[pos] = c
         len = len - 1
+        length_pi = length_pi + 1
         filter!(x->x≠c, V)    # The car is not in the list anymore
 
         # Update M1, M2 and M3
-        update_solution_at!(solution, inst.nb_HPRC, pos, inst.HPRC_p, inst.HPRC_q, inst.HPRC_flag)
-        update_solution_at!(solution, inst.nb_LPRC, pos, inst.LPRC_p, inst.LPRC_q, inst.LPRC_flag, inst.nb_HPRC)
+        update_matrices_new_car!(solution, pos, instance)
     end
 
     return solution

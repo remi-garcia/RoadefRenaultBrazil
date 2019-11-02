@@ -1,10 +1,14 @@
-#=
-# VNS for the RENAULT Roadef 2005 challenge
-# inspired by work of
-# Celso C. Ribeiro, Daniel Aloise, Thiago F. Noronha, Caroline Rocha, Sebastián Urrutia
+#-------------------------------------------------------------------------------
+# File: main.jl
+# Description: VNS for the RENAULT Roadef 2005 challenge
+#   inspired by work of
+#   Celso C. Ribeiro, Daniel Aloise, Thiago F. Noronha,
+#   Caroline Rocha, Sebastián Urrutia
 #
-# @Author Boualem Lamraoui, Benoît Le Badezet, Benoit Loger, Jonathan Fontaine, Killian Fretaud, Rémi Garcia
-# =#
+# Date: October 31, 2019
+# Author: Jonathan Fontaine, Killian Fretaud, Rémi Garcia,
+#         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
+#-------------------------------------------------------------------------------
 
 # Complete strategy can be summerize as follow:
 #
@@ -19,12 +23,12 @@ include("parser.jl")
 include("solution.jl")
 include("functions.jl")
 include("constants.jl")
+include("greedy.jl")
 
 function main()
     # Instance and initiale solution
     type_fichier = "A"
     nom_fichier = INSTANCES[type_fichier][1]
-    solution = init_solution(nom_fichier, type_fichier)
 
     # Greedy
     #TODO apply greedy (see PR #15)

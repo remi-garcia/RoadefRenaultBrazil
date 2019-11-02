@@ -41,7 +41,7 @@ struct Instance
 end
 
 # This function is used to read data of an instance from all files, and agregate into an Instance structure.
-function parser(instance_name::String, instance_type::String, path_folder::String="../data/Instances_")
+function parser(instance_name::String, instance_type::String, path_folder::String=string(@__DIR__)*"/../data/Instances_")
     path = path_folder * instance_type * "/" * instance_name * "/"
     # table of data
     df_optimisation = CSV.File(path * OPTIMISATION_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame

@@ -54,12 +54,17 @@ function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::I
         push!(array_insertion, r)
     end
 
-    n = length(array_insertion)
-    for k in 1:n
-        i = array_insertion[k]
+    # Put every index at the end
+    sort!(array_insertion, rev=true) # sort is important to avoid to compute offset.
+    for i in array_insertion
+        move_insertion!(sol, i, sol.n, instance)
+    end
+
+    # Best insert
+    for i in (sol.n-k):sol.n
         j_best = 1
         cost_best = cost_move_insertion(sol, i, j_best, instance, 2)
-        for j in 2:sol.n
+        for j in 2:(sol.n-k+i-1)
             cost = cost_move_insertion(sol, i, j, instance, 2)
             if cost < cost_best
                 j_best = j
@@ -67,11 +72,6 @@ function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::I
             end
         end
         move_insertion!(sol, i, j_best, instance)
-        # Compute offset of each index after moving cars i
-        for iter in (k+1):n
-            # Booleans can be seen as 0 or 1 and can be used in Math like that.
-            array_insertion[iter] += (j_best < array_insertion[iter]) - (i < array_insertion[iter])
-        end
     end
 
     return sol

@@ -116,7 +116,47 @@ end
 ##===================================================##
 
 """
-    greedy(instance::Instance)
+    filter_on_max_criterion(candidates::Array{Int64,1}, criterion::Union{Array{Int64,1},Array{Float64,1}})
+
+Takes a set of candidates and removes all elements with bad criterion.
+"""
+function filter_on_max_criterion(candidates::Array{Int64,1}, criterion::Union{Array{Int64,1},Array{Float64,1}})
+    tmp_candidates = [candidates[1]]
+    max_criterion = criterion[1]
+    for i in 2:length(criterion)
+        # next candidate...
+        if criterion[i] > max_criterion # ...is better (keep only him)
+            tmp_candidates = [candidates[i]]
+            max_criterion = criterion[i]
+        elseif criterion[i] == max_criterion # ...is even (keep him too)
+            push!(tmp_candidates, candidates[i])
+        end # ...is worse (throw it away)
+    end
+    return tmp_candidates
+end
+
+"""
+    filter_on_min_criterion(candidates::Array{Int64,1}, criterion::Array{Int64,1})
+
+Takes a set of candidates and removes all elements with bad criterion.
+"""
+function filter_on_min_criterion(candidates::Array{Int64,1}, criterion::Array{Int64,1})
+    tmp_candidates = [candidates[1]]
+    min_criterion = criterion[1]
+    for i in 2:length(criterion)
+        # next candidate...
+        if criterion[i] < min_criterion # ...is better (keep only him)
+            tmp_candidates = [candidates[i]]
+            min_criterion = criterion[i]
+        elseif criterion[i] == min_criterion # ...is even (keep him too)
+            push!(tmp_candidates, candidates[i])
+        end # ...is worse (throw it away)
+    end
+    return tmp_candidates
+end
+
+"""
+    greedy(instance::Instances)
 
 Takes an `Instance` and return a valid `Solution`.
 """
@@ -128,22 +168,20 @@ function greedy(instance::Instance)
     # We have V the set of cars to be scheduled
     len = (solution.n) - (instance.nb_late_prec_day)
     V = collect((instance.nb_late_prec_day+1):(solution.n))
-    nbH = instance.nb_HPRC
 
     # Compute for each option the number of cars who need it in V
-    # TODO : This should probably be done directly in the parser and stocked in
-    # the instance
+    # TODO : Could be done in the parser and stocked in the instance
     rv = sum(instance.RC_flag,dims=1)
 
-    # For the nb_late_prec_day first cars
-    # Update M1, M2, M3
+    # For the nb_late_prec_day first cars, update M1, M2, M3
     update_matrices!(solution, instance.nb_late_prec_day, instance)
 
+    # Initialization for first tie-break criterion
     # Compute for each option the number of cars who need it in Pi
     length_pi = instance.nb_late_prec_day
-    rpi = zeros(Int,nbH)
-    for j in 1:nbH
-        for i in 1:instance.nb_late_prec_day
+    rpi = zeros(Int,instance.nb_HPRC)
+    for i in 1:instance.nb_late_prec_day
+        for j in 1:instance.nb_HPRC
             if instance.RC_flag[i,j]
                 rpi[j] = rpi[j]+1
             end
@@ -153,13 +191,13 @@ function greedy(instance::Instance)
     # The greedy criterion consists in choosing, at each iteration, the car
     # that induces the smallest number of new violations when inserted at
     # the end of the current partial sequence.
-    for pos in (instance.nb_late_prec_day+1):(solution.n)
+    for position in (instance.nb_late_prec_day+1):(solution.n)
         # Compute the number of violations caused by each car
         nb_new_violation = zeros(Int, len)
         for c in 1:len
             for j in 1:instance.nb_HPRC
                 if instance.RC_flag[V[c], j]
-                    for i in ((pos - instance.RC_q[j])+1):pos
+                    for i in ((position - instance.RC_q[j])+1):position
                         if solution.M1[j, i] >= instance.RC_p[j]
                             nb_new_violation[c] = nb_new_violation[c] + 1
                         end
@@ -169,35 +207,17 @@ function greedy(instance::Instance)
         end
 
         # Compute the set of indexes causing minimal-violation
-        candidates = [V[1]]
-        nb_min = nb_new_violation[1]
-        for c in 2:len
-            if nb_new_violation[c] < nb_min
-                nb_min = nb_new_violation[c]
-                candidates = [V[c]]
-            elseif nb_new_violation[c] == nb_min
-                push!(candidates, V[c])
-            end
-        end
+        candidates = filter_on_min_criterion(V, nb_new_violation)
 
-        # If |candidates| =/= 1 : TIE BREAK
-        #
-        # We will pass by tie breaking criterion
-        # This criterion encourages a more homogeneous distribution of
-        # the required options among the cars already in the partial sequence
-        # and those still to be scheduled.
-        # The distribution is based on the following idea:
-        #
-        #   If the average number of cars demanding a given option in the
-        #   partial sequence p is lower than that in the whole set V of
-        #   vehicles, then these cars should be encouraged to enter in
-        #   the sequence.
-        #
+        # Two candidates or more - First tie break
+        # If the average number of cars demanding a given option in the
+        # partial sequence π is lower than that in the whole set V of vehicles,
+        # then these cars should be encouraged to enter in the sequence.
         if length(candidates) > 1
             # Compute the tie break criterion for each candidates
             tie_break = zeros(Int,length(candidates))
             for i in 1:length(candidates)
-                for j in 1:nbH
+                for j in 1:instance.nb_HPRC
                     cond1 = !instance.RC_flag[candidates[i],j]
                     cond2 = (rv[j]-rpi[j])/len > (rpi[j])/length_pi
                     tie_break[i] += Int(xor( cond1 , cond2 ))
@@ -205,40 +225,63 @@ function greedy(instance::Instance)
             end
 
             # Compute the new candidate list
-            # TODO use popfirst and push to filter candidates instead of copying the table
-            tmp_candidates = copy(candidates)
-            candidates = [tmp_candidates[1]]
-            max_tie_break = tie_break[1]
-            for i in 2:length(tmp_candidates)
-              if tie_break[i] > max_tie_break
-                  candidates = [tmp_candidates[i]]
-                  max_tie_break = tie_break[i]
-              elseif tie_break[i] == max_tie_break
-                  push!(candidates, tmp_candidates[i])
-              end
-            end
+            candidates = filter_on_max_criterion(candidates, tie_break)
         end
 
-        # If |candidates| =/= 1 : DOUBLE TIE BREAK
-        #
-        # It may happen that ties still remain after the application of
-        # the above tie breaking criterion. In this case, a second criterion
-        # is added, favoring cars that require options with higher
-        # utilization rates. The utilization rates are dynamically computed,
-        # in the sense that they are updated whenever a new car is added at
-        # the end of the sequence.
+        # Two candidates or more - Second tie break
+        # Cars that require options with higher utilization rates should enter.
         if length(candidates) > 1
-            #TODO
+            # Compute the utilization rate of each options
+            utilization_rate = Array{Float64,1}(UndefInitializer(),instance.nb_HPRC)
+            for j in 1:instance.nb_HPRC
+                utilization_rate[j] = ( (rv[j] - rpi[j])/len ) / ( instance.RC_p[j] / instance.RC_q[j] )
+            end
+            tie_break = zeros(length(candidates))
+            for i in 1:length(candidates)
+                for j in 1:instance.nb_HPRC
+                    tie_break[i] += instance.RC_flag[candidates[i],j] * utilization_rate[j]
+                end
+            end
+
+            # Compute the new candidate list
+            candidates = filter_on_max_criterion(candidates, tie_break)
         end
 
-        c = candidates[1]     # We have a valid candidate
-        solution.sequence[pos] = c
+        # Two candidates or more - LPRC criterion
+        # Choose the car that induces the smallest number of new violations of LPRC
+        # when inserted at the end of the current partial sequence.
+        if length(candidates) > 1
+            # Compute the number of violations caused by each car
+            nb_new_violation = zeros(Int, length(candidates))
+            for ind in 1:length(candidates)
+                c = candidates[ind]
+                for j in (instance.nb_HPRC+1):(instance.nb_HPRC+instance.nb_LPRC)
+                    if instance.RC_flag[c, j]
+                        for i in ((position - instance.RC_q[j])+1):position
+                            if solution.M1[j, i] >= instance.RC_p[j]
+                                nb_new_violation[ind] = nb_new_violation[ind] + 1
+                            end
+                        end
+                    end
+                end
+            end
+            candidates = filter_on_min_criterion(candidates, nb_new_violation)
+        end
+
+        c = rand(candidates)     # We have a valid candidate
+        solution.sequence[position] = c
         len = len - 1
         length_pi = length_pi + 1
         filter!(x->x≠c, V)    # The car is not in the list anymore
 
+        # The utilization rates components are dynamically updated.
+        # Update rpi with the options of c
+        for j in 1:instance.nb_HPRC
+            rpi[j] += Int(instance.RC_flag[c,j])
+        end
+
         # Update M1, M2 and M3
-        update_matrices_new_car!(solution, pos, instance)
+        update_matrices_new_car!(solution, position, instance)
     end
 
     return solution

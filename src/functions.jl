@@ -63,10 +63,26 @@ end
 """
     move_insertion!(solution::Solution, i::Int, j::Int, instance::Instance)
 
-Inserts the car `i` before the car `j` in `solution.sequence`. Updates
-`solution.M1`, `solution.M2` and `solution.M3`.
+Inserts the car of index `i` before the car of index `j` in `solution.sequence`.
+Updates `solution.M1`, `solution.M2` and `solution.M3`.
 """
 function move_insertion!(solution::Solution, i::Int, j::Int, instance::Instance)
+    car = solution.sequence[i]
+    if i < j
+        for k in i:(j-2)
+            solution.sequence[k] = solution.sequence[k+1]
+        end
+        solution.sequence[j-1] = car
+    end
+    if i > j
+        for k in i:-1:j
+            solution.sequence[k] = solution.sequence[k-1]
+        end
+        solution.sequence[j-1] = car
+    end
+
+    update_matrices!(solution, solution.n, instance)
+
     # TODO
     return Solution
 end

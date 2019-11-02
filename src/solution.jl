@@ -66,6 +66,7 @@ function init_solution(instance::Instance)
     return solution
 end
 
+
 """
     update_matrices!(solution::Solution, nb::Int, instance::Instance)
 
@@ -79,6 +80,8 @@ function update_matrices!(solution::Solution, nb::Int, instance::Instance)
         car = solution.sequence[nb]
         if instance.RC_flag[car, option]
             solution.M1[option, nb] = 1
+        else
+            solution.M1[option, nb] = 0
         end
     end
 
@@ -112,9 +115,9 @@ function update_matrices!(solution::Solution, nb::Int, instance::Instance)
             if index > 1
                 solution.M2[option, index] = solution.M2[option, index-1]
                 solution.M3[option, index] = solution.M3[option, index-1]
-            # else
-            #    solution.M2[option, index] = 0
-            #    solution.M3[option, index] = 0
+            else
+               solution.M2[option, index] = 0
+               solution.M3[option, index] = 0
             end
             # M3 is >=
             if solution.M1[option, index] >= instance.RC_p[option]
@@ -153,6 +156,7 @@ function update_matrices_new_car!(solution::Solution, position::Int, instance::I
                     solution.M2[option, index] = solution.M2[option, index-1]
                     solution.M3[option, index] = solution.M3[option, index-1]
                 # else
+                #   #TODO: Must be decomment ? (I don't think so)
                 #    solution.M2[option, index] = 0
                 #    solution.M3[option, index] = 0
                 end

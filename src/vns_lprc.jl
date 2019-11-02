@@ -191,8 +191,8 @@ function VNS_LPRC(solution::Solution, instance::Instance)
 
     # solutions
     s = deepcopy(solution)
-    s_opt = s
-    
+    s_opt = deepcopy(solution)
+
     # variable of the algorithm
     k_min = [VNS_LPRC_MIN_INSERT, VNS_LPRC_MIN_EXCHANGE]
     k_max = [VNS_LPRC_MAX_INSERT, VNS_LPRC_MAX_EXCHANGE]

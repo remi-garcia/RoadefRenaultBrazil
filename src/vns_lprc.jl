@@ -90,16 +90,15 @@ end
 function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, instance::Instance)
 
     # useful variables
-    nb_vehicles = length(solution.sequence)
     b0 = instance.nb_late_prec_day+1
 
     improved = true
     while improved
         phi = cost_VNS_LPRC(solution, instance)
-        for i in b0:nb_vehicles
+        for i in b0:solution.n
             best_delta = 0
             list = Array{Int, 1}()
-            for j in (i+1):nb_vehicles # exchange (i, j) is the same as exchange (j, i)
+            for j in (i+1):solution.n # exchange (i, j) is the same as exchange (j, i)
                 if !perturbation_exchange || same_HPRC(solution, i, j, instance)
                     delta = cost_move_exchange(solution, i, j, instance, 2)
                     if delta < best_delta
@@ -125,16 +124,15 @@ end
 
 function localSearch_intensification_VNS_LPRC!(solution::Solution, alpha::Int, cost_move::Function, move!::Function, instance::Instance)
     # useful variables
-    nb_vehicles = length(solution.sequence)
     b0 = instance.nb_late_prec_day+1
 
     nb_non_improved = 0
     while nb_non_improved < alpha
         phi = cost_VNS_LPRC(solution, instance)
-        for i in b0:nb_vehicles
+        for i in b0:solution.n
             best_delta = 0
             list = Array{Int, 1}()
-            for j in b0:nb_vehicles
+            for j in b0:solution.n
                 delta = cost_move(solution, i, j, instance, 2)
                 if delta < best_delta
                     list = [j]

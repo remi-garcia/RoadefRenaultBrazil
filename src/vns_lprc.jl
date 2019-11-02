@@ -6,7 +6,7 @@
 #         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
 #-------------------------------------------------------------------------------
 
-# Make k randomly exchange, each exchange occurs in the same HPRC level, to avoid increase it.
+# Make k randomly exchange. Each exchange must occur in the same HPRC level in order to avoid increasing the HPRC.
 function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::Instance)
     # Dict that contain for each HRPC level an array of all index that have this HPRC level.
     all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
@@ -89,7 +89,7 @@ end
 # The Local Search is based on a car exchange move.
 function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, instance::Instance)
 
-    # useful variables
+    # useful variable
     b0 = instance.nb_late_prec_day+1
 
     improved = true
@@ -123,7 +123,7 @@ end
 
 
 function localSearch_intensification_VNS_LPRC!(solution::Solution, alpha::Int, cost_move::Function, move!::Function, instance::Instance)
-    # useful variables
+    # useful variable
     b0 = instance.nb_late_prec_day+1
 
     nb_non_improved = 0
@@ -192,6 +192,7 @@ function VNS_LPRC(solution::Solution, instance::Instance)
     # solutions
     s = deepcopy(solution)
     s_opt = s
+    
     # variable of the algorithm
     k_min = [VNS_LPRC_MIN_INSERT, VNS_LPRC_MIN_EXCHANGE]
     k_max = [VNS_LPRC_MAX_INSERT, VNS_LPRC_MAX_EXCHANGE]

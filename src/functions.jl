@@ -160,7 +160,8 @@ function cost_move_exchange(solution::Solution, i::Int, j::Int,
         #TODO
     end
 
-    return cost_on_objective
+    #return cost_on_objective
+    return sum(cost_on_objective[i]*WEIGHTS_OBJECTIVE_FUNCTION[i] for i in 1:3)
 end
 
 """

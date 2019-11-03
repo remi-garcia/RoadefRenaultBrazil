@@ -61,24 +61,24 @@ function move_exchange!(solution::Solution, i::Int, j::Int, instance::Instance)
 end
 
 """
-    move_insertion!(solution::Solution, i::Int, j::Int, instance::Instance)
+    move_insertion!(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance::Instance)
 
-Inserts the car of index `i` before at index `j` in `solution.sequence`.
+Inserts the car of index `car_pos_a` before at index `car_pos_b` in `solution.sequence`.
 Updates `solution.M1`, `solution.M2` and `solution.M3`.
 """
-function move_insertion!(solution::Solution, i::Int, j::Int, instance::Instance)
-    car = solution.sequence[i]
-    if i < j
-        for k in i:(j-1)
-            solution.sequence[k] = solution.sequence[k+1]
+function move_insertion!(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance::Instance)
+    car_inserted = solution.sequence[car_pos_a]
+    if car_pos_a < car_pos_b
+        for car_moved_pos in car_pos_a:(car_pos_b-1)
+            solution.sequence[car_moved_pos] = solution.sequence[car_moved_pos+1]
         end
-        solution.sequence[j] = car
+        solution.sequence[car_pos_b] = car_inserted
     end
-    if i > j
-        for k in i:-1:(j+1)
-            solution.sequence[k] = solution.sequence[k-1]
+    if car_pos_a > car_pos_b
+        for car_moved_pos in car_pos_a:-1:(car_pos_b+1)
+            solution.sequence[car_moved_pos] = solution.sequence[car_moved_pos-1]
         end
-        solution.sequence[j] = car
+        solution.sequence[car_pos_b] = car_inserted
     end
 
     update_matrices!(solution, solution.n, instance)
@@ -88,15 +88,15 @@ function move_insertion!(solution::Solution, i::Int, j::Int, instance::Instance)
 end
 
 """
-    cost_move_exchange(solution::Solution, i::Int, j::Int,
+    cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
                        instance::Instance, objective::Int)
 
-Return the cost of the exchange of the car `i` with the car `j` with respect to
+Return the cost of the exchange of the car `car_pos_a` with the car `car_pos_b` with respect to
 objective `objective`. A negative cost means that the move is interesting with
 respect to objective `objective`.
 CAREFUL: Return a delta !
 """
-function cost_move_exchange(solution::Solution, i::Int, j::Int,
+function cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
                             instance::Instance, objective::Int)
     #TODO it might be important that objective is a vector of Int, then we could
     #return a vector of cost.
@@ -110,24 +110,24 @@ function cost_move_exchange(solution::Solution, i::Int, j::Int,
     if objective >= 1 #Must improve or keep HPRC
         for option in 1:instance.nb_HPRC
             # No cost if both have it / have it not
-            if instance.RC_flag[solution.sequence[i], option] != instance.RC_flag[solution.sequence[j], option]
+            if instance.RC_flag[solution.sequence[car_pos_a], option] != instance.RC_flag[solution.sequence[car_pos_b], option]
                 #TODO: Rewrite code or swap indexes ?
-                if instance.RC_flag[solution.sequence[j], option]
-                    i,j = j,i
+                if instance.RC_flag[solution.sequence[car_pos_b], option]
+                    car_pos_a,car_pos_b = car_pos_b,car_pos_a
                 end
                 # New option here -> increasing cost
-                last_ended_sequence = j - instance.RC_q[option]
+                last_ended_sequence = car_pos_b - instance.RC_q[option]
                 if last_ended_sequence > 0
-                    cost_on_objective[1] += solution.M3[option, j] - solution.M3[option, last_ended_sequence]
+                    cost_on_objective[1] += solution.M3[option, car_pos_b] - solution.M3[option, last_ended_sequence]
                 else
-                    cost_on_objective[1] += solution.M3[option, j]
+                    cost_on_objective[1] += solution.M3[option, car_pos_b]
                 end
                 # No option anymore -> decreasing cost
-                last_ended_sequence = i - instance.RC_q[option]
+                last_ended_sequence = car_pos_a - instance.RC_q[option]
                 if last_ended_sequence > 0
-                    cost_on_objective[1] -= solution.M2[option, i] - solution.M2[option, last_ended_sequence]
+                    cost_on_objective[1] -= solution.M2[option, car_pos_a] - solution.M2[option, last_ended_sequence]
                 else
-                    cost_on_objective[1] -= solution.M2[option, i]
+                    cost_on_objective[1] -= solution.M2[option, car_pos_a]
                 end
             end
         end
@@ -135,24 +135,24 @@ function cost_move_exchange(solution::Solution, i::Int, j::Int,
     if objective >= 2 #Must improve or keep HPRC and LPRC
         for option in (instance.nb_HPRC+1):(instance.nb_HPRC+instance.nb_LPRC)
             # No cost if both have it / have it not
-            if instance.RC_flag[solution.sequence[i], option] != instance.RC_flag[solution.sequence[j], option]
+            if instance.RC_flag[solution.sequence[car_pos_a], option] != instance.RC_flag[solution.sequence[car_pos_b], option]
                 #TODO: Rewrite code or swap indexes ?
-                if instance.RC_flag[solution.sequence[j], option]
-                    i,j = j,i
+                if instance.RC_flag[solution.sequence[car_pos_b], option]
+                    car_pos_a,car_pos_b = car_pos_b,car_pos_a
                 end
                 # New option here -> increasing cost
-                last_ended_sequence = j - instance.RC_q[option]
+                last_ended_sequence = car_pos_b - instance.RC_q[option]
                 if last_ended_sequence > 0
-                    cost_on_objective[2] += solution.M3[option, j] - solution.M3[option, last_ended_sequence]
+                    cost_on_objective[2] += solution.M3[option, car_pos_b] - solution.M3[option, last_ended_sequence]
                 else
-                    cost_on_objective[2] += solution.M3[option, j]
+                    cost_on_objective[2] += solution.M3[option, car_pos_b]
                 end
                 # No option anymore -> decreasing cost
-                last_ended_sequence = i - instance.RC_q[option]
+                last_ended_sequence = car_pos_a - instance.RC_q[option]
                 if last_ended_sequence > 0
-                    cost_on_objective[2] -= solution.M2[option, i] - solution.M2[option, last_ended_sequence]
+                    cost_on_objective[2] -= solution.M2[option, car_pos_a] - solution.M2[option, last_ended_sequence]
                 else
-                    cost_on_objective[2] -= solution.M2[option, i]
+                    cost_on_objective[2] -= solution.M2[option, car_pos_a]
                 end
             end
         end
@@ -166,15 +166,15 @@ function cost_move_exchange(solution::Solution, i::Int, j::Int,
 end
 
 """
-    cost_move_insertion(solution::Solution, i::Int, j::Int,
+    cost_move_insertion(solution::Solution, car_pos_a::Int, car_pos_b::Int,
                         instance::Instance, objective::Int)
 
-Return the cost of the insertion of the car `i` before the car `j` with respect
+Return the cost of the insertion of the car `car_pos_a` before the car `car_pos_b` with respect
 to objective `objective`. A negative cost means that the move is interesting
 with respect to objective `objective`.
 CAREFUL: Return a delta !
 """
-function cost_move_insertion(solution::Solution, i::Int, j::Int,
+function cost_move_insertion(solution::Solution, car_pos_a::Int, car_pos_b::Int,
                              instance::Instance, objective::Int)
     #TODO it might be important that objective is a vector of Int, then we could
     #return a vector of cost.
@@ -185,7 +185,7 @@ function cost_move_insertion(solution::Solution, i::Int, j::Int,
 
     z = cost(solution, instance, 3)
     s = deepcopy(solution)
-    move_insertion!(s, i, j, instance)
+    move_insertion!(s, car_pos_a, car_pos_b, instance)
     Z = cost(s, instance, 3)
 
     # TODO

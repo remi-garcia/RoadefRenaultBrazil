@@ -236,10 +236,10 @@ function HPRC_level(solution::Solution, index::Int, instance::Instance)
 end
 
 """
-    same_HPRC(solution::Solution, i::Int, j::Int, instance::Instance)
+    same_HPRC(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance::Instance)
 
-Return `true` if car `i` and `j` have the same HPRC level. `false` otherwise.
+Return `true` if car `car_pos_a` and `car_pos_b` have the same HPRC level. `false` otherwise.
 """
-function same_HPRC(solution::Solution, i::Int, j::Int, instance::Instance)
-    return HPRC_level(solution, i, instance) == HPRC_level(solution, j, instance)
+function same_HPRC(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance::Instance)
+    return HPRC_level(solution, car_pos_a, instance) == HPRC_level(solution, car_pos_b, instance)
 end

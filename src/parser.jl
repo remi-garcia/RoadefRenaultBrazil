@@ -49,6 +49,12 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     df_ratio = CSV.File(path * RATIO_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
     df_vehicles = CSV.File(path * VEHICLES_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
 
+    # Avoid lines with missing value that are not usable.
+    dropmissing!(df_optimisation, :rank)
+    dropmissing!(df_paint, :limitation)
+    dropmissing!(df_ratio, :Ratio)
+    dropmissing!(df_vehicles, :SeqRank)
+
     # Rank parsing
     temp = findall(e -> occursin("high", e), df_optimisation[!, 2])
     HPRC_rank = df_optimisation[!, 1][temp[1]]

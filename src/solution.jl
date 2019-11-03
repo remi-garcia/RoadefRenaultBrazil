@@ -152,13 +152,12 @@ function update_matrices_new_car!(solution::Solution, position::Int, instance::I
                 end
 
                 # Columns of M2 and M3 can be update
-                if index > 1
+                if index == 1
+                    solution.M2[option, index] = 0
+                    solution.M3[option, index] = 0
+                else
                     solution.M2[option, index] = solution.M2[option, index-1]
                     solution.M3[option, index] = solution.M3[option, index-1]
-                # else
-                #   #TODO: Must be decomment ? (I don't think so)
-                #    solution.M2[option, index] = 0
-                #    solution.M3[option, index] = 0
                 end
 
                 # M3 is >=

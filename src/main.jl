@@ -30,11 +30,11 @@ include("vns_lprc.jl")
 function main()
 
     type = ["A"]
-    name = [INSTANCES[type_fichier][1]]
+    name = [INSTANCES[type[1]][1]]
 
     # Instance and initiale solution
-    for type_fichier in list_type#["A", "B", "X"]
-        for nom_fichier in list_names#INSTANCES[type_fichier]
+    for type_fichier in type#["A", "B", "X"]
+        for nom_fichier in name#INSTANCES[type_fichier]
             println( "Instance ",type_fichier,"/",nom_fichier)
 
             # Parser
@@ -48,6 +48,8 @@ function main()
             #TODO
 
             println()
+
+            return solution
         end
     end
 end

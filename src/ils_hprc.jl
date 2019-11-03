@@ -8,6 +8,9 @@
 
 #= CONSTANTATES TEMPORAIRES =#
 const n_perturbation_HPRC = 5
+const alpha = 25
+const beta = 50
+const stopping_criteria_ILSHPRC = 3
 
 ##=====================================##
 ##        USEFUL ALGORITHMS            ##
@@ -58,9 +61,9 @@ end
 function perturbation(s::Solution, inst::Instance, crit::Array{Int,1})
     sol, removed = remove(s, inst, crit)
     for i in removed
-        s = greedyadd(s, inst, i)
+        sol = greedyadd(sol, inst, i)
     end
-    return s
+    return sol
 end
 
 # Retourne le coût du premier objectif pour la solution s
@@ -88,7 +91,7 @@ function localSearch(s::Solution, inst::Instance, move!::Function, cost_move::Fu
             end
             if L != []
                 k = rand(L)
-                move!(s, i, k)
+                move!(s, i, k, inst)
             end
         end
         if phi == costHPRC(s, inst)
@@ -104,7 +107,7 @@ function fastLocalSearch(s::Solution, inst::Instance, move!::Function, cost_move
         phi = costHPRC(s, inst)
         b0 = inst.nb_late_prec_day + 1      #First car of the current production day
         for i in b0:s.n
-            if crit(i) == 1
+            if crit[i] == 1
                 best_delta = 0
                 L = []
                 for j in b0:s.n
@@ -195,34 +198,39 @@ end
 function ILS_HPRC(sol::Solution, inst::Instance)
     i = 0                               # Number of itération since the last improvement
     s = deepcopy(sol)
-    S = s
-    cond = false #TODO
-    while cond
-        neighbor = perturbation(s, int)
+    s_opt = deepcopy(sol)
+    cond = 0 #TODO
+    while cond < stopping_criteria_ILSHPRC
         crit = criticalCars(s, inst)
+        neighbor = perturbation(s, inst, crit[1])
+        crit = criticalCars(neighbor, inst)
         if crit[2] > (s.n * 0.6)
-            neighbor = localSearch(s, inst, move_exchange, cost_move_exchange)
+            neighbor = localSearch(neighbor, inst, move_exchange!, cost_move_exchange)
         else
-            neighbor = fastLocalSearch(s, inst, move_exchange, cost_move_exchange, crit[1])
+            neighbor = fastLocalSearch(neighbor, inst, move_exchange!, cost_move_exchange, crit[1])
         end
-        if isBeq(nieghbor,s, inst)         # There is an improvement
+        if costHPRC(s, inst) <= costHPRC(neighbor, inst)
             s = neighbor
-            i = 0                       # So the number of iteration since the last improvement return to 0
         end
         if i == alpha
             s = intensification(s, inst)
         end
         if i == beta
-            if isEqual(neighbor,s, inst)
-                s = restart(s, inst)
+            if costHPRC(neighbor, inst) < costHPRC(s, inst)
+                #s = restart(s, inst)
+                i = 0
+                cond = cond + 1
             else
-                s = S
+                s = s_opt
+                cond = 0
             end
         end
-        if isBetter(s,S, inst)
-            S = s
+        if costHPRC(s, inst) < costHPRC(s_opt, inst)            # There is an improvement
+            s_opt = s
+            i = 0                   # So the number of iteration since the last improvement shall return to 0
         end
         i = i + 1
+        println(i)
     end
     return S
 end

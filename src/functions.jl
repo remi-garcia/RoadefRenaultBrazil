@@ -131,8 +131,8 @@ function cost_move_exchange(solution::Solution, i::Int, j::Int,
                 end
             end
         end
-
-    elseif objective >= 2 #Must improve or keep HPRC and LPRC
+    end
+    if objective >= 2 #Must improve or keep HPRC and LPRC
         for option in (instance.nb_HPRC+1):(instance.nb_HPRC+instance.nb_LPRC)
             # No cost if both have it / have it not
             if instance.RC_flag[solution.sequence[i], option] != instance.RC_flag[solution.sequence[j], option]
@@ -156,8 +156,8 @@ function cost_move_exchange(solution::Solution, i::Int, j::Int,
                 end
             end
         end
-
-    else #Must improve or keep HPRC and LPRC and PCC
+    end
+    if objective >= 3 #Must improve or keep HPRC and LPRC and PCC
         #TODO
     end
 

@@ -220,18 +220,18 @@ function cost(solution::Solution, instance::Instance, objective::Int)
     cost_on_objective = zeros(Int, 3)
 
     value = 0
-    for car in 1:instance.n
+    for car in 1:solution.n
         for option in 1:instance.nb_HPRC
-            value += max(0 , solution.M1[car, option] - instance.RC_p[solution.sequence[car]])
+            value += max(0 , solution.M1[option, car] - instance.RC_p[option])
         end
     end
     cost_on_objective[1] = value
     value = 0
 
     if objective >= 2 #Must improve or keep HPRC and LPRC
-        for car in 1:instance.n
+        for car in 1:solution.n
             for option in (instance.nb_HPRC+1):(instance.nb_HPRC+instance.nb_LPRC)
-                value += max(0 , solution.M1[car, option] - instance.RC_p[solution.sequence[car]])
+                value += max(0 , solution.M1[option, car] - instance.RC_p[option])
             end
         end
     end

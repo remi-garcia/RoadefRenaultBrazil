@@ -44,10 +44,16 @@ end
 function parser(instance_name::String, instance_type::String, path_folder::String=string(@__DIR__)*"/../data/Instances_")
     path = path_folder * instance_type * "/" * instance_name * "/"
     # table of data
-    df_optimisation = CSV.File(path * OPTIMISATION_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
-    df_paint = CSV.File(path * PAINT_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
-    df_ratio = CSV.File(path * RATIO_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
-    df_vehicles = CSV.File(path * VEHICLES_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
+    global df_optimisation = CSV.File(path * OPTIMISATION_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
+    global df_paint = CSV.File(path * PAINT_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
+    global df_ratio = CSV.File(path * RATIO_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
+    global df_vehicles = CSV.File(path * VEHICLES_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
+
+    # Avoid lignes with missing value that are not usable.
+    dropmissing!(df_optimisation, :rank)
+    dropmissing!(df_paint, :limitation)
+    dropmissing!(df_ratio, :Ratio)
+    dropmissing!(df_vehicles, :SeqRank)
 
     # Rank parsing
     temp = findall(e -> occursin("high", e), df_optimisation[!, 2])

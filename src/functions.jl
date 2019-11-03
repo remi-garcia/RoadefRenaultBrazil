@@ -26,7 +26,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int, car_pos_b::Int, inst
     for option in 1:(instance.nb_HPRC + instance.nb_LPRC)
         if xor(instance.RC_flag[car_a, option], instance.RC_flag[car_b, option])
             plusminusone = 1
-            if instance.RC_flag[car_b, option]
+            if instance.RC_flag[car_a, option]
                 plusminusone = -1
             end
             first_modified_pos = car_pos_a - instance.RC_q[option] + 1

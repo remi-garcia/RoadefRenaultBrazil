@@ -114,9 +114,9 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
 
     improved = true
     phi_bis = cost_VNS_LPRC(solution, instance)
-    critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
     while improved
         phi = phi_bis
+        critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
         for i in critical_cars_set
             best_delta = -0.420
             list = Array{Int, 1}()

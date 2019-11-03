@@ -16,7 +16,7 @@
 
 function remove(solution::Solution, instance::Instance, nbcar::Int, crit::Array{Int,1})
     i = instance.nb_late_prec_day+1
-    removed = []
+    removed = Array{Int, 1}([])
     while i <= solution.n && length(removed) <= nbcar
         #TODO plutot que de prendre les n premiers peut être faire un tirage aléatoire
         if crit[i] == 1

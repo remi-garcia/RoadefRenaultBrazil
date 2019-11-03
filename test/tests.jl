@@ -75,5 +75,4 @@ end;
     @test solution_greedy.n == solution_vns_LPRC.n
     @test cost_VNS_LPRC(solution_vns_LPRC, instance) <= cost_VNS_LPRC(solution_greedy, instance)
     @test HPRC_level(solution_vns_LPRC, solution_vns_LPRC.n, instance) <= HPRC_level(solution_greedy, solution_greedy.n, instance)
-    @test is_better_VNS_LPRC(solution_vns_LPRC, solution_greedy, instance)
 end;

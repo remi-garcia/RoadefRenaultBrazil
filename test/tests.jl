@@ -9,8 +9,8 @@ include(string(@__DIR__)*"/../src/main.jl")
     solution = greedy(instance)
     @testset "move_exchange!" begin
         solution_test = deepcopy(solution)
-        move_exchange!(solution_test, 1, solution.n, instance)
-        move_exchange!(solution_test, 1, solution.n, instance)
+        move_exchange!(solution_test, 1, solution_test.n, instance)
+        move_exchange!(solution_test, 1, solution_test.n, instance)
         # This shouldn't have changed anything
         @test solution.n == solution_test.n
         @test solution.sequence == solution_test.sequence
@@ -20,7 +20,7 @@ include(string(@__DIR__)*"/../src/main.jl")
     end;
     @testset "move_exchange! and update_matrices!" begin
         solution_test = deepcopy(solution)
-        move_exchange!(solution_test, 1, solution.n, instance)
+        move_exchange!(solution_test, 1, solution_test.n, instance)
         solution_test_test = deepcopy(solution_test)
         update_matrices!(solution_test_test, solution_test_test.n, instance)
         # This shouldn't have changed anything

@@ -6,6 +6,24 @@
 #         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
 #-------------------------------------------------------------------------------
 
+#Compute set of critical cars involved in an HPRC or LPRC constraint.
+function critical_cars_VNS_LPRC(solution::Solution, instance::Instance)
+    critical_car = Set{Int}()
+    for car in 1:solution.n
+        for option in 1:(instance.nb_HPRC+instance.nb_LPRC)
+            if (solution.M1[option, car] > instance.RC_p[option])
+                k_lim = car + min(instance.RC_p[option], solution.n-car)
+                for k in car:k_lim
+                    if instance.RC_flag[solution.sequence[k], option]
+                        push!(critical_car, k)
+                    end
+                end
+            end
+        end
+    end
+    return critical_car
+end
+
 # Make k randomly exchange. Each exchange must occur in the same HPRC level in order to avoid increasing the HPRC.
 function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::Instance)
     # Dict that contain for each HRPC level an array of all index that have this HPRC level.
@@ -93,8 +111,9 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
     b0 = instance.nb_late_prec_day+1
 
     improved = true
+    phi_bis = cost_VNS_LPRC(solution, instance)
     while improved
-        phi = cost_VNS_LPRC(solution, instance)
+        phi = phi_bis
         for i in b0:solution.n
             best_delta = 0
             list = Array{Int, 1}()
@@ -114,7 +133,8 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
                 move_exchange!(solution, i, k, instance)
             end
         end
-        if phi == cost_VNS_LPRC(solution, instance)
+        phi_bis = cost_VNS_LPRC(solution, instance)
+        if phi == phi_bis
             improved = false
         end
     end

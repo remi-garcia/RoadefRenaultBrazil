@@ -231,7 +231,7 @@ end
 Return the HPRC level of `index` car in the current `solution`.
 """
 function HPRC_level(solution::Solution, index::Int, instance::Instance)
-    return sum(solution.M2[k, index] for k in 1:instance.nb_HPRC)
+    return sum(solution.M2[option, index] for option in 1:instance.nb_HPRC)
 end
 
 """

@@ -157,7 +157,8 @@ function criticalCars(s::Solution, inst::Instance)
 end
 
 function intensification(s::Solution, inst::Instance)
-    #TODO
+    s = localSearch(s, inst, move_insertion!, cost_move_insertion)
+    s = localSearch(s, inst, move_exchange!, cost_move_exchange)
     return s
 end
 

@@ -165,6 +165,32 @@ function cost_move_exchange(solution::Solution, i::Int, j::Int,
 end
 
 """
+    cost_move_insertion(solution::Solution, i::Int, j::Int,
+                        instance::Instance, objective::Int)
+
+Return the cost of the insertion of the car `i` before the car `j` with respect
+to objective `objective`. A negative cost means that the move is interesting
+with respect to objective `objective`.
+"""
+function cost_move_insertion(solution::Solution, i::Int, j::Int,
+                             instance::Instance, objective::Int)
+    #TODO it might be important that objective is a vector of Int, then we could
+    #return a vector of cost.
+
+    # objective should take values between 1 and 3.
+    @assert objective >= 1
+    @assert objective <= 3
+
+    z = cost(solution, instance, 3)
+    s = deepcopy(solution)
+    move_insertion!(s, i, j, instance)
+    Z = cost(s, instance, 3)
+
+    # TODO
+    return Z-z
+end
+
+"""
     cost(solution::Solution, instance::Instance, objective::Int)
 
 Return the (partial) cost of the solution s.
@@ -197,26 +223,6 @@ function cost(solution::Solution, instance::Instance, objective::Int)
     return z
 end
 
-
-"""
-    cost_move_insertion(solution::Solution, i::Int, j::Int,
-                        instance::Instance, objective::Int)
-
-Return the cost of the insertion of the car `i` before the car `j` with respect
-to objective `objective`. A negative cost means that the move is interesting
-with respect to objective `objective`.
-"""
-function cost_move_insertion(solution::Solution, i::Int, j::Int,
-                             instance::Instance, objective::Int)
-    #TODO it might be important that objective is a vector of Int, then we could
-    #return a vector of cost.
-
-    # objective should take values between 1 and 3.
-    @assert objective >= 1
-    @assert objective <= 3
-    # TODO
-    return 1
-end
 
 """
     HPRC_level(solution::Solution, index::Int, instance::Instance)

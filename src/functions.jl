@@ -103,8 +103,64 @@ function cost_move_exchange(solution::Solution, i::Int, j::Int,
     # objective should take values between 1 and 3.
     @assert objective >= 1
     @assert objective <= 3
-    # TODO
-    return 1
+
+    cost_on_objective = zeros(Int, 3)
+
+    if objective >= 1 #Must improve or keep HPRC
+        for option in 1:instance.nb_HPRC
+            # No cost if both have it / have it not
+            if instance.RC_flag[solution.sequence[i], option] != instance.RC_flag[solution.sequence[j], option]
+                #TODO: Rewrite code or swap indexes ?
+                if instance.RC_flag[solution.sequence[j], option]
+                    i,j = j,i
+                end
+                # New option here -> increasing cost
+                last_ended_sequence = j - instance.RC_q[option]
+                if last_ended_sequence > 0
+                    cost_on_objective[1] += solution.M3[option, j] - solution.M3[option, last_ended_sequence]
+                else
+                    cost_on_objective[1] += solution.M3[option, j]
+                end
+                # No option anymore -> decreasing cost
+                last_ended_sequence = i - instance.RC_q[option]
+                if last_ended_sequence > 0
+                    cost_on_objective[1] -= solution.M2[option, i] - solution.M2[option, last_ended_sequence]
+                else
+                    cost_on_objective[1] -= solution.M2[option, i]
+                end
+            end
+        end
+
+    elseif objective >= 2 #Must improve or keep HPRC and LPRC
+        for option in (instance.nb_HPRC+1):(instance.nb_HPRC+instance.nb_LPRC)
+            # No cost if both have it / have it not
+            if instance.RC_flag[solution.sequence[i], option] != instance.RC_flag[solution.sequence[j], option]
+                #TODO: Rewrite code or swap indexes ?
+                if instance.RC_flag[solution.sequence[j], option]
+                    i,j = j,i
+                end
+                # New option here -> increasing cost
+                last_ended_sequence = j - instance.RC_q[option]
+                if last_ended_sequence > 0
+                    cost_on_objective[2] += solution.M3[option, j] - solution.M3[option, last_ended_sequence]
+                else
+                    cost_on_objective[2] += solution.M3[option, j]
+                end
+                # No option anymore -> decreasing cost
+                last_ended_sequence = i - instance.RC_q[option]
+                if last_ended_sequence > 0
+                    cost_on_objective[2] -= solution.M2[option, i] - solution.M2[option, last_ended_sequence]
+                else
+                    cost_on_objective[2] -= solution.M2[option, i]
+                end
+            end
+        end
+
+    else #Must improve or keep HPRC and LPRC and PCC
+        #TODO
+    end
+
+    return cost_on_objective
 end
 
 """

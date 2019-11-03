@@ -63,9 +63,9 @@ function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::I
     # Best insert
     for i in (sol.n-k):sol.n
         j_best = 1
-        cost_best = cost_move_insertion(sol, i, j_best, instance, 2)
+        cost_best = weighted_sum_VNS_LPRC( cost_move_insertion(sol, i, j_best, instance, 2) )
         for j in 2:(sol.n-k+i-1)
-            cost = cost_move_insertion(sol, i, j, instance, 2)
+            cost = weighted_sum_VNS_LPRC( cost_move_insertion(sol, i, j, instance, 2) )
             if cost < cost_best
                 j_best = j
                 cost_best = cost
@@ -100,7 +100,7 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
             list = Array{Int, 1}()
             for j in (i+1):solution.n # exchange (i, j) is the same as exchange (j, i)
                 if !perturbation_exchange || same_HPRC(solution, i, j, instance)
-                    delta = cost_move_exchange(solution, i, j, instance, 2)
+                    delta = weighted_sum_VNS_LPRC( cost_move_exchange(solution, i, j, instance, 2) )
                     if delta < best_delta
                         list = [j]
                         best_delta = delta
@@ -127,13 +127,14 @@ function localSearch_intensification_VNS_LPRC!(solution::Solution, alpha::Int, c
     b0 = instance.nb_late_prec_day+1
 
     nb_non_improved = 0
+    phi_bis = cost_VNS_LPRC(solution, instance)
     while nb_non_improved < alpha
-        phi = cost_VNS_LPRC(solution, instance)
+        phi = phi_bis
         for i in b0:solution.n
-            best_delta = 0
+            best_delta = 0.0420
             list = Array{Int, 1}()
             for j in b0:solution.n
-                delta = cost_move(solution, i, j, instance, 2)
+                delta = weighted_sum_VNS_LPRC( cost_move(solution, i, j, instance, 2) )
                 if delta < best_delta
                     list = [j]
                     best_delta = delta
@@ -147,7 +148,8 @@ function localSearch_intensification_VNS_LPRC!(solution::Solution, alpha::Int, c
             end
         end
         nb_non_improved += 1
-        if phi < cost_VNS_LPRC(solution, instance)
+        phi_bis = cost_VNS_LPRC(solution, instance)
+        if phi < phi_bis
             nb_non_improved = 0
         end
     end
@@ -161,27 +163,24 @@ function intensification_VNS_LPRC!(solution::Solution, instance::Instance)
     return solution
 end
 
+# Compute the weighted sum of a cost solution (an array)
+function weighted_sum_VNS_LPRC(cost_solution::Array{Int, 1})
+    return sum(cost_solution[i] * WEIGHTS_OBJECTIVE_FUNCTION[i] for i in 1:2)
+end
+
 # Return a tuple of solution, first element is the cost,and the second one is the number of HRPC violated.
 function cost_VNS_LPRC(solution::Solution, instance::Instance)
-    nb_HPRC_violated = sum(solution.M2[i, end] for i in 1:instance.nb_HPRC)
-    nb_LPRC_violated = 0
-    if instance.nb_LPRC > 0
-        nb_LPRC_violated = sum(solution.M2[instance.nb_HPRC + i, end] for i in 1:instance.nb_LPRC)
-    end
-    cost = WEIGHTS_OBJECTIVE_FUNCTION[1] * nb_HPRC_violated + WEIGHTS_OBJECTIVE_FUNCTION[2] * nb_LPRC_violated
-    return cost
+    cost_solution = cost(solution, instance, 2)
+    return weighted_sum_VNS_LPRC(cost_solution)
 end
 
 # function that determine if left is better than right.
 function is_better_VNS_LPRC(left::Solution, right::Solution, instance::Instance)
-    left_cost = cost_VNS_LPRC(left, instance)
-    right_cost = cost_VNS_LPRC(right, instance)
+    left_cost = cost(left, instance, 2)
+    right_cost = cost(right, instance, 2)
 
-    nb_HPRC_violated_left = HPRC_level(left, left.n, instance)
-    nb_HPRC_violated_right = HPRC_level(right, left.n, instance)
-
-    cost_better = left_cost < right_cost
-    HPRC_not_worse = nb_HPRC_violated_left <= nb_HPRC_violated_right
+    cost_better = weighted_sum_VNS_LPRC(left_cost) < weighted_sum_VNS_LPRC(right_cost)
+    HPRC_not_worse = left_cost[1] <= right_cost[1]
 
     return cost_better && HPRC_not_worse
 end

@@ -158,7 +158,7 @@ function cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
         end
     end
     if objective >= 3 #Must improve or keep HPRC and LPRC and PCC
-        #TODO
+        cost_on_objective[3] = 1 #TODO see here
     end
 
     return cost_on_objective

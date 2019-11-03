@@ -1,55 +1,51 @@
-#=
-# ILS_HRPC for the RENAULT Roadef 2005 challenge
-# inspired by work of
-# Celso C. Ribeiro, Daniel Aloise, Thiago F. Noronha, Caroline Rocha, Sebastián Urrutia
+#-------------------------------------------------------------------------------
+# File: ils_hprc.jl
+# Description: ILS for the RENAULT Roadef 2005 challenge
+#   inspired by work of
+#   Celso C. Ribeiro, Daniel Aloise, Thiago F. Noronha,
+#   Caroline Rocha, Sebastián Urrutia
 #
-# @Author Boualem Lamraoui, Benoît Le Badezet, Benoit Loger, Jonathan Fontaine, Killian Fretaud, Rémi Garcia
-# =#
-
-#= CONSTANTATES TEMPORAIRES =#
-const n_perturbation_HPRC = 5
-const alpha = 25
-const beta = 50
-const stopping_criteria_ILSHPRC = 3
-const nbcar_perturbation = 5
-const nbcar_diversification = 50
+# Date: November 03, 2019
+# Author: Jonathan Fontaine, Killian Fretaud, Rémi Garcia,
+#         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
+#-------------------------------------------------------------------------------
 
 ##=====================================##
 ##        USEFUL ALGORITHMS            ##
 ##=====================================##
 
-function remove(s::Solution, inst::Instance, nbcar::Int, crit::Array{Int,1})
-    i = inst.nb_late_prec_day+1
+function remove(solution::Solution, instance::Instance, nbcar::Int, crit::Array{Int,1})
+    i = instance.nb_late_prec_day+1
     removed = []
-    while i <= s.n && length(removed) <= nbcar
+    while i <= solution.n && length(removed) <= nbcar
         #TODO plutot que de prendre les n premiers peut être faire un tirage aléatoire
         if crit[i] == 1
-            push!(removed, s.sequence[i])
-            deleteat!(s.sequence, i)
-            s.n = s.n - 1
-            update_matrices!(s, s.n, inst)
+            push!(removed, solution.sequence[i])
+            deleteat!(solution.sequence, i)
+            solution.n = solution.n - 1
+            update_matrices!(solution, solution.n, instance)
             deleteat!(crit, i)
         else
             i = i + 1
         end
     end
-    return s, removed
+    return solution, removed
 end
 
 
-function greedyadd(s::Solution, inst::Instance, car::Int)
-    i = inst.nb_late_prec_day + 1
-    tmp = deepcopy(s)
+function greedyadd(solution::Solution, instance::Instance, car::Int)
+    i = instance.nb_late_prec_day + 1
+    tmp = deepcopy(solution)
     splice!(tmp.sequence, i:i-1, car)
     tmp.n = tmp.n+1
-    update_matrices!(tmp, tmp.n, inst)
-    bestcost = costHPRC(tmp, inst)
+    update_matrices!(tmp, tmp.n, instance)
+    bestcost = costHPRC(tmp, instance)
     bestsol = deepcopy(tmp)
     deleteat!(tmp.sequence, i)
-    for j in i:s.n
+    for j in i:solution.n
         splice!(tmp.sequence, j:j-1, car)
-        update_matrices!(tmp, tmp.n, inst)
-        ncost = costHPRC(tmp, inst)
+        update_matrices!(tmp, tmp.n, instance)
+        ncost = costHPRC(tmp, instance)
         if ncost < bestcost
             bestcost = ncost
             bestsol = deepcopy(tmp)
@@ -60,30 +56,30 @@ function greedyadd(s::Solution, inst::Instance, car::Int)
 end
 
 
-function perturbation(s::Solution, inst::Instance, nbcar::Int, crit::Array{Int,1})
-    sol, removed = remove(s, inst, nbcar, crit)
+function perturbation(solution::Solution, instance::Instance, nbcar::Int, crit::Array{Int,1})
+    sol, removed = remove(solution, instance, nbcar, crit)
     for i in removed
-        sol = greedyadd(sol, inst, i)
+        sol = greedyadd(sol, instance, i)
     end
     return sol
 end
 
-# Retourne le coût du premier objectif pour la solution s
-function costHPRC(s::Solution, inst::Instance)
-    c = sum(s.M2[i, s.n] for i in 1:inst.nb_HPRC)
+# Retourne le coût du premier objectif pour la solution solution
+function costHPRC(solution::Solution, instance::Instance)
+    c = sum(solution.M2[i, solution.n] for i in 1:instance.nb_HPRC)
     return c
 end
 
 
-function localSearch(s::Solution, inst::Instance, move!::Function, cost_move::Function)
+function localSearch(solution::Solution, instance::Instance, move!::Function, cost_move::Function)
     while true
-        phi = costHPRC(s, inst)
-        b0 = inst.nb_late_prec_day + 1      #First car of the current production day
-        for i in b0:s.n
+        phi = costHPRC(solution, instance)
+        b0 = instance.nb_late_prec_day + 1      #First car of the current production day
+        for i in b0:solution.n
             best_delta = 0
             L = []
-            for j in b0:s.n
-                delta = cost_move(s, i, j, inst, 1) - costHPRC(s, inst)
+            for j in b0:solution.n
+                delta = cost_move(solution, i, j, instance, 1) - costHPRC(solution, instance)
                 if delta < best_delta
                     L = [j]
                     best_delta = delta
@@ -93,27 +89,27 @@ function localSearch(s::Solution, inst::Instance, move!::Function, cost_move::Fu
             end
             if L != []
                 k = rand(L)
-                move!(s, i, k, inst)
+                move!(solution, i, k, instance)
             end
         end
-        if phi == costHPRC(s, inst)
+        if phi == costHPRC(solution, instance)
             break
         end
     end
 
-    return s
+    return solution
 end
 
-function fastLocalSearch(s::Solution, inst::Instance, move!::Function, cost_move::Function, crit::Array{Int, 1})
+function fastLocalSearch(solution::Solution, instance::Instance, move!::Function, cost_move::Function, crit::Array{Int, 1})
     while true
-        phi = costHPRC(s, inst)
-        b0 = inst.nb_late_prec_day + 1      #First car of the current production day
-        for i in b0:s.n
+        phi = costHPRC(solution, instance)
+        b0 = instance.nb_late_prec_day + 1      #First car of the current production day
+        for i in b0:solution.n
             if crit[i] == 1
                 best_delta = 0
                 L = []
-                for j in b0:s.n
-                    delta = cost_move(s, i, j, inst, 1) - costHPRC(s, inst)
+                for j in b0:solution.n
+                    delta = cost_move(solution, i, j, instance, 1) - costHPRC(solution, instance)
                     if delta < best_delta
                         L = [j]
                         best_delta = delta
@@ -123,30 +119,30 @@ function fastLocalSearch(s::Solution, inst::Instance, move!::Function, cost_move
                 end
                 if L != []
                     k = rand(L)
-                    move!(s, i, k, inst)
+                    move!(solution, i, k, instance)
                 end
             end
         end
-        if phi == costHPRC(s, inst)
+        if phi == costHPRC(solution, instance)
             break
         end
     end
 
-    return s
+    return solution
 end
 
 #Inidquate which cars are invloved in violation of HPRC and the number
-function criticalCars(s::Solution, inst::Instance)
-    criticars = zeros(Int, s.n)             # criticars[i] = 1 if car i violate HPRC otherwhise criticars[i] = 0
+function criticalCars(solution::Solution, instance::Instance)
+    criticars = zeros(Int, solution.n)             # criticars[i] = 1 if car i violate HPRC otherwhise criticars[i] = 0
     nb_crit = 0                             # Number of cars involved in HPRC violation.
     j = 1
-    for i in 1:inst.nb_HPRC
+    for i in 1:instance.nb_HPRC
         j = 1
-        while j <= s.n
-            if s.M2[i,j] > inst.RC_p[i]
+        while j <= solution.n
+            if solution.M2[i,j] > instance.RC_p[i]
                 k = 0
-                while k < inst.RC_p[i] && (j+k) <= s.n
-                    if inst.RC_flag[j + k, i] == true && criticars[j + k] == 0
+                while k < instance.RC_p[i] && (j+k) <= solution.n
+                    if instance.RC_flag[j + k, i] == true && criticars[j + k] == 0
                         criticars[j + k] = 1
                         nb_crit = nb_crit + 1
                     end
@@ -161,83 +157,59 @@ function criticalCars(s::Solution, inst::Instance)
     return criticars, nb_crit
 end
 
-function intensification(s::Solution, inst::Instance)
-    s = localSearch(s, inst, move_insertion!, cost_move_insertion)
-    s = localSearch(s, inst, move_exchange!, cost_move_exchange)
-    return s
+function intensification(solution::Solution, instance::Instance)
+    solution = localSearch(solution, instance, move_insertion!, cost_move_insertion)
+    solution = localSearch(solution, instance, move_exchange!, cost_move_exchange)
+    return solution
 end
 
-function restart(s::Solution, inst::Instance)
-    crit = criticalCars(s, inst)[1]
-    s = perturbation(s, inst, nbcar_diversification, crit)
-    return s
-end
-
-
-#----------------------#
-#     COMPARATORS      #
-#----------------------#
-
-#Better Or Equal
-function isBeq(s1::Solution, s2::Solution, inst::Instance)
-    return costHPRC(s1, inst) >= costHPRC(s2, inst)
-end
-
-#Equal
-function isEqual(s1::Solution, s2::Solution, inst::Instance)
-    return costHPRC(s1, inst) == costHPRC(s2, inst)
-end
-
-#Strictly Better
-function isBetter(s1::Solution, s2::Solution, inst::Instance)
-    return costHPRC(s1, inst) > costHPRC(s2, inst)
+function restart(solution::Solution, instance::Instance)
+    crit = criticalCars(solution, instance)[1]
+    solution = perturbation(solution, instance, NBCAR_DIVERSIFICATION, crit)
+    return solution
 end
 
 
-
-
-
-
-function ILS_HPRC(sol::Solution, inst::Instance)
+function ILS_HPRC(solution::Solution, instance::Instance)
     i = 0                               # Number of itération since the last improvement
-    s = deepcopy(sol)
-    s_opt = deepcopy(sol)
-    lastopt = deepcopy(sol)
+    s = deepcopy(solution)
+    s_opt = deepcopy(solution)
+    lastopt = deepcopy(solution)
     cond = 0 #TODO
-    while cond < stopping_criteria_ILSHPRC && costHPRC(s_opt, inst) != 0
-        crit = criticalCars(s, inst)
-        neighbor = perturbation(s, inst, nbcar_perturbation, crit[1])
-        crit = criticalCars(neighbor, inst)
+    while cond < STOPPING_CRITERIA_ILS_HPRC && costHPRC(s_opt, instance) != 0
+        crit = criticalCars(s, instance)
+        neighbor = perturbation(s, instance, NBCAR_PERTURBATION, crit[1])
+        crit = criticalCars(neighbor, instance)
         if crit[2] > (s.n * 0.6)
             println("LS")
-            neighbor = localSearch(neighbor, inst, move_exchange!, cost_move_exchange)
+            neighbor = localSearch(neighbor, instance, move_exchange!, cost_move_exchange)
         else
             println("FLS")
-            neighbor = fastLocalSearch(neighbor, inst, move_exchange!, cost_move_exchange, crit[1])
+            neighbor = fastLocalSearch(neighbor, instance, move_exchange!, cost_move_exchange, crit[1])
         end
-        if costHPRC(s, inst) <= costHPRC(neighbor, inst)
+        if costHPRC(s, instance) <= costHPRC(neighbor, instance)
             s = neighbor
         end
-        if i == alpha
-            s = intensification(s, inst)
+        if i == ALPHA_ILS
+            s = intensification(s, instance)
         end
-        if i == beta
+        if i == BETA_ILS
             cond = cond + 1
-            if costHPRC(lastopt, inst) > costHPRC(s_opt, inst)
+            if costHPRC(lastopt, instance) > costHPRC(s_opt, instance)
                 lastopt = s_opt
                 cond = 0
             end
-            if costHPRC(s, inst) == costHPRC(s_opt, inst) && cond < stopping_criteria_ILSHPRC
-                s = restart(s, inst)
+            if costHPRC(s, instance) == costHPRC(s_opt, instance) && cond < STOPPING_CRITERIA_ILS_HPRC
+                s = restart(s, instance)
                 i = 0
-            elseif cond < stopping_criteria_ILSHPRC
+            elseif cond < STOPPING_CRITERIA_ILS_HPRC
                 s = s_opt
                 i = 0
             else
-                s = greedy(inst)
+                s = greedy(instance)
             end
         end
-        if costHPRC(s, inst) < costHPRC(s_opt, inst)            # There is an improvement
+        if costHPRC(s, instance) < costHPRC(s_opt, instance)            # There is an improvement
             s_opt = s
             i = 0                   # So the number of iteration since the last improvement shall return to 0
         else

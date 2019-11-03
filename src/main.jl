@@ -27,12 +27,26 @@ include("greedy.jl")
 include("vns_lprc.jl")
 
 function main()
+
+    type = ["A"]
+    name = [INSTANCES[type_fichier][1]]
+
     # Instance and initiale solution
-    type_fichier = "A"
-    nom_fichier = INSTANCES[type_fichier][1]
+    for type_fichier in list_type#["A", "B", "X"]
+        for nom_fichier in list_names#INSTANCES[type_fichier]
+            println( "Instance ",type_fichier,"/",nom_fichier)
 
-    # Greedy
-    #TODO apply greedy (see PR #15)
+            # Parser
+            instance = parser(nom_fichier, type_fichier)
+            println("loaded.." )
 
-    #TODO
+            # Greedy
+            solution = greedy(instance)
+            println( "initial solution created.." )
+
+            #TODO
+
+            println()
+        end
+    end
 end

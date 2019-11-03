@@ -49,7 +49,7 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     df_ratio = CSV.File(path * RATIO_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
     df_vehicles = CSV.File(path * VEHICLES_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
 
-    # Avoid lignes with missing value that are not usable.
+    # Avoid lines with missing value that are not usable.
     dropmissing!(df_optimisation, :rank)
     dropmissing!(df_paint, :limitation)
     dropmissing!(df_ratio, :Ratio)

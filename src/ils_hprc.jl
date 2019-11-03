@@ -18,7 +18,7 @@ function remove(solution::Solution, instance::Instance, nbcar::Int, crit::Array{
     i = instance.nb_late_prec_day+1
     removed = Array{Int, 1}([])
     while i <= solution.n && length(removed) <= nbcar
-        #TODO plutot que de prendre les n premiers peut être faire un tirage aléatoire
+        #TODO Don't take the first nbcar cars but randomly pick nbcar cars
         if crit[i] == 1
             push!(removed, solution.sequence[i])
             deleteat!(solution.sequence, i)

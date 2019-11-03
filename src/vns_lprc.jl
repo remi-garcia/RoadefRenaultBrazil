@@ -40,6 +40,7 @@ end
 
 # Delete k vehicles from the sequence and add them in the sequence according a greedy criterion.
 function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::Instance)
+    #TODO Only cars involved in constraints violations should be removed
     sol = deepcopy(solution)
 
     array_insertion = Array{Int, 1}()

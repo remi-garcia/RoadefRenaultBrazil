@@ -165,6 +165,40 @@ function cost_move_exchange(solution::Solution, i::Int, j::Int,
 end
 
 """
+    cost(solution::Solution, instance::Instance, objective::Int)
+
+Return the (partial) cost of the solution s.
+"""
+function cost(solution::Solution, instance::Instance, objective::Int)
+    value = 0
+    for car in 1:instance.n
+        for option in 1:instance.nb_HPRC
+            value += max(0 , solution.M1[car, option] - instance.RC_p[solution.sequence[car]])
+        end
+    end
+    z = value*WEIGHTS_OBJECTIVE_FUNCTION[1]
+    value = 0
+
+    if objective >= 2 #Must improve or keep HPRC and LPRC
+        for car in 1:instance.n
+            for option in (instance.nb_HPRC+1):(instance.nb_HPRC+instance.nb_LPRC)
+                value += max(0 , solution.M1[car, option] - instance.RC_p[solution.sequence[car]])
+            end
+        end
+    end
+    z = value*WEIGHTS_OBJECTIVE_FUNCTION[2]
+    value = 0
+
+    if objective >= 3 #Must improve or keep HPRC and LPRC and PCC
+        #TODO
+    end
+    z = value*WEIGHTS_OBJECTIVE_FUNCTION[3]
+
+    return z
+end
+
+
+"""
     cost_move_insertion(solution::Solution, i::Int, j::Int,
                         instance::Instance, objective::Int)
 

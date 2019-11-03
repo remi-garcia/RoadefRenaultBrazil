@@ -89,10 +89,11 @@ function greedy(instance::Instance)
         for c in 1:len
             for j in 1:instance.nb_HPRC
                 if instance.RC_flag[V[c], j]
-                    for i in ((position - instance.RC_q[j])+1):position
-                        if solution.M1[j, i] >= instance.RC_p[j]
-                            nb_new_violation[c] = nb_new_violation[c] + 1
-                        end
+                    last_ended_sequence = (position - instance.RC_q[j])
+                    if last_ended_sequence > 0
+                        nb_new_violation[c] += solution.M3[j, position-1] - solution.M3[j, last_ended_sequence]
+                    else
+                        nb_new_violation[c] += solution.M3[j, position-1]
                     end
                 end
             end
@@ -149,10 +150,11 @@ function greedy(instance::Instance)
                 c = candidates[ind]
                 for j in (instance.nb_HPRC+1):(instance.nb_HPRC+instance.nb_LPRC)
                     if instance.RC_flag[c, j]
-                        for i in ((position - instance.RC_q[j])+1):position
-                            if solution.M1[j, i] >= instance.RC_p[j]
-                                nb_new_violation[ind] = nb_new_violation[ind] + 1
-                            end
+                        last_ended_sequence = (position - instance.RC_q[j])
+                        if last_ended_sequence > 0
+                            nb_new_violation[ind] += solution.M3[j, position-1] - solution.M3[j, last_ended_sequence]
+                        else
+                            nb_new_violation[ind] += solution.M3[j, position-1]
                         end
                     end
                 end

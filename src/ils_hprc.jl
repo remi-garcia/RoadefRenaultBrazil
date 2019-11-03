@@ -11,15 +11,17 @@ const n_perturbation_HPRC = 5
 const alpha = 25
 const beta = 50
 const stopping_criteria_ILSHPRC = 3
+const nbcar_perturbation = 5
+const nbcar_diversification = 50
 
 ##=====================================##
 ##        USEFUL ALGORITHMS            ##
 ##=====================================##
 
-function remove(s::Solution, inst::Instance, crit::Array{Int,1})
+function remove(s::Solution, inst::Instance, nbcar::Int, crit::Array{Int,1})
     i = inst.nb_late_prec_day+1
     removed = []
-    while i <= s.n && length(removed) <= n_perturbation_HPRC
+    while i <= s.n && length(removed) <= nbcar
         #TODO plutot que de prendre les n premiers peut être faire un tirage aléatoire
         if crit[i] == 1
             push!(removed, s.sequence[i])
@@ -58,8 +60,8 @@ function greedyadd(s::Solution, inst::Instance, car::Int)
 end
 
 
-function perturbation(s::Solution, inst::Instance, crit::Array{Int,1})
-    sol, removed = remove(s, inst, crit)
+function perturbation(s::Solution, inst::Instance, nbcar::Int, crit::Array{Int,1})
+    sol, removed = remove(s, inst, nbcar, crit)
     for i in removed
         sol = greedyadd(sol, inst, i)
     end
@@ -166,7 +168,8 @@ function intensification(s::Solution, inst::Instance)
 end
 
 function restart(s::Solution, inst::Instance)
-    #TODO
+    crit = criticalCars(s, inst)[1]
+    s = perturbation(s, inst, nbcar_diversification, crit)
     return s
 end
 
@@ -199,14 +202,17 @@ function ILS_HPRC(sol::Solution, inst::Instance)
     i = 0                               # Number of itération since the last improvement
     s = deepcopy(sol)
     s_opt = deepcopy(sol)
+    lastopt = deepcopy(sol)
     cond = 0 #TODO
-    while cond < stopping_criteria_ILSHPRC
+    while cond < stopping_criteria_ILSHPRC && costHPRC(s_opt, inst) != 0
         crit = criticalCars(s, inst)
-        neighbor = perturbation(s, inst, crit[1])
+        neighbor = perturbation(s, inst, nbcar_perturbation, crit[1])
         crit = criticalCars(neighbor, inst)
         if crit[2] > (s.n * 0.6)
+            println("LS")
             neighbor = localSearch(neighbor, inst, move_exchange!, cost_move_exchange)
         else
+            println("FLS")
             neighbor = fastLocalSearch(neighbor, inst, move_exchange!, cost_move_exchange, crit[1])
         end
         if costHPRC(s, inst) <= costHPRC(neighbor, inst)
@@ -216,21 +222,28 @@ function ILS_HPRC(sol::Solution, inst::Instance)
             s = intensification(s, inst)
         end
         if i == beta
-            if costHPRC(neighbor, inst) < costHPRC(s, inst)
-                #s = restart(s, inst)
-                i = 0
-                cond = cond + 1
-            else
-                s = s_opt
+            cond = cond + 1
+            if costHPRC(lastopt, inst) > costHPRC(s_opt, inst)
+                lastopt = s_opt
                 cond = 0
+            end
+            if costHPRC(s, inst) == costHPRC(s_opt, inst) && cond < stopping_criteria_ILSHPRC
+                s = restart(s, inst)
+                i = 0
+            elseif cond < stopping_criteria_ILSHPRC
+                s = s_opt
+                i = 0
+            else
+                s = greedy(inst)
             end
         end
         if costHPRC(s, inst) < costHPRC(s_opt, inst)            # There is an improvement
             s_opt = s
             i = 0                   # So the number of iteration since the last improvement shall return to 0
+        else
+            i = i + 1
         end
-        i = i + 1
-        println(i)
+        #println(i)
     end
-    return S
+    return s_opt
 end

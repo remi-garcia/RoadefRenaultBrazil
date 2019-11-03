@@ -183,7 +183,7 @@ function is_better_VNS_LPRC(left::Solution, right::Solution, instance::Instance)
     cost_better = left_cost < right_cost
     HPRC_not_worse = nb_HPRC_violated_left <= nb_HPRC_violated_right
 
-    return  cost_better && HPRC_not_worse
+    return cost_better && HPRC_not_worse
 end
 
 # VNS-LPRC algorithm describe in section 6.

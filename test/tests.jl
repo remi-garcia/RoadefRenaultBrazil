@@ -61,15 +61,15 @@ include(string(@__DIR__)*"/../src/main.jl")
     end;
     @testset "cost_move_exchange!" begin
         solution_test = deepcopy(solution)
-        delta = cost_move_exchange(solution, 1, n, instance, 3)
+        delta = cost_move_exchange(solution, 1, solution.n, instance, 3)
         move_exchange!(solution_test, 1, solution.n, instance)
-        delta_test = cost_move_exchange(solution_test, 1, n, instance, 3)
+        delta_test = cost_move_exchange(solution_test, 1, solution_test.n, instance, 3)
         # This shouldn't be opposite costs
         @test delta == -delta_test
 
         solution_test = deepcopy(solution)
-        delta = cost_move_exchange(solution, 1, n, instance, 3)
-        delta_only_First = cost_move_exchange(solution, 1, n, instance, 1)
+        delta = cost_move_exchange(solution, 1, solution.n, instance, 3)
+        delta_only_First = cost_move_exchange(solution, 1, solution.n, instance, 1)
         # Only one first objective should be less than on first+second
         @test delta[1] == delta_only_First[1]
     end;

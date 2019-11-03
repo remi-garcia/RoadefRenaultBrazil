@@ -161,8 +161,8 @@ function cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
         #TODO
     end
 
-    #return cost_on_objective
-    return sum(cost_on_objective[i]*WEIGHTS_OBJECTIVE_FUNCTION[i] for i in 1:3)
+    return cost_on_objective
+    #return sum(cost_on_objective[i]*WEIGHTS_OBJECTIVE_FUNCTION[i] for i in 1:3)
 end
 
 """
@@ -198,13 +198,15 @@ end
 Return the (partial) cost of the solution s.
 """
 function cost(solution::Solution, instance::Instance, objective::Int)
+    cost_on_objective = zeros(Int, 3)
+
     value = 0
     for car in 1:instance.n
         for option in 1:instance.nb_HPRC
             value += max(0 , solution.M1[car, option] - instance.RC_p[solution.sequence[car]])
         end
     end
-    z = value*WEIGHTS_OBJECTIVE_FUNCTION[1]
+    cost_on_objective[1] = value
     value = 0
 
     if objective >= 2 #Must improve or keep HPRC and LPRC
@@ -214,14 +216,16 @@ function cost(solution::Solution, instance::Instance, objective::Int)
             end
         end
     end
-    z += value*WEIGHTS_OBJECTIVE_FUNCTION[2]
+    cost_on_objective[2] = value
     value = 0
 
     if objective >= 3 #Must improve or keep HPRC and LPRC and PCC
         #TODO
     end
 
-    return z + value*WEIGHTS_OBJECTIVE_FUNCTION[3]
+    cost_on_objective[3] = value
+
+    return cost_on_objective
 end
 
 

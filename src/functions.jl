@@ -104,7 +104,7 @@ function cost_move_exchange(solution::Solution, i::Int, j::Int,
     @assert objective >= 1
     @assert objective <= 3
     # TODO
-    return 0
+    return 1
 end
 
 """
@@ -124,7 +124,7 @@ function cost_move_insertion(solution::Solution, i::Int, j::Int,
     @assert objective >= 1
     @assert objective <= 3
     # TODO
-    return 0
+    return 1
 end
 
 """

@@ -214,7 +214,7 @@ end
 """
     cost(solution::Solution, instance::Instance, objective::Int)
 
-Return the (partial) cost of the solution s.
+Return the (partial) cost of the solution `solution`.
 """
 function cost(solution::Solution, instance::Instance, objective::Int)
     cost_on_objective = zeros(Int, 3)
@@ -247,6 +247,15 @@ function cost(solution::Solution, instance::Instance, objective::Int)
     return cost_on_objective
 end
 
+"""
+    sum_cost(solution::Solution, instance::Instance)
+
+Return the weighted sum of objectives value of the solution `solution`.
+"""
+function sum_cost(solution::Solution, instance::Instance)
+    cost_solution = cost(solution, instance, 3)
+    return sum([WEIGHTS_OBJECTIVE_FUNCTION[i] * cost_solution[i] for i in 1:3])
+end
 
 """
     HPRC_level(solution::Solution, index::Int, instance::Instance)

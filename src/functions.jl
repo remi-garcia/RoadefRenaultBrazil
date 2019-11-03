@@ -212,13 +212,13 @@ function cost(solution::Solution, instance::Instance, objective::Int)
             end
         end
     end
-    z = value*WEIGHTS_OBJECTIVE_FUNCTION[2]
+    z += value*WEIGHTS_OBJECTIVE_FUNCTION[2]
     value = 0
 
     if objective >= 3 #Must improve or keep HPRC and LPRC and PCC
         #TODO
     end
-    z = value*WEIGHTS_OBJECTIVE_FUNCTION[3]
+    z += value*WEIGHTS_OBJECTIVE_FUNCTION[3]
 
     return z
 end

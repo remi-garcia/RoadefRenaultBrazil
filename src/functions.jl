@@ -94,6 +94,7 @@ end
 Return the cost of the exchange of the car `i` with the car `j` with respect to
 objective `objective`. A negative cost means that the move is interesting with
 respect to objective `objective`.
+CAREFUL: Return a delta !
 """
 function cost_move_exchange(solution::Solution, i::Int, j::Int,
                             instance::Instance, objective::Int)
@@ -171,6 +172,7 @@ end
 Return the cost of the insertion of the car `i` before the car `j` with respect
 to objective `objective`. A negative cost means that the move is interesting
 with respect to objective `objective`.
+CAREFUL: Return a delta !
 """
 function cost_move_insertion(solution::Solution, i::Int, j::Int,
                              instance::Instance, objective::Int)

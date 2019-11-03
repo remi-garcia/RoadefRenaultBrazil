@@ -14,15 +14,15 @@ const n_perturbation_HPRC = 5
 ##=====================================##
 
 function remove(s::Solution, inst::Instance, crit::Array{Int,1})
-    i = inst.nb_late_prec_day
+    i = inst.nb_late_prec_day+1
     removed = []
-    while i < = s.n && length(removed) <= n_perturbation_HPRC
+    while i <= s.n && length(removed) <= n_perturbation_HPRC
         #TODO plutot que de prendre les n premiers peut être faire un tirage aléatoire
         if crit[i] == 1
             push!(removed, s.sequence[i])
             deleteat!(s.sequence, i)
             s.n = s.n - 1
-            compute_matrices!(s, inst)
+            update_matrices!(s, s.n, inst)
             deleteat!(crit, i)
         else
             i = i + 1
@@ -33,8 +33,25 @@ end
 
 
 function greedyadd(s::Solution, inst::Instance, car::Int)
-    #TODO
-
+    i = inst.nb_late_prec_day + 1
+    tmp = deepcopy(s)
+    splice!(tmp.sequence, i:i-1, car)
+    tmp.n = tmp.n+1
+    update_matrices!(tmp, tmp.n, inst)
+    bestcost = costHPRC(tmp, inst)
+    bestsol = deepcopy(tmp)
+    deleteat!(tmp.sequence, i)
+    for j in i:s.n
+        splice!(tmp.sequence, j:j-1, car)
+        update_matrices!(tmp, tmp.n, inst)
+        ncost = costHPRC(tmp, inst)
+        if ncost < bestcost
+            bestcost = ncost
+            bestsol = deepcopy(tmp)
+        end
+        deleteat!(tmp.sequence, j)
+    end
+    return bestsol
 end
 
 

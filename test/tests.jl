@@ -59,7 +59,7 @@ include(string(@__DIR__)*"/../src/main.jl")
         delta = cost_move_exchange(solution, 1, n, instance, 3)
         delta_only_First = cost_move_exchange(solution, 1, n, instance, 1)
         # Only one first objective should be less than on first+second
-        @test delta <= delta_only_First
+        @test delta[1] == delta_only_First[1]
     end;
 end;
 

@@ -9,7 +9,8 @@
 #Compute set of critical cars involved in an HPRC or LPRC constraint.
 function critical_cars_VNS_LPRC(solution::Solution, instance::Instance)
     critical_car = Set{Int}()
-    for car in 1:solution.n
+    b0 = instance.nb_late_prec_day+1
+    for car in b0:solution.n
         for option in 1:(instance.nb_HPRC+instance.nb_LPRC)
             if (solution.M1[option, car] > instance.RC_p[option])
                 k_lim = car + min(instance.RC_p[option], solution.n-car)
@@ -59,15 +60,16 @@ end
 # Delete k vehicles from the sequence and add them in the sequence according a greedy criterion.
 function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::Instance)
     sol = deepcopy(solution)
+    b0 = instance.nb_late_prec_day+1
 
     array_insertion = Array{Int, 1}()
 
-    push!(array_insertion, rand(1:sol.n))
+    push!(array_insertion, rand(b0:sol.n))
 
     for iterator in 2:k
-        r = rand(1:sol.n)
+        r = rand(b0:sol.n)
         while r in array_insertion
-            r = rand(1:sol.n)
+            r = rand(b0:sol.n)
         end
         push!(array_insertion, r)
     end
@@ -80,9 +82,9 @@ function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::I
 
     # Best insert
     for i in (sol.n-k):sol.n
-        j_best = 1
+        j_best = b0
         cost_best = weighted_sum_VNS_LPRC( cost_move_insertion(sol, i, j_best, instance, 2) )
-        for j in 2:(sol.n-k+i-1)
+        for j in (b0+1):i
             cost = weighted_sum_VNS_LPRC( cost_move_insertion(sol, i, j, instance, 2) )
             if cost < cost_best
                 j_best = j
@@ -112,12 +114,13 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
 
     improved = true
     phi_bis = cost_VNS_LPRC(solution, instance)
+    critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
     while improved
         phi = phi_bis
-        for i in b0:solution.n
+        for i in critical_cars_set
             best_delta = -0.420
             list = Array{Int, 1}()
-            for j in (i+1):solution.n # exchange (i, j) is the same as exchange (j, i)
+            for j in b0:solution.n
                 if !perturbation_exchange || same_HPRC(solution, i, j, instance)
                     delta = weighted_sum_VNS_LPRC( cost_move_exchange(solution, i, j, instance, 2) )
                     if delta < best_delta
@@ -149,11 +152,12 @@ function localSearch_intensification_VNS_LPRC_exchange!(solution::Solution, alph
     nb_non_improved = 0
     phi_bis = cost_VNS_LPRC(solution, instance)
     while nb_non_improved < alpha
+        critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
         phi = phi_bis
-        for i in b0:solution.n
+        for i in critical_cars_set
             best_delta = -0.420
             list = Array{Int, 1}()
-            for j in (i+1):solution.n # exchange (i, j) is the same as exchange (j, i)
+            for j in b0:solution.n
                 delta = weighted_sum_VNS_LPRC( cost_move_exchange(solution, i, j, instance, 2) )
                 if delta < best_delta
                     list = [j]
@@ -183,8 +187,9 @@ function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, alp
     nb_non_improved = 0
     phi_bis = cost_VNS_LPRC(solution, instance)
     while nb_non_improved < alpha
+        critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
         phi = phi_bis
-        for i in b0:solution.n
+        for i in critical_cars_set
             best_delta = -0.420 # Not accept identical solution
             list = Array{Int, 1}()
             for j in b0:solution.n

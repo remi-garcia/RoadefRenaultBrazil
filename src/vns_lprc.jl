@@ -115,7 +115,7 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
     while improved
         phi = phi_bis
         for i in b0:solution.n
-            best_delta = 0
+            best_delta = -0.420
             list = Array{Int, 1}()
             for j in (i+1):solution.n # exchange (i, j) is the same as exchange (j, i)
                 if !perturbation_exchange || same_HPRC(solution, i, j, instance)
@@ -142,7 +142,7 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
 end
 
 
-function localSearch_intensification_VNS_LPRC!(solution::Solution, alpha::Int, cost_move::Function, move!::Function, instance::Instance)
+function localSearch_intensification_VNS_LPRC_exchange!(solution::Solution, alpha::Int, instance::Instance)
     # useful variable
     b0 = instance.nb_late_prec_day+1
 
@@ -151,10 +151,10 @@ function localSearch_intensification_VNS_LPRC!(solution::Solution, alpha::Int, c
     while nb_non_improved < alpha
         phi = phi_bis
         for i in b0:solution.n
-            best_delta = 0.0420
+            best_delta = -0.420
             list = Array{Int, 1}()
-            for j in b0:solution.n
-                delta = weighted_sum_VNS_LPRC( cost_move(solution, i, j, instance, 2) )
+            for j in (i+1):solution.n # exchange (i, j) is the same as exchange (j, i)
+                delta = weighted_sum_VNS_LPRC( cost_move_exchange(solution, i, j, instance, 2) )
                 if delta < best_delta
                     list = [j]
                     best_delta = delta
@@ -164,7 +164,41 @@ function localSearch_intensification_VNS_LPRC!(solution::Solution, alpha::Int, c
             end
             if list != []
                 k = rand(list)
-                move!(solution, i, k, instance)
+                move_exchange!(solution, i, k, instance)
+            end
+        end
+        nb_non_improved += 1
+        phi_bis = cost_VNS_LPRC(solution, instance)
+        if phi < phi_bis
+            nb_non_improved = 0
+        end
+    end
+    return solution
+end
+
+function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, alpha::Int, instance::Instance)
+    # useful variable
+    b0 = instance.nb_late_prec_day+1
+
+    nb_non_improved = 0
+    phi_bis = cost_VNS_LPRC(solution, instance)
+    while nb_non_improved < alpha
+        phi = phi_bis
+        for i in b0:solution.n
+            best_delta = -0.420 # Not accept identical solution
+            list = Array{Int, 1}()
+            for j in b0:solution.n
+                delta = weighted_sum_VNS_LPRC( cost_move_insertion(solution, i, j, instance, 2) )
+                if delta < best_delta
+                    list = [j]
+                    best_delta = delta
+                elseif delta == best_delta
+                    push!(list, j)
+                end
+            end
+            if list != []
+                k = rand(list)
+                move_insertion!(solution, i, k, instance)
             end
         end
         nb_non_improved += 1
@@ -178,8 +212,8 @@ end
 
 # Apply two local search, first one with insertion move, and the second one with exchange move.
 function intensification_VNS_LPRC!(solution::Solution, instance::Instance)
-    localSearch_intensification_VNS_LPRC!(solution, VNS_LPRC_ALPHA_PERTURBATION, cost_move_insertion, move_insertion!, instance)
-    localSearch_intensification_VNS_LPRC!(solution, VNS_LPRC_ALPHA_PERTURBATION, cost_move_exchange, move_exchange!, instance)
+    localSearch_intensification_VNS_LPRC_insertion!(solution, VNS_LPRC_ALPHA_PERTURBATION, instance)
+    localSearch_intensification_VNS_LPRC_exchange!(solution, VNS_LPRC_ALPHA_PERTURBATION, instance)
     return solution
 end
 

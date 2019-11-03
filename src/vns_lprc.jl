@@ -164,7 +164,10 @@ end
 # Return a tuple of solution, first element is the cost,and the second one is the number of HRPC violated.
 function cost_VNS_LPRC(solution::Solution, instance::Instance)
     nb_HPRC_violated = sum(solution.M2[i, end] for i in 1:instance.nb_HPRC)
-    nb_LPRC_violated = sum(solution.M2[instance.nb_HPRC + i, end] for i in 1:instance.nb_LPRC)
+    nb_LPRC_violated = 0
+    if instance.nb_LPRC > 0
+        nb_LPRC_violated = sum(solution.M2[instance.nb_HPRC + i, end] for i in 1:instance.nb_LPRC)
+    end
     cost = WEIGHTS_OBJECTIVE_FUNCTION[1] * nb_HPRC_violated + WEIGHTS_OBJECTIVE_FUNCTION[2] * nb_LPRC_violated
     return cost
 end

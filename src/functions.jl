@@ -94,7 +94,7 @@ end
 Return the cost of the exchange of the car `car_pos_a` with the car `car_pos_b` with respect to
 objective `objective`. A negative cost means that the move is interesting with
 respect to objective `objective`.
-CAREFUL: Return a delta !
+CAREFUL: Return a delta!
 """
 function cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
                             instance::Instance, objective::Int)
@@ -172,7 +172,7 @@ end
 Return the cost of the insertion of the car `car_pos_a` before the car `car_pos_b` with respect
 to objective `objective`. A negative cost means that the move is interesting
 with respect to objective `objective`.
-CAREFUL: Return a delta !
+CAREFUL: Return a delta!
 """
 function cost_move_insertion(solution::Solution, car_pos_a::Int, car_pos_b::Int,
                              instance::Instance, objective::Int)
@@ -220,9 +220,8 @@ function cost(solution::Solution, instance::Instance, objective::Int)
     if objective >= 3 #Must improve or keep HPRC and LPRC and PCC
         #TODO
     end
-    z += value*WEIGHTS_OBJECTIVE_FUNCTION[3]
 
-    return z
+    return z + value*WEIGHTS_OBJECTIVE_FUNCTION[3]
 end
 
 

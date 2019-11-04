@@ -6,7 +6,7 @@
 #         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
 #-------------------------------------------------------------------------------
 
-#Compute set of critical cars involved in an HPRC or LPRC constraint.
+#Compute set of critical cars involved in an HPRC or LPRC constraint violation.
 function critical_cars_VNS_LPRC(solution::Solution, instance::Instance)
     critical_car = Set{Int}()
     b0 = instance.nb_late_prec_day+1
@@ -114,15 +114,15 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
     b0 = instance.nb_late_prec_day+1
 
     improved = true
-    phi_bis = cost_VNS_LPRC(solution, instance)
+    list = Array{Int, 1}()
     while improved
-        phi = phi_bis
+        improved = false
         critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
         for index_car_a in critical_cars_set
-            best_delta = -0.420 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
-            list = Array{Int, 1}()
+            best_delta = -1 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
+            empty!(list)
             for index_car_b in b0:solution.n
-                if !perturbation_exchange || same_HPRC(solution, index_car_a, index_car_b, instance)
+                if (index_car_a != index_car_b) && ( !perturbation_exchange || same_HPRC(solution, index_car_a, index_car_b, instance) )
                     delta = weighted_sum_VNS_LPRC( cost_move_exchange(solution, index_car_a, index_car_b, instance, 2) )
                     if delta < best_delta
                         list = [index_car_b]
@@ -132,14 +132,11 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
                     end
                 end
             end
-            if list != []
+            if !isempty(list)
                 index_car_b = rand(list)
                 move_exchange!(solution, index_car_a, index_car_b, instance)
+                improved = true
             end
-        end
-        phi_bis = cost_VNS_LPRC(solution, instance)
-        if phi == phi_bis
-            improved = false
         end
     end
     return solution
@@ -151,30 +148,33 @@ function localSearch_intensification_VNS_LPRC_exchange!(solution::Solution, alph
     b0 = instance.nb_late_prec_day+1
 
     nb_non_improved = 0
-    phi_bis = cost_VNS_LPRC(solution, instance)
+    list = Array{Int, 1}()
+    improved = true
     while nb_non_improved < alpha
+        improved = false
         critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
-        phi = phi_bis
         for index_car_a in critical_cars_set
-            best_delta = -0.420 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
-            list = Array{Int, 1}()
+            best_delta = -1 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
+            empty!(list)
             for index_car_b in b0:solution.n
-                delta = weighted_sum_VNS_LPRC( cost_move_exchange(solution, index_car_a, index_car_b, instance, 2) )
-                if delta < best_delta
-                    list = [index_car_b]
-                    best_delta = delta
-                elseif delta == best_delta
-                    push!(list, index_car_b)
+                if (index_car_a != index_car_b)
+                    delta = weighted_sum_VNS_LPRC( cost_move_exchange(solution, index_car_a, index_car_b, instance, 2) )
+                    if delta < best_delta
+                        list = [index_car_b]
+                        best_delta = delta
+                    elseif delta == best_delta
+                        push!(list, index_car_b)
+                    end
                 end
             end
-            if list != []
+            if !isempty(list)
                 index_car_b = rand(list)
                 move_exchange!(solution, index_car_a, index_car_b, instance)
+                improved = true
             end
         end
         nb_non_improved += 1
-        phi_bis = cost_VNS_LPRC(solution, instance)
-        if phi < phi_bis
+        if improved
             nb_non_improved = 0
         end
     end
@@ -186,13 +186,14 @@ function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, alp
     b0 = instance.nb_late_prec_day+1
 
     nb_non_improved = 0
-    phi_bis = cost_VNS_LPRC(solution, instance)
+    list = Array{Int, 1}()
+    improved = true
     while nb_non_improved < alpha
+        improved = false
         critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
-        phi = phi_bis
         for index_car in critical_cars_set
-            best_delta = -0.420 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
-            list = Array{Int, 1}()
+            best_delta = -1 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
+            empty!(list)
             for index_insert in b0:solution.n
                 delta = weighted_sum_VNS_LPRC( cost_move_insertion(solution, index_car, index_insert, instance, 2) )
                 if delta < best_delta
@@ -205,11 +206,11 @@ function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, alp
             if list != []
                 index_insert = rand(list)
                 move_insertion!(solution, index_car, index_insert, instance)
+                improved = true
             end
         end
         nb_non_improved += 1
-        phi_bis = cost_VNS_LPRC(solution, instance)
-        if phi < phi_bis
+        if improved
             nb_non_improved = 0
         end
     end

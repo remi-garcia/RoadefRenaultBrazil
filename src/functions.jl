@@ -127,23 +127,6 @@ function insertion!(solution::Solution, car::Int, position::Int, instance::Insta
 end
 
 """
-    cost_insertion(solution::Solution, car_pos_a::Int, car_pos_b::Int,
-                   instance::Instance, objective::Int)
-
-Return the cost of the insertion of the car `car` at every position with respect
-to objective `objective`. A negative cost means that the move is interesting
-with respect to objective `objective`.
-CAREFUL: Return a delta!
-"""
-function cost_insertion(solution::Solution, car::Int,
-                        instance::Instance, objective::Int)
-    costs = zeros(Int, 3, solution.n)
-    costs[1]
-
-    return
-end
-
-"""
     cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
                        instance::Instance, objective::Int)
 

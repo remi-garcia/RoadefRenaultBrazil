@@ -107,6 +107,43 @@ function move_insertion!(solution::Solution, car_pos_a::Int, car_pos_b::Int, ins
 end
 
 """
+    insertion!(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance::Instance)
+
+Inserts the car `car` at index `position` in `solution.sequence`. Updates
+`solution.M1`, `solution.M2` and `solution.M3`.
+"""
+function insertion!(solution::Solution, car::Int, position::Int, instance::Instance)
+    push!(solution.sequence, 0)
+    solution.n += 1
+    car_pos_tmp = position
+    for car_pos in position:solution.n
+        solution.sequence[car_pos], car_pos_tmp = car_pos_tmp, solution.sequence[car_pos]
+    end
+
+    update_matrices!(solution, solution.n, instance)
+
+    # TODO
+    return Solution
+end
+
+"""
+    cost_insertion(solution::Solution, car_pos_a::Int, car_pos_b::Int,
+                   instance::Instance, objective::Int)
+
+Return the cost of the insertion of the car `car` at every position with respect
+to objective `objective`. A negative cost means that the move is interesting
+with respect to objective `objective`.
+CAREFUL: Return a delta!
+"""
+function cost_insertion(solution::Solution, car::Int,
+                        instance::Instance, objective::Int)
+    costs = zeros(Int, 3, solution.n)
+    costs[1]
+
+    return
+end
+
+"""
     cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
                        instance::Instance, objective::Int)
 
@@ -273,4 +310,14 @@ Return `true` if car `car_pos_a` and `car_pos_b` have the same HPRC level. `fals
 """
 function same_HPRC(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance::Instance)
     return HPRC_level(solution, car_pos_a, instance) == HPRC_level(solution, car_pos_b, instance)
+end
+
+function HPRC_value(car::Int, instance::Instance)
+    car_HPRC_value = 0
+    for option in 1:instance.nb_HPRC
+        if instance.RC_flag[car, option]
+            car_HPRC_value += 10^(option-1)
+        end
+    end
+    return parse(Int, string(car_HPRC_value), base = 2)
 end

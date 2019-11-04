@@ -314,3 +314,18 @@ function RC_value(car::Int, instance::Instance)
     end
     return parse(Int, string(car_RC_value), base = 2)
 end
+
+function is_sequence_valid(solution::Solution, instance::Instance)
+    counter = 1
+    for car_pos in 2:solution.n
+        if instance.color_code[solution.sequence[car_pos-1]] == instance.color_code[solution.sequence[car_pos]]
+            counter += 1
+        else
+            counter = 1
+        end
+        if counter > instance.nb_paint_limitation
+            return false
+        end
+    end
+    return true
+end

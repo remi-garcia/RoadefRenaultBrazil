@@ -6,12 +6,89 @@
 #         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
 #-------------------------------------------------------------------------------
 
+# Compute the weighted sum of a cost solution (an array)
+function weighted_sum_VNS_PCC(cost_solution::Array{Int, 1})
+    return sum(cost_solution[i] * WEIGHTS_OBJECTIVE_FUNCTION[i] for i in 1:2)
+end
+
 """
     repair!(solution::Solution, instance::Instance)
 
 Apply 2 repair strategies on `solution`.
 """
 function repair!(solution::Solution, instance::Instance)
+    # First strategy
+    RC_cars_groups = Dict{Int, Array{Int, 1}}()
+    b0 = instance.nb_late_prec_day+1
+    for car_pos in (b0+1):solution.n
+        car_RC_value = RC_value(solution.sequence[car_pos], instance)
+        if !haskey(RC_cars_groups, car_RC_value)
+            RC_cars_groups[car_RC_value] = [car_pos]
+        else
+            push!(RC_cars_groups[car_RC_value], car_pos)
+        end
+    end
+    filter!(x -> length(x.second) >= 2, RC_cars_groups)
+
+    position = 1
+    counter = 1
+    current_color = instance.color_code[solution.sequence[position]]
+    position += 1
+    first_violation = 0
+    while position < solution.n
+        if instance.color_code[solution.sequence[position]] == current_color
+            counter += 1
+        else
+            counter = 1
+            current_color = instance.color_code[solution.sequence[position]]
+        end
+        if counter > instance.nb_paint_limitation
+            if position >= b0
+                if first_violation == 0
+                    first_violation = position
+                end
+                car_RC_value = RC_value(solution.sequence[position], instance)
+                car_pos = 1
+                len = RC_cars_groups[car_RC_value]
+                while (car_pos <= len) && (instance.color_code[RC_cars_groups[car_RC_value][car_pos]] == current_color)
+                    car_pos += 1
+                end
+                if car_pos <= len
+                    move_exchange!(solution, position, car_pos, instance)
+                    counter = first_violation - position
+                    if first_violation >= position
+                        position = first_violation - 1
+                    else
+                        position -= 1
+                    end
+                    first_violation = 0
+                elseif first_violation >= position
+                    position -= 2
+                    if counter == 2*instance.nb_paint_limitation
+                        # This strategy can't repair
+                        position = first_violation
+                    end
+                end
+            else
+                position = first_violation
+            end
+        end
+        position += 1
+    end
+
+    HPRC_cars_groups = Dict{Int, Array{Int, 1}}()
+    b0 = instance.nb_late_prec_day+1
+    for car_pos in (b0+1):solution.n
+        car_HPRC_value = HPRC_value(solution.sequence[car_pos], instance)
+        if !haskey(HPRC_cars_groups, car_HPRC_value)
+            HPRC_cars_groups[car_HPRC_value] = [car_pos]
+        else
+            push!(HPRC_cars_groups[car_HPRC_value], car_pos)
+        end
+    end
+    filter!(x -> length(x.second) >= 2, HPRC_cars_groups)
+
+    # Second strategy
     #TODO
     return solution
 end
@@ -70,22 +147,27 @@ function perturbation_VNS_PCC_insertion(solution_init::Solution, k::Int, instanc
 
     # Put every index at the end
     sort!(array_insertion, rev=true) # sort is important to avoid to compute offset.
-    for i in array_insertion
-        move_insertion!(solution, i, solution.n, instance)
+    for car_pos in array_insertion
+        move_insertion!(solution, car_pos, solution.n, instance)
     end
 
     # Best insert
-    for i in (solution.n-k):solution.n
-        j_best = b0
-        cost_best = weighted_sum_VNS_LPRC(cost_move_insertion(solution, i, j_best, instance, 2))
-        for j in (b0+1):i
-            cost = weighted_sum_VNS_LPRC(cost_move_insertion(solution, i, j, instance, 2))
-            if cost < cost_best
-                j_best = j
-                cost_best = cost
+    counter = 1
+    for car_pos in (solution.n-k+1):solution.n
+        matrix_deltas = cost_move_insertion(solution, car_pos, instance, 3)
+        best_insertion = array_insertion[counter]
+        best_delta = sum([WEIGHTS_OBJECTIVE_FUNCTION[i] * matrix_deltas[array_insertion[counter], i] for i in 1:3])
+        for position in 1:(solution.n-k)
+            if matrix_deltas[position, 1] <= 0 && is_sequence_valid(solution, instance)
+                delta = sum([WEIGHTS_OBJECTIVE_FUNCTION[i] * matrix_deltas[position, i] for i in 1:3])
+                if delta < best_delta
+                    best_delta = delta
+                    best_insertion = position
+                end
             end
         end
-        move_insertion!(solution, i, j_best, instance)
+        move_insertion!(solution, car_pos, best_insertion, instance)
+        counter += 1
     end
 
     return solution

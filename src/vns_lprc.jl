@@ -10,13 +10,13 @@
 function critical_cars_VNS_LPRC(solution::Solution, instance::Instance)
     critical_car = Set{Int}()
     b0 = instance.nb_late_prec_day+1
-    for car in b0:solution.n
+    for index_car in b0:solution.n
         for option in 1:(instance.nb_HPRC+instance.nb_LPRC)
-            if (solution.M1[option, car] > instance.RC_p[option])
-                k_lim = car + min(instance.RC_p[option], solution.n-car)
-                for k in car:k_lim
-                    if instance.RC_flag[solution.sequence[k], option]
-                        push!(critical_car, k)
+            if (solution.M1[option, index_car] > instance.RC_p[option])
+                index_car_lim = index_car + min(instance.RC_p[option], solution.n-index_car)
+                for index_car_add in index_car:index_car_lim
+                    if instance.RC_flag[solution.sequence[index_car_add], option]
+                        push!(critical_car, index_car_add)
                     end
                 end
             end
@@ -30,13 +30,14 @@ function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::In
     # Dict that contain for each HRPC level an array of all index that have this HPRC level.
     all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
     current_HPRC = -1
-    for i in 1:solution.n
-        temp_HPRC = HPRC_level(solution, i, instance)
+    b0 = instance.nb_late_prec_day+1
+    for index_car in b0:solution.n
+        temp_HPRC = HPRC_level(solution, index_car, instance)
         if temp_HPRC != current_HPRC
             current_HPRC = temp_HPRC
             all_list_same_HPRC[current_HPRC] = Array{Int, 1}()
         end
-        push!(all_list_same_HPRC[current_HPRC], i)
+        push!(all_list_same_HPRC[current_HPRC], index_car)
     end
     # Delete all HPRC with length less than 2 (Can't exchange 2 vehicles if there is less than 2)
     filter!(x -> length(x.second) >= 2, all_list_same_HPRC)
@@ -45,13 +46,13 @@ function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::In
 
     for iterator in 1:k
         same_HPRC_array = rand(all_list_same_HPRC).second
-        i = rand(same_HPRC_array)
-        j = rand(same_HPRC_array)
+        index_car_a = rand(same_HPRC_array)
+        index_car_b = rand(same_HPRC_array)
         # Cannot be the same
-        while i == j
-            j = rand(same_HPRC_array)
+        while index_car_a == index_car_b
+            index_car_b = rand(same_HPRC_array)
         end
-        move_exchange!(sol, i, j, instance)
+        move_exchange!(sol, index_car_a, index_car_b, instance)
     end
 
     return sol
@@ -67,31 +68,31 @@ function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::I
     push!(array_insertion, rand(b0:sol.n))
 
     for iterator in 2:k
-        r = rand(b0:sol.n)
-        while r in array_insertion
-            r = rand(b0:sol.n)
+        index_car = rand(b0:sol.n)
+        while index_car in array_insertion
+            index_car = rand(b0:sol.n)
         end
-        push!(array_insertion, r)
+        push!(array_insertion, index_car)
     end
 
     # Put every index at the end
     sort!(array_insertion, rev=true) # sort is important to avoid to compute offset.
-    for i in array_insertion
-        move_insertion!(sol, i, sol.n, instance)
+    for index_car in array_insertion
+        move_insertion!(sol, index_car, sol.n, instance)
     end
 
     # Best insert
-    for i in (sol.n-k):sol.n
-        j_best = b0
-        cost_best = weighted_sum_VNS_LPRC( cost_move_insertion(sol, i, j_best, instance, 2) )
-        for j in (b0+1):i
-            cost = weighted_sum_VNS_LPRC( cost_move_insertion(sol, i, j, instance, 2) )
+    for index_car in (sol.n-k):sol.n
+        index_insert_best = b0
+        cost_best = weighted_sum_VNS_LPRC( cost_move_insertion(sol, index_car, index_insert_best, instance, 2) )
+        for index_insert in (b0+1):index_car
+            cost = weighted_sum_VNS_LPRC( cost_move_insertion(sol, index_car, index_insert, instance, 2) )
             if cost < cost_best
-                j_best = j
+                index_insert_best = index_insert
                 cost_best = cost
             end
         end
-        move_insertion!(sol, i, j_best, instance)
+        move_insertion!(sol, index_car, index_insert_best, instance)
     end
 
     return sol
@@ -117,23 +118,23 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
     while improved
         phi = phi_bis
         critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
-        for i in critical_cars_set
+        for index_car_a in critical_cars_set
             best_delta = -0.420
             list = Array{Int, 1}()
-            for j in b0:solution.n
-                if !perturbation_exchange || same_HPRC(solution, i, j, instance)
-                    delta = weighted_sum_VNS_LPRC( cost_move_exchange(solution, i, j, instance, 2) )
+            for index_car_b in b0:solution.n
+                if !perturbation_exchange || same_HPRC(solution, index_car_a, index_car_b, instance)
+                    delta = weighted_sum_VNS_LPRC( cost_move_exchange(solution, index_car_a, index_car_b, instance, 2) )
                     if delta < best_delta
-                        list = [j]
+                        list = [index_car_b]
                         best_delta = delta
                     elseif delta == best_delta
-                        push!(list, j)
+                        push!(list, index_car_b)
                     end
                 end
             end
             if list != []
-                k = rand(list)
-                move_exchange!(solution, i, k, instance)
+                index_car_b = rand(list)
+                move_exchange!(solution, index_car_a, index_car_b, instance)
             end
         end
         phi_bis = cost_VNS_LPRC(solution, instance)
@@ -154,21 +155,21 @@ function localSearch_intensification_VNS_LPRC_exchange!(solution::Solution, alph
     while nb_non_improved < alpha
         critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
         phi = phi_bis
-        for i in critical_cars_set
+        for index_car_a in critical_cars_set
             best_delta = -0.420
             list = Array{Int, 1}()
-            for j in b0:solution.n
-                delta = weighted_sum_VNS_LPRC( cost_move_exchange(solution, i, j, instance, 2) )
+            for index_car_b in b0:solution.n
+                delta = weighted_sum_VNS_LPRC( cost_move_exchange(solution, index_car_a, index_car_b, instance, 2) )
                 if delta < best_delta
-                    list = [j]
+                    list = [index_car_b]
                     best_delta = delta
                 elseif delta == best_delta
-                    push!(list, j)
+                    push!(list, index_car_b)
                 end
             end
             if list != []
-                k = rand(list)
-                move_exchange!(solution, i, k, instance)
+                index_car_b = rand(list)
+                move_exchange!(solution, index_car_a, index_car_b, instance)
             end
         end
         nb_non_improved += 1
@@ -189,21 +190,21 @@ function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, alp
     while nb_non_improved < alpha
         critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
         phi = phi_bis
-        for i in critical_cars_set
+        for index_car in critical_cars_set
             best_delta = -0.420 # Not accept identical solution
             list = Array{Int, 1}()
-            for j in b0:solution.n
-                delta = weighted_sum_VNS_LPRC( cost_move_insertion(solution, i, j, instance, 2) )
+            for index_insert in b0:solution.n
+                delta = weighted_sum_VNS_LPRC( cost_move_insertion(solution, index_car, index_insert, instance, 2) )
                 if delta < best_delta
-                    list = [j]
+                    list = [index_insert]
                     best_delta = delta
                 elseif delta == best_delta
-                    push!(list, j)
+                    push!(list, index_insert)
                 end
             end
             if list != []
-                k = rand(list)
-                move_insertion!(solution, i, k, instance)
+                index_insert = rand(list)
+                move_insertion!(solution, index_car, index_insert, instance)
             end
         end
         nb_non_improved += 1

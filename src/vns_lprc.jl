@@ -83,15 +83,9 @@ function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::I
 
     # Best insert
     for index_car in (sol.n-k):sol.n
-        index_insert_best = b0
-        cost_best = weighted_sum_VNS_LPRC( cost_move_insertion(sol, index_car, index_insert_best, instance, 2) )
-        for index_insert in (b0+1):index_car
-            cost = weighted_sum_VNS_LPRC( cost_move_insertion(sol, index_car, index_insert, instance, 2) )
-            if cost < cost_best
-                index_insert_best = index_insert
-                cost_best = cost
-            end
-        end
+        matrix_deltas = cost_move_insertion(solution, index_car, instance, 2)
+        array_deltas = [ (weighted_sum_VNS_LPRC(matrix_deltas[i, :]), i) for i in b0:solution.n]
+        index_insert_best = findmin(array_deltas)[1][2]
         move_insertion!(sol, index_car, index_insert_best, instance)
     end
 
@@ -186,27 +180,23 @@ function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, ins
     b0 = instance.nb_late_prec_day+1
 
     nb_non_improved = 0
-    list = Array{Int, 1}()
     improved = true
     while nb_non_improved < VNS_LPRC_ALPHA_PERTURBATION
         improved = false
         critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
         for index_car in critical_cars_set
             best_delta = -1 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
-            empty!(list)
-            for index_insert in b0:solution.n
-                delta = weighted_sum_VNS_LPRC( cost_move_insertion(solution, index_car, index_insert, instance, 2) )
-                if delta < best_delta
-                    list = [index_insert]
-                    best_delta = delta
-                elseif delta == best_delta
-                    push!(list, index_insert)
+            matrix_deltas = cost_move_insertion(solution, index_car, instance, 2)
+            array_deltas = [ (weighted_sum_VNS_LPRC(matrix_deltas[i, :]), i) for i in b0:solution.n]
+            min = findmin(array_deltas)[1][1]
+            if min < 0 && false
+                list = map( x -> x[2], filter(x -> x[1] == min, array_deltas) )
+                if list != []
+                    index_insert = rand(list)
+                    move_insertion!(solution, index_car, index_insert, instance)
+                    improved = true
                 end
-            end
-            if list != []
-                index_insert = rand(list)
-                move_insertion!(solution, index_car, index_insert, instance)
-                improved = true
+                println(cost_VNS_LPRC(solution, instance), " nb: ", nb_non_improved)
             end
         end
         nb_non_improved += 1
@@ -279,6 +269,7 @@ function VNS_LPRC(solution::Solution, instance::Instance)
                 s_opt = s
                 nb_intens_not_better = 0
             end
+            println(cost_VNS_LPRC(s_opt, instance), " nb: ", nb_intens_not_better)
         end
         p = 1 - p
         k = k_min[p+1]

@@ -157,13 +157,18 @@ function perturbation_VNS_PCC_insertion(solution_init::Solution, k::Int, instanc
         matrix_deltas = cost_move_insertion(solution, car_pos, instance, 3)
         best_insertion = array_insertion[counter]
         best_delta = sum([WEIGHTS_OBJECTIVE_FUNCTION[i] * matrix_deltas[array_insertion[counter], i] for i in 1:3])
-        for position in 1:(solution.n-k)
-            if matrix_deltas[position, 1] <= 0 && is_sequence_valid(solution, instance)
+        sequence = solution.sequence[1:(solution.n-k+counter)]
+        sequence[solution.n-k+1] = solution.sequence[car_pos]
+        for position in (solution.n-k+1):-1:1
+            if matrix_deltas[position, 1] <= 0 && is_sequence_valid(sequence, solution.n-k+counter, instance)
                 delta = sum([WEIGHTS_OBJECTIVE_FUNCTION[i] * matrix_deltas[position, i] for i in 1:3])
                 if delta < best_delta
                     best_delta = delta
                     best_insertion = position
                 end
+            end
+            if position > 1
+                sequence[position], sequence[position-1] = sequence[position-1], sequence[position]
             end
         end
         move_insertion!(solution, car_pos, best_insertion, instance)

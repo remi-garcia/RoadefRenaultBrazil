@@ -296,11 +296,21 @@ function same_HPRC(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance:
 end
 
 function HPRC_value(car::Int, instance::Instance)
-    car_HPRC_value = 0
+    car_HPRC_value = "0"
     for option in 1:instance.nb_HPRC
         if instance.RC_flag[car, option]
-            car_HPRC_value += 10^(option-1)
+            car_HPRC_value = string(10^(option)) * car_HPRC_value
         end
     end
-    return parse(Int, string(car_HPRC_value), base = 2)
+    return parse(Int, car_HPRC_value, base = 2)
+end
+
+function RC_value(car::Int, instance::Instance)
+    car_RC_value = "0"
+    for option in 1:(instance.nb_LPRC+instance.nb_HPRC)
+        if instance.RC_flag[car, option]
+            car_RC_value = string(10^(option)) * car_RC_value
+        end
+    end
+    return parse(Int, string(car_RC_value), base = 2)
 end

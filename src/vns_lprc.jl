@@ -143,14 +143,14 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
 end
 
 
-function localSearch_intensification_VNS_LPRC_exchange!(solution::Solution, alpha::Int, instance::Instance)
+function localSearch_intensification_VNS_LPRC_exchange!(solution::Solution, instance::Instance)
     # useful variable
     b0 = instance.nb_late_prec_day+1
 
     nb_non_improved = 0
     list = Array{Int, 1}()
     improved = true
-    while nb_non_improved < alpha
+    while nb_non_improved < VNS_LPRC_ALPHA_PERTURBATION
         improved = false
         critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
         for index_car_a in critical_cars_set
@@ -181,14 +181,14 @@ function localSearch_intensification_VNS_LPRC_exchange!(solution::Solution, alph
     return solution
 end
 
-function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, alpha::Int, instance::Instance)
+function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, instance::Instance)
     # useful variable
     b0 = instance.nb_late_prec_day+1
 
     nb_non_improved = 0
     list = Array{Int, 1}()
     improved = true
-    while nb_non_improved < alpha
+    while nb_non_improved < VNS_LPRC_ALPHA_PERTURBATION
         improved = false
         critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
         for index_car in critical_cars_set
@@ -219,8 +219,8 @@ end
 
 # Apply two local search, first one with insertion move, and the second one with exchange move.
 function intensification_VNS_LPRC!(solution::Solution, instance::Instance)
-    localSearch_intensification_VNS_LPRC_insertion!(solution, VNS_LPRC_ALPHA_PERTURBATION, instance)
-    localSearch_intensification_VNS_LPRC_exchange!(solution, VNS_LPRC_ALPHA_PERTURBATION, instance)
+    localSearch_intensification_VNS_LPRC_insertion!(solution, instance)
+    localSearch_intensification_VNS_LPRC_exchange!(solution, instance)
     return solution
 end
 

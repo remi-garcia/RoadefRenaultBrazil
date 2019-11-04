@@ -119,7 +119,7 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
         phi = phi_bis
         critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
         for index_car_a in critical_cars_set
-            best_delta = -0.420
+            best_delta = -0.420 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
             list = Array{Int, 1}()
             for index_car_b in b0:solution.n
                 if !perturbation_exchange || same_HPRC(solution, index_car_a, index_car_b, instance)
@@ -156,7 +156,7 @@ function localSearch_intensification_VNS_LPRC_exchange!(solution::Solution, alph
         critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
         phi = phi_bis
         for index_car_a in critical_cars_set
-            best_delta = -0.420
+            best_delta = -0.420 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
             list = Array{Int, 1}()
             for index_car_b in b0:solution.n
                 delta = weighted_sum_VNS_LPRC( cost_move_exchange(solution, index_car_a, index_car_b, instance, 2) )
@@ -191,7 +191,7 @@ function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, alp
         critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
         phi = phi_bis
         for index_car in critical_cars_set
-            best_delta = -0.420 # Not accept identical solution
+            best_delta = -0.420 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
             list = Array{Int, 1}()
             for index_insert in b0:solution.n
                 delta = weighted_sum_VNS_LPRC( cost_move_insertion(solution, index_car, index_insert, instance, 2) )

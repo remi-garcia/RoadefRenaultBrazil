@@ -31,6 +31,7 @@ function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::In
     all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
     current_HPRC = -1
     b0 = instance.nb_late_prec_day+1
+    # TODO To change
     for index_car in b0:solution.n
         temp_HPRC = HPRC_level(solution, index_car, instance)
         if temp_HPRC != current_HPRC
@@ -82,7 +83,7 @@ function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::I
     end
 
     # Best insert
-    for index_car in (sol.n-k):sol.n
+    for index_car in (sol.n-k+1):sol.n
         matrix_deltas = cost_move_insertion(solution, index_car, instance, 2)
         array_deltas = [ (weighted_sum_VNS_LPRC(matrix_deltas[i, :]), i) for i in b0:solution.n]
         index_insert_best = findmin(array_deltas)[1][2]
@@ -216,6 +217,7 @@ end
 
 # Compute the weighted sum of a cost solution (an array)
 function weighted_sum_VNS_LPRC(cost_solution::Array{Int, 1})
+    # TODO: this function can be dropped as soon as a sum_cost calculation is added in `fonction.jl`
     return sum(cost_solution[i] * WEIGHTS_OBJECTIVE_FUNCTION[i] for i in 1:2)
 end
 

@@ -142,10 +142,9 @@ function localSearch_intensification_VNS_LPRC_exchange!(solution::Solution, inst
     # useful variable
     b0 = instance.nb_late_prec_day+1
 
-    nb_non_improved = 0
     list = Array{Int, 1}()
     improved = true
-    while nb_non_improved < VNS_LPRC_ALPHA_PERTURBATION
+    while improved
         improved = false
         critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
         for index_car_a in critical_cars_set
@@ -168,10 +167,6 @@ function localSearch_intensification_VNS_LPRC_exchange!(solution::Solution, inst
                 improved = true
             end
         end
-        nb_non_improved += 1
-        if improved
-            nb_non_improved = 0
-        end
     end
     return solution
 end
@@ -180,9 +175,8 @@ function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, ins
     # useful variable
     b0 = instance.nb_late_prec_day+1
 
-    nb_non_improved = 0
     improved = true
-    while nb_non_improved < VNS_LPRC_ALPHA_PERTURBATION
+    while improved
         improved = false
         critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
         for index_car in critical_cars_set
@@ -197,12 +191,7 @@ function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, ins
                     move_insertion!(solution, index_car, index_insert, instance)
                     improved = true
                 end
-                println(cost_VNS_LPRC(solution, instance), " nb: ", nb_non_improved)
             end
-        end
-        nb_non_improved += 1
-        if improved
-            nb_non_improved = 0
         end
     end
     return solution

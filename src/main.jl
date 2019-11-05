@@ -27,6 +27,8 @@ include("greedy.jl")
 include("vns_lprc.jl")
 include("vns_pcc.jl")
 
+include("for-test.jl")
+
 function main()
 
     type = ["A"]#, "B"]
@@ -49,20 +51,36 @@ function main()
             println("Initial solution created...")
             print_cost(solution, instance)
 
-            #print("Solution improved with ILS_HPRC : ")
-            #solution = ILS_HPRC(solution, instance)
-            #println("done..")
-            #print_cost(solution, instance)
+            for j in 1:(instance.nb_HPRC+instance.nb_LPRC)
+                print(" ", instance.RC_flag[8, j])
+            end
 
-            #print("Solution improved with VNS_LPRC : ")
-            #solution = VNS_LPRC(solution, instance)
-            #println("done..")
-            #print_cost(solution, instance)
+            for i in 8:7
+                for j in i:solution.n
+                    c1 = cost_move_insertion(solution, i, instance, 3)
+                    c2 = TEST_cost_move_insertion(solution, i, instance, 3)
+                    if ((c1[j,1] != c2[j,1]) || (c1[j,2] != c2[j,2]))
+                        println("FAIL : ", c1[j, :], " vs. ", c2[j, :], " \t\t - insert ", i, " at ", j)
+                    end
+                end
+            end
 
-            print("Solution improved with VNS_PCC : ")
-            solution = VNS_PCC(solution, instance, start_time)
-            println("done..")
-            print_cost(solution, instance)
+            # print("Solution improved with ILS_HPRC : ")
+            # solution = ILS_HPRC(solution, instance)
+            # println("done..")
+            # print_cost(solution, instance)
+
+            # println(instance.nb_late_prec_day)
+
+            # print("Solution improved with VNS_LPRC : ")
+            # solution = VNS_LPRC(solution, instance)
+            # println("done..")
+            # print_cost(solution, instance)
+
+            # print("Solution improved with VNS_PCC : ")
+            # solution = VNS_PCC(solution, instance, start_time)
+            # println("done..")
+            # print_cost(solution, instance)
 
             println()
             println()

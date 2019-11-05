@@ -16,12 +16,7 @@ Interverts the car `car_pos_a` with the car `car_pos_b` in `solution.sequence`. 
 `solution.M1`, `solution.M2` and `solution.M3`.
 """
 function move_exchange!(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance::Instance)
-    if car_pos_a > car_pos_b
-        return move_exchange!(solution, car_pos_b, car_pos_a, instance)
-    end
-    if car_pos_a == car_pos_b
-        return solution
-    end
+
     car_a = solution.sequence[car_pos_a]
     car_b = solution.sequence[car_pos_b]
     solution.sequence[car_pos_a], solution.sequence[car_pos_b] = solution.sequence[car_pos_b], solution.sequence[car_pos_a]
@@ -98,66 +93,105 @@ function cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
     #TODO it might be important that objective is a vector of Int, then we could
     #return a vector of cost.
 
+    if car_pos_b < car_pos_a
+        return cost_move_exchange(solution, car_pos_b, car_pos_a, instance, objective)
+    end
+
+    if car_pos_b == car_pos_a
+        return zeros(Int, 3)
+    end
+
     # objective should take values between 1 and 3.
     @assert objective >= 1
     @assert objective <= 3
 
+
+    car_a = solution.sequence[car_pos_a]
+    car_b = solution.sequence[car_pos_b]
     cost_on_objective = zeros(Int, 3)
 
     if objective >= 1 #Must improve or keep HPRC
         for option in 1:instance.nb_HPRC
             # No cost if both have it / have it not
-            if instance.RC_flag[solution.sequence[car_pos_a], option] != instance.RC_flag[solution.sequence[car_pos_b], option]
-                #TODO: Rewrite code or swap indexes ?
-                if instance.RC_flag[solution.sequence[car_pos_b], option]
-                    car_pos_a,car_pos_b = car_pos_b,car_pos_a
-                end
-                # New option here -> increasing cost
-                last_ended_sequence = car_pos_b - instance.RC_q[option]
-                if last_ended_sequence > 0
-                    cost_on_objective[1] += solution.M3[option, car_pos_b] - solution.M3[option, last_ended_sequence]
+            if xor(instance.RC_flag[car_a, option], instance.RC_flag[car_b, option])
+                last_ended_sequence_a = car_pos_a - instance.RC_q[option]
+                first_modified_sequence_a = min(car_pos_a, car_pos_b - instance.RC_q[option])
+                last_unmodified_sequence_b = max(car_pos_a, car_pos_b - instance.RC_q[option])
+
+                if instance.RC_flag[car_a, option]
+                    if first_modified_sequence_a > 0
+                        if last_ended_sequence_a > 0
+                            cost_on_objective[1] -= solution.M2[option, first_modified_sequence_a] - solution.M2[option, last_ended_sequence_a]
+                        else
+                            cost_on_objective[1] -= solution.M2[option, first_modified_sequence_a]
+                        end
+                    end
+                    if last_unmodified_sequence_b > 0
+                        cost_on_objective[1] += solution.M3[option, car_pos_b] - solution.M3[option, last_unmodified_sequence_b]
+                    else
+                        cost_on_objective[1] += solution.M3[option, car_pos_b]
+                    end
                 else
-                    cost_on_objective[1] += solution.M3[option, car_pos_b]
-                end
-                # No option anymore -> decreasing cost
-                last_ended_sequence = car_pos_a - instance.RC_q[option]
-                if last_ended_sequence > 0
-                    cost_on_objective[1] -= solution.M2[option, car_pos_a] - solution.M2[option, last_ended_sequence]
-                else
-                    cost_on_objective[1] -= solution.M2[option, car_pos_a]
+                    if first_modified_sequence_a > 0
+                        if last_ended_sequence_a > 0
+                            cost_on_objective[1] += solution.M3[option, first_modified_sequence_a] - solution.M3[option, last_ended_sequence_a]
+                        else
+                            cost_on_objective[1] += solution.M3[option, first_modified_sequence_a]
+                        end
+                    end
+                    if last_unmodified_sequence_b > 0
+                        cost_on_objective[1] -= solution.M2[option, car_pos_b] - solution.M2[option, last_unmodified_sequence_b]
+                    else
+                        cost_on_objective[1] -= solution.M2[option, car_pos_b]
+                    end
+
                 end
             end
         end
     end
+
     if objective >= 2 #Must improve or keep HPRC and LPRC
         for option in (instance.nb_HPRC+1):(instance.nb_HPRC+instance.nb_LPRC)
             # No cost if both have it / have it not
-            if instance.RC_flag[solution.sequence[car_pos_a], option] != instance.RC_flag[solution.sequence[car_pos_b], option]
-                #TODO: Rewrite code or swap indexes ?
-                if instance.RC_flag[solution.sequence[car_pos_b], option]
-                    car_pos_a,car_pos_b = car_pos_b,car_pos_a
-                end
-                # New option here -> increasing cost
-                last_ended_sequence = car_pos_b - instance.RC_q[option]
-                if last_ended_sequence > 0
-                    cost_on_objective[2] += solution.M3[option, car_pos_b] - solution.M3[option, last_ended_sequence]
+            if xor(instance.RC_flag[car_a, option], instance.RC_flag[car_b, option])
+                last_ended_sequence_a = car_pos_a - instance.RC_q[option]
+                first_modified_sequence_a = min(car_pos_a, car_pos_b - instance.RC_q[option])
+                last_unmodified_sequence_b = max(car_pos_a, car_pos_b - instance.RC_q[option])
+
+                if instance.RC_flag[car_a, option]
+                    if first_modified_sequence_a > 0
+                        if last_ended_sequence_a > 0
+                            cost_on_objective[2] -= solution.M2[option, first_modified_sequence_a] - solution.M2[option, last_ended_sequence_a]
+                        else
+                            cost_on_objective[2] -= solution.M2[option, first_modified_sequence_a]
+                        end
+                    end
+                    if last_unmodified_sequence_b > 0
+                        cost_on_objective[2] += solution.M3[option, car_pos_b] - solution.M3[option, last_unmodified_sequence_b]
+                    else
+                        cost_on_objective[2] += solution.M3[option, car_pos_b]
+                    end
                 else
-                    cost_on_objective[2] += solution.M3[option, car_pos_b]
-                end
-                # No option anymore -> decreasing cost
-                last_ended_sequence = car_pos_a - instance.RC_q[option]
-                if last_ended_sequence > 0
-                    cost_on_objective[2] -= solution.M2[option, car_pos_a] - solution.M2[option, last_ended_sequence]
-                else
-                    cost_on_objective[2] -= solution.M2[option, car_pos_a]
+                    if first_modified_sequence_a > 0
+                        if last_ended_sequence_a > 0
+                            cost_on_objective[2] += solution.M3[option, first_modified_sequence_a] - solution.M3[option, last_ended_sequence_a]
+                        else
+                            cost_on_objective[2] += solution.M3[option, first_modified_sequence_a]
+                        end
+                    end
+                    if last_unmodified_sequence_b > 0
+                        cost_on_objective[2] -= solution.M2[option, car_pos_b] - solution.M2[option, last_unmodified_sequence_b]
+                    else
+                        cost_on_objective[2] -= solution.M2[option, car_pos_b]
+                    end
                 end
             end
         end
     end
+
     if objective >= 3 #Must improve or keep HPRC and LPRC and PCC
         cost_on_objective[3] = 1 #TODO see here
     end
 
     return cost_on_objective
-    #return sum(cost_on_objective[i]*WEIGHTS_OBJECTIVE_FUNCTION[i] for i in 1:3)
 end

@@ -299,7 +299,7 @@ function is_sequence_valid(sequence::Array{Int, 1}, n::Int, instance::Instance)
         else
             counter = 1
         end
-        if counter > instance.nb_paint_limitation
+        if counter > instance.nb_paint_limitation && counter >= instance.nb_late_prec_day+1
             return false
         end
     end

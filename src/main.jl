@@ -29,11 +29,19 @@ include("vns_pcc.jl")
 
 function main()
 
+<<<<<<< HEAD
     type = ["A","B","X"]
 
     # Instance and initiale solution
     for instance_type in type#["A", "B", "X"]
         name = [INSTANCES[instance_type][i] for i in 1:length(INSTANCES[instance_type])]
+=======
+    type = ["A", "B"]
+
+    # Instance and initiale solution
+    for instance_type in type#["A", "B", "X"]
+        name = [INSTANCES[instance_type][1], INSTANCES[instance_type][end]]
+>>>>>>> master
         for instance_name in name#INSTANCES[instance_type]
             start_time = time_ns()
             println("Instance ",instance_type,"/",instance_name)
@@ -49,10 +57,17 @@ function main()
             #solution = VNS_LPRC(solution, instance)
             #println("Solution improved with VNS_LPRC")
 
+<<<<<<< HEAD
             #solution = VNS_PCC(solution, instance, start_time)
             println("Solution improved with VNS_PCC")
             repair!(solution, instance)
             #println(solution.sequence)
+=======
+            solution = VNS_PCC(solution, instance, start_time)
+            println("Solution improved with VNS_PCC")
+
+            println(solution.sequence)
+>>>>>>> master
             println()
         end
     end

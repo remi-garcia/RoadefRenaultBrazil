@@ -30,16 +30,16 @@ include("vns_pcc.jl")
 function main()
 
     type = ["A", "B"]
-    name = [INSTANCES[type[1]][1],INSTANCES[type[1]][end]]
 
     # Instance and initiale solution
-    for type_fichier in type#["A", "B", "X"]
-        for nom_fichier in name#INSTANCES[type_fichier]
+    for instance_type in type#["A", "B", "X"]
+        name = [INSTANCES[instance_type][1], INSTANCES[instance_type][end]]
+        for instance_name in name#INSTANCES[instance_type]
             start_time = time_ns()
-            println("Instance ",type_fichier,"/",nom_fichier)
+            println("Instance ",instance_type,"/",instance_name)
 
             # Parser
-            instance = parser(nom_fichier, type_fichier)
+            instance = parser(instance_name, instance_type)
             println("Loaded...")
 
             # Greedy
@@ -53,6 +53,7 @@ function main()
             println("Solution improved with VNS_PCC")
 
             println(solution.sequence)
+            println()
         end
     end
 end

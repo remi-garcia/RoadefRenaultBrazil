@@ -88,6 +88,52 @@ function repair!(solution::Solution, instance::Instance)
     end
     filter!(x -> length(x.second) >= 2, HPRC_cars_groups)
 
+    position = 1
+    counter = 1
+    current_color = instance.color_code[solution.sequence[position]]
+    position += 1
+    first_violation = 0
+    while position < solution.n
+        if instance.color_code[solution.sequence[position]] == current_color
+            counter += 1
+        else
+            counter = 1
+            current_color = instance.color_code[solution.sequence[position]]
+        end
+        if counter > instance.nb_paint_limitation
+            if position >= b0
+                if first_violation == 0
+                    first_violation = position
+                end
+                car_HPRC_value = HPRC_value(solution.sequence[position], instance)
+                car_pos = 1
+                len = HPRC_cars_groups[car_HPRC_value]
+                while (car_pos <= len) && (instance.color_code[HPRC_cars_groups[car_HPRC_value][car_pos]] == current_color)
+                    car_pos += 1
+                end
+                if car_pos <= len
+                    move_exchange!(solution, position, car_pos, instance)
+                    counter = first_violation - position
+                    if first_violation >= position
+                        position = first_violation - 1
+                    else
+                        position -= 1
+                    end
+                    first_violation = 0
+                elseif first_violation >= position
+                    position -= 2
+                    if counter == 2*instance.nb_paint_limitation
+                        # This strategy can't repair
+                        position = first_violation
+                    end
+                end
+            else
+                position = first_violation
+            end
+        end
+        position += 1
+    end
+
     # Second strategy
     #TODO
     return solution

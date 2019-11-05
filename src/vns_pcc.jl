@@ -70,7 +70,11 @@ function repair!(solution::Solution, instance::Instance)
                     end
                 end
             else
-                position = first_violation
+                if first_violation != 0
+                    position = first_violation
+                else
+                    # pcc are not possible in nb_late_prec_day so we keep the counter
+                end
             end
         end
         position += 1
@@ -128,7 +132,11 @@ function repair!(solution::Solution, instance::Instance)
                     end
                 end
             else
-                position = first_violation
+                if first_violation != 0
+                    position = first_violation
+                else
+                    # pcc are not possible in nb_late_prec_day so we keep the counter
+                end
             end
         end
         position += 1

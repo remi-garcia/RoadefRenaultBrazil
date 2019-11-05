@@ -246,12 +246,3 @@ function cost(solution::Solution, instance::Instance, objective::Int)
 
     return cost_on_objective
 end
-
-"""
-    same_HPRC(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance::Instance)
-
-Return `true` if car `car_pos_a` and `car_pos_b` have the same HPRC level. `false` otherwise.
-"""
-function same_HPRC(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance::Instance)
-    return HPRC_value(solution[car_pos_a], instance) == HPRC_value(solution[car_pos_b], instance)
-end

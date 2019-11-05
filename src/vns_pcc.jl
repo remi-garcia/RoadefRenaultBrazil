@@ -28,14 +28,14 @@ function repair!(solution::Solution, instance::Instance)
             push!(RC_cars_groups[car_RC_value], car_pos)
         end
     end
-    filter!(x -> length(x.second) >= 2, RC_cars_groups)
+    #filter!(x -> length(x.second) >= 2, RC_cars_groups)
 
     position = 1
     counter = 1
     current_color = instance.color_code[solution.sequence[position]]
     position += 1
     first_violation = 0
-    while position < solution.n
+    while position <= solution.n
         if instance.color_code[solution.sequence[position]] == current_color
             counter += 1
         else
@@ -90,14 +90,14 @@ function repair!(solution::Solution, instance::Instance)
             push!(HPRC_cars_groups[car_HPRC_value], car_pos)
         end
     end
-    filter!(x -> length(x.second) >= 2, HPRC_cars_groups)
+    #filter!(x -> length(x.second) >= 2, HPRC_cars_groups)
 
     position = 1
     counter = 1
     current_color = instance.color_code[solution.sequence[position]]
     position += 1
     first_violation = 0
-    while position < solution.n
+    while position <= solution.n
         if instance.color_code[solution.sequence[position]] == current_color
             counter += 1
         else

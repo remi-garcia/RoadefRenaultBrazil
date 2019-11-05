@@ -31,7 +31,7 @@ function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::In
     all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
     b0 = instance.nb_late_prec_day+1
     for index_car in b0:solution.n
-        key_HPRC = HPRC_value(index_car, instance)
+        key_HPRC = HPRC_value(solution.sequence[index_car], instance)
         if !(key_HPRC in keys(all_list_same_HPRC))
             all_list_same_HPRC[key_HPRC] = Array{Int, 1}()
         end

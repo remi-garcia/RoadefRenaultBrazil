@@ -257,6 +257,7 @@ function VNS_LPRC(solution::Solution, instance::Instance)
                 s_opt = s
                 nb_intens_not_better = 0
             end
+            println(cost_VNS_LPRC(s_opt, instance), " nb: ", nb_intens_not_better)
         end
         p = 1 - p
         k = k_min[p+1]

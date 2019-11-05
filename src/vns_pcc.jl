@@ -298,7 +298,7 @@ function VNS_PCC(solution::Solution, instance::Instance, start_time::UInt)
     cost_solution = weighted_sum(solution, instance, 3)
     cost_HPRC_solution = cost(solution, instance, 1)[1]
     while TIME_LIMIT > (time_ns() - start_time) / 1.0e9
-        while k <= VNS_PCC_MINMAX[p+1][2]
+        while (k <= VNS_PCC_MINMAX[p+1][2]) && (TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
             solution_perturbation = perturbations[p](solution, k, instance)
             if cost_HPRC_solution < cost(solution_perturbation, instance, 1)[1]
                 solution_perturbation = deepcopy(solution)
@@ -311,6 +311,7 @@ function VNS_PCC(solution::Solution, instance::Instance, start_time::UInt)
                 k += 1
             end
             if cost_solution_perturbation <= cost_solution
+                println("Best find!")
                 solution = deepcopy(solution_perturbation)
                 cost_HPRC_solution = cost(solution, instance, 1)[1]
                 cost_solution = weighted_sum(solution, instance, 3)
@@ -320,6 +321,5 @@ function VNS_PCC(solution::Solution, instance::Instance, start_time::UInt)
         p = 1 - p
         VNS_PCC_MINMAX[p+1][1]
     end
-
     return solution
 end

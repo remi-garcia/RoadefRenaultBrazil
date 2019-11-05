@@ -29,7 +29,7 @@ include("vns_pcc.jl")
 
 function main()
 
-    type = ["A", "B"]
+    type = ["A"]#, "B"]
 
     # Instance and initiale solution
     for instance_type in type#["A", "B", "X"]
@@ -64,7 +64,6 @@ function main()
             println("done..")
             print_cost(solution, instance)
 
-            println(solution.sequence)
             println()
             println()
         end

@@ -238,7 +238,7 @@ function is_better_VNS_LPRC(left::Solution, right::Solution, instance::Instance)
 end
 
 # VNS-LPRC algorithm describe in section 6.
-function VNS_LPRC(solution::Solution, instance::Instance, verbose::Bool=false)
+function VNS_LPRC(solution::Solution, instance::Instance)
 
     # We note that p = 0 is for insertion move and p = 1 is for exchange move
     # because section 6.1 and 6.5 contradict themselves

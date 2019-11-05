@@ -20,18 +20,18 @@ function move_insertion!(solution::Solution, old_index::Int, new_index::Int, ins
     # insert!(solution.sequence, new_index, car)
 
     #Update sequence (better complexity ?)
-    car_inserted = solution.sequence[car_pos_a]
-    if car_pos_a < car_pos_b
-        for car_moved_pos in car_pos_a:(car_pos_b-1)
+    car_inserted = solution.sequence[old_index]
+    if old_index < new_index
+        for car_moved_pos in old_index:(new_index-1)
             solution.sequence[car_moved_pos] = solution.sequence[car_moved_pos+1]
         end
-        solution.sequence[car_pos_b] = car_inserted
+        solution.sequence[new_index] = car_inserted
     end
-    if car_pos_a > car_pos_b
-        for car_moved_pos in car_pos_a:-1:(car_pos_b+1)
+    if old_index > new_index
+        for car_moved_pos in old_index:-1:(new_index+1)
             solution.sequence[car_moved_pos] = solution.sequence[car_moved_pos-1]
         end
-        solution.sequence[car_pos_b] = car_inserted
+        solution.sequence[new_index] = car_inserted
     end
 
     # TODO: COMPLEXITY NON-OPTIMAL
@@ -62,6 +62,9 @@ function cost_move_insertion(solution::Solution, car_pos_a::Int,
 
     cost_on_objective = zeros(Int, solution.n, 3)
     b0 = instance.nb_late_prec_day+1
+
+    delta1_for_First = zeros(Int,solution.n) ; delta1_for_Second = zeros(Int,solution.n)
+    delta2_for_First = zeros(Int,solution.n) ; delta2_for_Second = zeros(Int,solution.n)
 
         #---------------------------------------------------------- Initialization of M1
 
@@ -286,7 +289,6 @@ function compute_delta2_for_b0(
             end
         end
     end
-    println(delta2)
     return delta2
 end
 

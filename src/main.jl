@@ -49,16 +49,19 @@ function main()
             println("Initial solution created...")
             print_cost(solution, instance)
 
+            #print("Solution improved with ILS_HPRC : ")
             #solution = ILS_HPRC(solution, instance)
-            #println("Solution improved with ILS_HPRC")
+            #println("done..")
             #print_cost(solution, instance)
 
+            #print("Solution improved with VNS_LPRC : ")
             #solution = VNS_LPRC(solution, instance)
-            #println("Solution improved with VNS_LPRC")
+            #println("done..")
             #print_cost(solution, instance)
 
+            print("Solution improved with VNS_PCC : ")
             solution = VNS_PCC(solution, instance, start_time)
-            println("Solution improved with VNS_PCC")
+            println("done..")
             print_cost(solution, instance)
 
             println(solution.sequence)

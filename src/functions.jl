@@ -20,7 +20,7 @@ include("move_exchange.jl")
 """
     cost(solution::Solution, instance::Instance, objective::Int)
 
-Return the (partial) cost of the solution `solution`.
+Return the (partial) set of values of objectives (without weight) of the solution s.
 """
 function cost(solution::Solution, instance::Instance, objective::Int)
     cost_on_objective = zeros(Int, 3)
@@ -32,8 +32,8 @@ function cost(solution::Solution, instance::Instance, objective::Int)
         end
     end
     cost_on_objective[1] = value
-    value = 0
 
+    value = 0
     if objective >= 2 #Must improve or keep HPRC and LPRC
         for car in 1:solution.n
             for option in (instance.nb_HPRC+1):(instance.nb_HPRC+instance.nb_LPRC)
@@ -42,25 +42,53 @@ function cost(solution::Solution, instance::Instance, objective::Int)
         end
     end
     cost_on_objective[2] = value
-    value = 0
 
+    value = 0
     if objective >= 3 #Must improve or keep HPRC and LPRC and PCC
         #TODO
     end
-
     cost_on_objective[3] = value
 
     return cost_on_objective
 end
 
-"""
-    sum_cost(solution::Solution, instance::Instance)
 
-Return the weighted sum of objectives value of the solution `solution`.
 """
-function sum_cost(solution::Solution, instance::Instance)
+    weighted_sum(cost_solution::Array{Int, 1})
+
+Return the weighted sum of the (partial) solution s.
+"""
+function weighted_sum(cost_solution::Array{Int, 1}, objective::Int)
+    # objective should take values between 1 and 3.
+    @assert objective >= 1
+    @assert objective <= 3
+    return sum(cost_solution[i] * WEIGHTS_OBJECTIVE_FUNCTION[i] for i in 1:objective)
+end
+
+
+"""
+    weighted_sum(cost_solution::Array{Int, 1})
+
+Return the weighted sum of the (partial) solution s.
+"""
+function weighted_sum(solution::Solution, instance::Instance, objective::Int)
+    # objective should take values between 1 and 3.
+    @assert objective >= 1
+    @assert objective <= 3
+    return weighted_sum(cost(solution, instance, objective), objective)
+end
+
+"""
+    print_cost(solution::Solution, instance::Instance)
+
+Print the objective value of the solution.
+"""
+function print_cost(solution::Solution, instance::Instance)
     cost_solution = cost(solution, instance, 3)
-    return sum([WEIGHTS_OBJECTIVE_FUNCTION[i] * cost_solution[i] for i in 1:3])
+    println("\tHPRC violations: ", cost_solution[1])
+    println("\tLPRC violations: ", cost_solution[2])
+    println("\tPCC  violations: ", cost_solution[3])
+    println("\tObjective value is ",weighted_sum(cost_solution, 3))
 end
 
 

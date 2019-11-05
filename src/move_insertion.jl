@@ -14,15 +14,32 @@ Replaces car at `old_index` at `new_index` and updates the solution's matrices.
 """
 function move_insertion!(solution::Solution, old_index::Int, new_index::Int, instance::Instance)
 
-    #Updates sequence
-    car = solution.sequence[old_index]
-    deleteat!(solution.sequence, old_index)
-    insert!(solution.sequence, new_index, car)
+    #Update sequence
+    # car = solution.sequence[old_index]
+    # deleteat!(solution.sequence, old_index)
+    # insert!(solution.sequence, new_index, car)
 
+    #Update sequence (better complexity ?)
+    car_inserted = solution.sequence[car_pos_a]
+    if car_pos_a < car_pos_b
+        for car_moved_pos in car_pos_a:(car_pos_b-1)
+            solution.sequence[car_moved_pos] = solution.sequence[car_moved_pos+1]
+        end
+        solution.sequence[car_pos_b] = car_inserted
+    end
+    if car_pos_a > car_pos_b
+        for car_moved_pos in car_pos_a:-1:(car_pos_b+1)
+            solution.sequence[car_moved_pos] = solution.sequence[car_moved_pos-1]
+        end
+        solution.sequence[car_pos_b] = car_inserted
+    end
+
+    # TODO: COMPLEXITY NON-OPTIMAL
     update_matrices!(solution, solution.n, instance)
 
     return solution
 end
+
 
 
 """

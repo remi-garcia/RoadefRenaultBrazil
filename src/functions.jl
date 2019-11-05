@@ -107,26 +107,6 @@ function move_insertion!(solution::Solution, car_pos_a::Int, car_pos_b::Int, ins
 end
 
 """
-    insertion!(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance::Instance)
-
-Inserts the car `car` at index `position` in `solution.sequence`. Updates
-`solution.M1`, `solution.M2` and `solution.M3`.
-"""
-function insertion!(solution::Solution, car::Int, position::Int, instance::Instance)
-    push!(solution.sequence, 0)
-    solution.n += 1
-    car_pos_tmp = position
-    for car_pos in position:solution.n
-        solution.sequence[car_pos], car_pos_tmp = car_pos_tmp, solution.sequence[car_pos]
-    end
-
-    update_matrices!(solution, solution.n, instance)
-
-    # TODO
-    return Solution
-end
-
-"""
     cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
                        instance::Instance, objective::Int)
 

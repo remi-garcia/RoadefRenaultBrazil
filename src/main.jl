@@ -25,30 +25,35 @@ include("functions.jl")
 include("constants.jl")
 include("greedy.jl")
 include("vns_lprc.jl")
+include("vns_pcc.jl")
 
 function main()
 
-    type = ["A"]
-    name = [INSTANCES[type[1]][1]]
+    type = ["A", "B"]
 
     # Instance and initiale solution
-    for type_fichier in type#["A", "B", "X"]
-        for nom_fichier in name#INSTANCES[type_fichier]
-            println( "Instance ",type_fichier,"/",nom_fichier)
+    for instance_type in type#["A", "B", "X"]
+        name = [INSTANCES[instance_type][1], INSTANCES[instance_type][end]]
+        for instance_name in name#INSTANCES[instance_type]
+            start_time = time_ns()
+            println("Instance ",instance_type,"/",instance_name)
 
             # Parser
-            instance = parser(nom_fichier, type_fichier)
-            println("loaded.." )
+            instance = parser(instance_name, instance_type)
+            println("Loaded...")
 
             # Greedy
             solution = greedy(instance)
-            println( "initial solution created.." )
+            println("Initial solution created...")
 
-            #TODO
+            #solution = VNS_LPRC(solution, instance)
+            #println("Solution improved with VNS_LPRC")
 
+            solution = VNS_PCC(solution, instance, start_time)
+            println("Solution improved with VNS_PCC")
+
+            println(solution.sequence)
             println()
-
-            return solution
         end
     end
 end

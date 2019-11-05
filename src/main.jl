@@ -29,8 +29,8 @@ include("vns_pcc.jl")
 
 function main()
 
-    type = ["A"]
-    name = [INSTANCES[type[1]][1]]
+    type = ["A", "B"]
+    name = [INSTANCES[type[1]][1],INSTANCES[type[1]][end]]
 
     # Instance and initiale solution
     for type_fichier in type#["A", "B", "X"]
@@ -52,7 +52,7 @@ function main()
             solution = VNS_PCC(solution, instance, start_time)
             println("Solution improved with VNS_PCC")
 
-            return solution
+            println(solution.sequence)
         end
     end
 end

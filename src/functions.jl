@@ -6,6 +6,10 @@
 #         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
 #-------------------------------------------------------------------------------
 
+# More readable
+include("move_insertion.jl")
+include("move_exchange.jl")
+
 """
     move_exchange!(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance::Instance)
 

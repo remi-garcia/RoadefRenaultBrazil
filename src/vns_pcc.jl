@@ -74,7 +74,7 @@ function repair!(solution::Solution, instance::Instance)
                 end
                 car_RC_value = RC_value(solution.sequence[position], instance)
                 car_pos = 1
-                len = RC_cars_groups[car_RC_value]
+                len = length(RC_cars_groups[car_RC_value])
                 while (car_pos <= len) && (instance.color_code[RC_cars_groups[car_RC_value][car_pos]] == current_color)
                     car_pos += 1
                 end
@@ -136,7 +136,7 @@ function repair!(solution::Solution, instance::Instance)
                 end
                 car_HPRC_value = HPRC_value(solution.sequence[position], instance)
                 car_pos = 1
-                len = HPRC_cars_groups[car_HPRC_value]
+                len = length(HPRC_cars_groups[car_HPRC_value])
                 while (car_pos <= len) && (instance.color_code[HPRC_cars_groups[car_HPRC_value][car_pos]] == current_color)
                     car_pos += 1
                 end

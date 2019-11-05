@@ -193,6 +193,7 @@ function localsearch_VNS_PCC!(solution::Solution, instance::Instance)
     #TODO JFontaine needs to take a look
     b0 = instance.nb_late_prec_day+1
     improved = true
+    sequence = copy(solution.sequence)
     while improved
         solution_cost = cost(solution, instance, 3)
         phi = WEIGHTS_OBJECTIVE_FUNCTION[2] * solution_cost[2] + WEIGHTS_OBJECTIVE_FUNCTION[3] * solution_cost[3]
@@ -202,17 +203,20 @@ function localsearch_VNS_PCC!(solution::Solution, instance::Instance)
             for j in (i+1):solution.n # exchange (i, j) is the same as exchange (j, i)
                 if same_HPRC(solution, i, j, instance)
                     delta = cost_move_exchange(solution, i, j, instance, 2)[2]
-                    if delta < best_delta
+                    sequence[i], sequence[j] = sequence[j], sequence[i]
+                    if delta < best_delta && is_sequence_valid(sequence, solution.n, instance)
                         list = [j]
                         best_delta = delta
                     elseif delta == best_delta
                         push!(list, j)
                     end
+                    sequence[i], sequence[j] = sequence[j], sequence[i]
                 end
             end
             if !isempty(list)
                 k = rand(list)
                 move_exchange!(solution, i, k, instance)
+                sequence[i], sequence[k] = sequence[k], sequence[i]
             end
         end
         solution_cost = cost(solution, instance, 3)

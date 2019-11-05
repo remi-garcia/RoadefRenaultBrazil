@@ -113,6 +113,7 @@ function perturbation_VNS_PCC_exchange(solution_init::Solution, k::Int, instance
     end
     filter!(x -> length(x.second) >= 2, all_list_same_HPRC)
 
+    sequence = solution.sequence
     for _ in 1:k
         HPRC_group = rand(keys(HPRC_cars_groups))
         car_pos_a = rand(HPRC_cars_groups[HPRC_group])
@@ -121,7 +122,12 @@ function perturbation_VNS_PCC_exchange(solution_init::Solution, k::Int, instance
         while car_pos_a == car_pos_b
             car_pos_b = rand(HPRC_cars_groups[HPRC_group])
         end
-        move_exchange!(solution, car_pos_a, car_pos_b, instance)
+        sequence[car_pos_a], sequence[car_pos_b] = sequence[car_pos_b], sequence[car_pos_a]
+        if is_sequence_valid(sequence, solution.n, instance)
+            move_exchange!(solution, car_pos_a, car_pos_b, instance)
+        else
+            sequence[car_pos_a], sequence[car_pos_b] = sequence[car_pos_b], sequence[car_pos_a]
+        end
     end
 
     return solution

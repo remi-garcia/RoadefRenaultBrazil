@@ -214,7 +214,7 @@ end
 """
     cost(solution::Solution, instance::Instance, objective::Int)
 
-Return the (partial) cost of the solution s.
+Return the (partial) cost of the solution `solution`.
 """
 function cost(solution::Solution, instance::Instance, objective::Int)
     cost_on_objective = zeros(Int, 3)
@@ -245,4 +245,35 @@ function cost(solution::Solution, instance::Instance, objective::Int)
     cost_on_objective[3] = value
 
     return cost_on_objective
+end
+
+function HPRC_value(car::Int, instance::Instance)
+    car_HPRC_value = "0"
+    for option in 1:instance.nb_HPRC
+        car_HPRC_value = string(Int(instance.RC_flag[car, option])) * car_HPRC_value
+    end
+    return parse(Int, car_HPRC_value, base = 2)
+end
+
+function RC_value(car::Int, instance::Instance)
+    car_RC_value = "0"
+    for option in 1:(instance.nb_LPRC+instance.nb_HPRC)
+        car_RC_value = string(Int(instance.RC_flag[car, option])) * car_RC_value
+    end
+    return parse(Int, string(car_RC_value), base = 2)
+end
+
+function is_sequence_valid(sequence::Array{Int, 1}, n::Int, instance::Instance)
+    counter = 1
+    for car_pos in 2:n
+        if instance.color_code[sequence[car_pos-1]] == instance.color_code[sequence[car_pos]]
+            counter += 1
+        else
+            counter = 1
+        end
+        if counter > instance.nb_paint_limitation && counter >= instance.nb_late_prec_day+1
+            return false
+        end
+    end
+    return true
 end

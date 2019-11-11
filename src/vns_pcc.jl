@@ -10,6 +10,31 @@
 function weighted_sum_VNS_PCC(cost_solution::Array{Int, 1})
     return sum(cost_solution[i] * WEIGHTS_OBJECTIVE_FUNCTION[i] for i in 1:2)
 end
+"""
+    find_first_violation(solution::Solution, instance::Instance)
+
+Return the index of the first car violating the paint_batch_limit constraint in the sequence,
+return -1 if such a car does not exist
+"""
+function find_first_violation(solution::Solution, instance::Instance)
+    first_violation = -1
+    current_color = batch_color = instance.color_code[solution.sequence[1]]
+    batch_size = 1
+    for i in 2:solution.n
+        current_color = instance.color_code[solution.sequence[i]]
+        if current_color == batch_color
+            batch_size += 1
+        else
+            batch_size = 1
+            batch_color = current_color
+        end
+        if batch_size > instance.nb_paint_limitation && i > instance.nb_late_prec_day
+            first_violation = i
+            break
+        end
+    end
+    return first_violation
+end
 
 """
     repair!(solution::Solution, instance::Instance)
@@ -143,7 +168,26 @@ function repair!(solution::Solution, instance::Instance)
     end
 
     # Second strategy
-    #TODO
+    first_violation = find_first_violation(solution, instance)
+    while first_violation != -1
+        # Compute the best_insertion index
+        solution_value = sum_cost(solution, instance)
+        cost_insertion = zeros(solution.n)
+        for i in 1:solution.n
+            if i <= instance.nb_late_prec_day || instance.color_code[i] == instance.color_code[first_violation]# Pour empêcher d'insérer dans les nb_late_prec_day
+                cost_insertion[i] = Inf
+            else
+                solution_copy = deepcopy(solution)
+                move_insertion!(solution, first_violation, i, instance)
+                cost_insertion[i] = sum_cost(solution_copy, instance) - solution_value
+            end
+        end
+        best_insertion = argmin(cost_insertion)[1]
+        move_insertion!(solution, first_violation, best_insertion, instance)
+
+        first_violation = find_first_violation(solution, instance)
+        println("repaired")
+    end
     return solution
 end
 

@@ -18,15 +18,15 @@ return -1 if such a car does not exist
 """
 function find_first_violation(solution::Solution, instance::Instance)
     first_violation = -1
-    curent_color = batch_color = instance.color_code[solution.sequence[1]]
+    current_color = batch_color = instance.color_code[solution.sequence[1]]
     batch_size = 1
     for i in 2:solution.n
-        curent_color = instance.color_code[solution.sequence[i]]
-        if curent_color == batch_color
+        current_color = instance.color_code[solution.sequence[i]]
+        if current_color == batch_color
             batch_size += 1
         else
             batch_size = 1
-            batch_color = curent_color
+            batch_color = current_color
         end
         if batch_size > instance.nb_paint_limitation && i > instance.nb_late_prec_day
             first_violation = i

@@ -356,59 +356,72 @@ function compute_delta2(
             first_line::Int, last_line::Int, # lines modified
             delta2_for_objective
         )
-    # Delta 2 is compute with intelligence and vivacity...
-    # this is not for unsmart boïs
-    # TODO: verification needed (really really reeeeeally NEEDED)
-    delta2_for_objective[index] = delta2_for_objective[index-1]
 
-    C_insert = solution.sequence[car_pos_a] # the car we want to insert
-
-    for option in first_line:last_line
-        # What is called in the article: delta_{b-q(o_j)}
-        # there is one sequence too far from us now
-        sequence_unreaching_it = index - instance.RC_q[option]
-        if sequence_unreaching_it > 0 && index < instance.nb_cars
-            C_in = sequence[index-1] # It was previously push out (shifted to index in the last calcul of d2)
-            if xor(instance.RC_flag[C_insert, option], instance.RC_flag[C_in, option])
-                # The last sequence is now more violated than before ?
-                if instance.RC_flag[C_in, option]
-                    if M1[option, sequence_unreaching_it] > instance.RC_p[option]
+    #TODO: How to treat this case?
+    if index == instance.nb_cars
+        C_insert = solution.sequence[car_pos_a]
+        for option in first_line:last_line
+            sequence_unreaching_it = index - instance.RC_q[option]
+            if sequence_unreaching_it > 0
+                for i in sequence_unreaching_it+1:instance.nb_cars
+                    if (M1[option, i] >= instance.RC_p[option] && instance.RC_flag[C_insert, option])
                         delta2_for_objective[index] += 1
-                    end
-                end
-                # Car was counted as a violation
-                if instance.RC_flag[C_insert, option]
-                    if M1[option, sequence_unreaching_it] >= instance.RC_p[option]
-                        delta2_for_objective[index] -= 1
                     end
                 end
             end
         end
+    else
+        delta2_for_objective[index] = delta2_for_objective[index-1]
 
-        # What is called in the article: delta_{b-1}
-        new_modified_sequence = index - 1
-        first_unreached_index = index + instance.RC_q[option] - 2
-        if new_modified_sequence > 0 && first_unreached_index <= (instance.nb_cars-1)
-            C_out = sequence[first_unreached_index]
-            if xor(instance.RC_flag[C_out, option], instance.RC_flag[C_insert, option])
-                # The new sequence is now more violated than before
-                if instance.RC_flag[C_out, option]
-                    if M1[option, new_modified_sequence] > instance.RC_p[option]
-                        delta2_for_objective[index] -= 1
+        C_insert = solution.sequence[car_pos_a] # the car we want to insert
+
+        for option in first_line:last_line
+            # What is called in the article: delta_{b-q(o_j)}
+            # there is one sequence too far from us now
+            sequence_unreaching_it = index - instance.RC_q[option]
+            if sequence_unreaching_it > 0 && index < instance.nb_cars
+                C_in = sequence[index-1] # It was previously push out (shifted to index in the last calcul of d2)
+                if xor(instance.RC_flag[C_insert, option], instance.RC_flag[C_in, option])
+                    # The last sequence is now more violated than before ?
+                    if instance.RC_flag[C_in, option]
+                        if M1[option, sequence_unreaching_it] > instance.RC_p[option]
+                            delta2_for_objective[index] += 1
+                        end
+                    end
+                    # Car was counted as a violation
+                    if instance.RC_flag[C_insert, option]
+                        if M1[option, sequence_unreaching_it] >= instance.RC_p[option]
+                            delta2_for_objective[index] -= 1
+                        end
                     end
                 end
-                # Car dropped one violation
+            end
+
+            # What is called in the article: delta_{b-1}
+            new_modified_sequence = index - 1
+            first_unreached_index = index + instance.RC_q[option] - 2
+            if new_modified_sequence > 0 && first_unreached_index <= (instance.nb_cars-1)
+                C_out = sequence[first_unreached_index]
+                if xor(instance.RC_flag[C_out, option], instance.RC_flag[C_insert, option])
+                    # The new sequence is now more violated than before
+                    if instance.RC_flag[C_out, option]
+                        if M1[option, new_modified_sequence] > instance.RC_p[option]
+                            delta2_for_objective[index] -= 1
+                        end
+                    end
+                    # Car dropped one violation
+                    if instance.RC_flag[C_insert, option]
+                        if M1[option, new_modified_sequence] >= instance.RC_p[option]
+                            delta2_for_objective[index] += 1
+                        end
+                    end
+                end
+            else # sequence was at the end, no-one is getting out
+                # Car may cause one violation
                 if instance.RC_flag[C_insert, option]
                     if M1[option, new_modified_sequence] >= instance.RC_p[option]
                         delta2_for_objective[index] += 1
                     end
-                end
-            end
-        else # sequence was at the end, no-one is getting out
-            # Car may cause one violation
-            if instance.RC_flag[C_insert, option]
-                if M1[option, new_modified_sequence] >= instance.RC_p[option]
-                    delta2_for_objective[index] += 1
                 end
             end
         end

@@ -17,29 +17,75 @@ Interverts the car `car_pos_a` with the car `car_pos_b` in `solution.sequence`. 
 """
 function move_exchange!(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance::Instance)
 
+    if car_pos_b < car_pos_a
+        return move_exchange!(solution, car_pos_b, car_pos_a, instance)
+    end
+
+    if car_pos_b == car_pos_a
+        return solution
+    end
+
     car_a = solution.sequence[car_pos_a]
     car_b = solution.sequence[car_pos_b]
     solution.sequence[car_pos_a], solution.sequence[car_pos_b] = solution.sequence[car_pos_b], solution.sequence[car_pos_a]
     #update_matrices!(solution, solution.n, instance)
     for option in 1:(instance.nb_HPRC + instance.nb_LPRC)
         if xor(instance.RC_flag[car_a, option], instance.RC_flag[car_b, option])
+            first_modified_pos_a = car_pos_a - instance.RC_q[option] + 1
+            last_modified_sequence_a = min(car_pos_a, car_pos_b - instance.RC_q[option])
+            first_modified_sequence_b = max(car_pos_a+1, car_pos_b - instance.RC_q[option]+1)
+
             plusminusone = 1
             if instance.RC_flag[car_a, option]
                 plusminusone = -1
             end
-            first_modified_pos = car_pos_a - instance.RC_q[option] + 1
-            if first_modified_pos < 1
-                first_modified_pos = 1
+
+            if first_modified_pos_a < 1
+                first_modified_pos_a = 1
             end
-            for car_pos in first_modified_pos:car_pos_a
-                solution.M1[option, car_pos] += plusminusone
-                if car_pos == 1
-                    solution.M2[option, car_pos] = 0
-                    solution.M3[option, car_pos] = 0
-                else
-                    solution.M2[option, car_pos] = solution.M2[option, car_pos-1]
-                    solution.M3[option, car_pos] = solution.M3[option, car_pos-1]
+
+            deltaM2 = 0 ; deltaM3 = 0
+            if last_modified_sequence_a > 0
+                deltaM2 = solution.M2[option, last_modified_sequence_a]
+                deltaM3 = solution.M3[option, last_modified_sequence_a]
+
+                for car_pos in first_modified_pos_a:last_modified_sequence_a
+                    solution.M1[option, car_pos] += plusminusone
+                    if car_pos == 1
+                        solution.M2[option, car_pos] = 0
+                        solution.M3[option, car_pos] = 0
+                    else
+                        solution.M2[option, car_pos] = solution.M2[option, car_pos-1]
+                        solution.M3[option, car_pos] = solution.M3[option, car_pos-1]
+                    end
+                    # M3 is >=
+                    if solution.M1[option, car_pos] >= instance.RC_p[option]
+                        solution.M3[option, car_pos] += 1
+                        # M2 is >
+                        if solution.M1[option, car_pos] > instance.RC_p[option]
+                            solution.M2[option, car_pos] += 1
+                        end
+                    end
                 end
+
+                deltaM2 = solution.M2[option, last_modified_sequence_a] - deltaM2
+                deltaM3 = solution.M3[option, last_modified_sequence_a] - deltaM3
+
+                for car_pos in last_modified_sequence_a+1:first_modified_sequence_b-1
+
+                    solution.M2[option, car_pos] += deltaM2
+                    solution.M3[option, car_pos] += deltaM3
+                end
+            end
+
+            deltaM2 = solution.M2[option, car_pos_b]
+            deltaM3 = solution.M3[option, car_pos_b]
+
+            for car_pos in first_modified_sequence_b:car_pos_b
+                solution.M1[option, car_pos] -= plusminusone
+                #TODO: maybe I should not have remove the ``if( == 1)``
+                solution.M2[option, car_pos] = solution.M2[option, car_pos-1]
+                solution.M3[option, car_pos] = solution.M3[option, car_pos-1]
                 # M3 is >=
                 if solution.M1[option, car_pos] >= instance.RC_p[option]
                     solution.M3[option, car_pos] += 1
@@ -50,27 +96,12 @@ function move_exchange!(solution::Solution, car_pos_a::Int, car_pos_b::Int, inst
                 end
             end
 
-            second_modified_pos = car_pos_b - instance.RC_q[option] + 1
-            if second_modified_pos < 1
-                second_modified_pos = 1
-            end
-            for car_pos in second_modified_pos:car_pos_b
-                solution.M1[option, car_pos] -= plusminusone
-                if car_pos == 1
-                    solution.M2[option, car_pos] = 0
-                    solution.M3[option, car_pos] = 0
-                else
-                    solution.M2[option, car_pos] = solution.M2[option, car_pos-1]
-                    solution.M3[option, car_pos] = solution.M3[option, car_pos-1]
-                end
-                # M3 is >=
-                if solution.M1[option, car_pos] >= instance.RC_p[option]
-                    solution.M3[option, car_pos] += 1
-                    # M2 is >
-                    if solution.M1[option, car_pos] > instance.RC_p[option]
-                        solution.M2[option, car_pos] += 1
-                    end
-                end
+            deltaM2 = solution.M2[option, car_pos_b] - deltaM2
+            deltaM3 = solution.M3[option, car_pos_b] - deltaM3
+
+            for car_pos in car_pos_b+1:solution.n
+                solution.M2[option, car_pos] += deltaM2
+                solution.M3[option, car_pos] += deltaM3
             end
         end
     end

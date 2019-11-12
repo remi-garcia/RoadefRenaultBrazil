@@ -14,8 +14,6 @@
 Create a empty sequence with matrices of zeros.
 """
 mutable struct Solution
-    n::Int
-        # Size
     sequence::Array{Int, 1}
         # vector of cars (sequence pi or s in the following algorithms)
     M1::Array{Int, 2}
@@ -30,7 +28,6 @@ mutable struct Solution
         # cars that require oj is greater than or equal to p(oj)
 
     Solution(nC::Int,nO::Int) = new(
-        nC,
         zeros(Int,nC),#collect(1:nC),
         zeros(Int,nO,nC),
         zeros(Int,nO,nC),

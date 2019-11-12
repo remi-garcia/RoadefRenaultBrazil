@@ -58,8 +58,8 @@ function greedy(instance::Instance)
     # with some cars already scheduled
     solution = init_solution(instance)
     # We have V the set of cars to be scheduled
-    len = (solution.n) - (instance.nb_late_prec_day)
-    V = collect((instance.nb_late_prec_day+1):(solution.n))
+    len = (instance.nb_cars) - (instance.nb_late_prec_day)
+    V = collect((instance.nb_late_prec_day+1):(instance.nb_cars))
 
     # Compute for each option the number of cars who need it in V
     # TODO : Could be done in the parser and stocked in the instance
@@ -83,7 +83,7 @@ function greedy(instance::Instance)
     # The greedy criterion consists in choosing, at each iteration, the car
     # that induces the smallest number of new violations when inserted at
     # the end of the current partial sequence.
-    for position in (instance.nb_late_prec_day+1):(solution.n)
+    for position in (instance.nb_late_prec_day+1):(instance.nb_cars)
         # Compute the number of violations caused by each car
         nb_new_violation = zeros(Int, len)
         for c in 1:len

@@ -35,7 +35,7 @@ function move_insertion!(solution::Solution, old_index::Int, new_index::Int, ins
     end
 
     # TODO: COMPLEXITY NON-OPTIMAL
-    update_matrices!(solution, solution.n, instance)
+    update_matrices!(solution, instance.nb_cars, instance)
 
     return solution
 end
@@ -60,18 +60,17 @@ function cost_move_insertion(solution::Solution, car_pos_a::Int,
     @assert objective >= 1
     @assert objective <= 3
 
-    cost_on_objective = zeros(Int, solution.n, 3)
+    cost_on_objective = zeros(Int, instance.nb_cars, 3)
     b0 = instance.nb_late_prec_day+1
 
-    delta1_for_First = zeros(Int,solution.n) ; delta1_for_Second = zeros(Int,solution.n)
-    delta2_for_First = zeros(Int,solution.n) ; delta2_for_Second = zeros(Int,solution.n)
+    delta1_for_First = zeros(Int,instance.nb_cars) ; delta1_for_Second = zeros(Int,instance.nb_cars)
+    delta2_for_First = zeros(Int,instance.nb_cars) ; delta2_for_Second = zeros(Int,instance.nb_cars)
 
         #---------------------------------------------------------- Initialization of M1
 
-    sequence = deepcopy(solution.sequence)
+    sequence = copy(solution.sequence)
     deleteat!(sequence, car_pos_a)
-    M1 = deepcopy(solution.M1)
-    n = solution.n - 1
+    M1 = copy(solution.M1)
     #violations_caused_on_X removing the car will cause a variation on number of violations
 
     # objective >= 1 #Must improve or keep HPRC
@@ -106,7 +105,7 @@ function cost_move_insertion(solution::Solution, car_pos_a::Int,
     )
 
     # for all other valid positions
-    for index in (b0+1):(solution.n)
+    for index in (b0+1):(instance.nb_cars)
         # Delta 1 is compute as for b0
         delta1_for_First[index] = compute_delta1(
             solution, instance, # instance
@@ -114,7 +113,7 @@ function cost_move_insertion(solution::Solution, car_pos_a::Int,
             1, instance.nb_HPRC # for options
         )
     end
-    for index in (b0+1):(solution.n)
+    for index in (b0+1):(instance.nb_cars)
         delta2_for_First = compute_delta2(
             solution, instance, # instance
             M1, sequence, index, car_pos_a, # calcul
@@ -136,7 +135,7 @@ function cost_move_insertion(solution::Solution, car_pos_a::Int,
             instance.nb_HPRC+1, instance.nb_HPRC+instance.nb_LPRC  # for options
         )
 
-        for index in (b0+1):solution.n
+        for index in (b0+1):instance.nb_cars
             # Delta 1 is compute as for b0
             delta1_for_Second[index] = compute_delta1(
                 solution, instance, # instance
@@ -144,7 +143,7 @@ function cost_move_insertion(solution::Solution, car_pos_a::Int,
                 instance.nb_HPRC+1, instance.nb_HPRC+instance.nb_LPRC # for options
             )
         end
-        for index in (b0+1):(solution.n)
+        for index in (b0+1):(instance.nb_cars)
             delta2_for_Second = compute_delta2(
                 solution, instance, # instance
                 M1, sequence, index, car_pos_a, # calcul
@@ -155,7 +154,7 @@ function cost_move_insertion(solution::Solution, car_pos_a::Int,
     end
 
     # The cost is variation of deletion + delta1 (new sequence) + delta2 (modified sequences)
-    for i in b0:(solution.n)
+    for i in b0:(instance.nb_cars)
         cost_on_objective[i, 1] = delta1_for_First[i] + delta2_for_First[i] + violations_caused_on_First
         if objective >= 2
             cost_on_objective[i, 2] = delta1_for_Second[i] + delta2_for_Second[i] + violations_caused_on_Second
@@ -215,7 +214,7 @@ function update_lines_remove!(
             end
             # one more violation if new car reached has the option
             new_index_reached = index + instance.RC_q[option]
-            if new_index_reached <= solution.n #TODO: is it not < ? Don't think so
+            if new_index_reached <= instance.nb_cars #TODO: is it not < ? Don't think so
                 if instance.RC_flag[solution.sequence[new_index_reached]]
                     if M1[option, index] >= instance.RC_p[option]
                         violations_caused += 1
@@ -229,11 +228,11 @@ function update_lines_remove!(
         violations_caused -= max(0, solution.M1[option, car_pos_a] - instance.RC_p[option])
 
         # forall sequences from pos_a+1 to n are intact but shifted,
-        for index in (car_pos_a):(solution.n-1)
+        for index in (car_pos_a):(instance.nb_cars-1)
             M1[option, index] = M1[option, index+1]
         end
 
-        M1[option, solution.n] = 0 # There is no car here
+        M1[option, instance.nb_cars] = 0 # There is no car here
     end
 
     return M1, violations_caused
@@ -270,7 +269,7 @@ function compute_delta2_for_b0(
             new_unreached_index = modified_sequence + instance.RC_q[option] - 1
 
             # car force another one to quit the sequence
-            if new_unreached_index <= solution.n-1 # must be a valid index
+            if new_unreached_index <= instance.nb_cars-1 # must be a valid index
                 C_in = solution.sequence[car_pos_a]
                 C_out = sequence[new_unreached_index]
                 # C_in has different option than C_out -> variation in violations number
@@ -320,7 +319,7 @@ function compute_delta1(
             variation += 1
         end
         # ... and first_unreached_index (if it exists) is not
-        if first_unreached_index <= (solution.n-1)
+        if first_unreached_index <= (instance.nb_cars-1)
             if instance.RC_flag[sequence[first_unreached_index], option]
                 variation -= 1
             end
@@ -377,7 +376,7 @@ function compute_delta2(
         # What is called in the article: delta_{b-1}
         new_modified_sequence = index - 1
         first_unreached_index = index + instance.RC_q[option] - 2
-        if new_modified_sequence > 0 && first_unreached_index <= (solution.n-1)
+        if new_modified_sequence > 0 && first_unreached_index <= (instance.nb_cars-1)
             if xor(instance.RC_flag[sequence[first_unreached_index], option], instance.RC_flag[solution.sequence[car_pos_a], option])
                 # The new sequence is now more violated than before
                 if instance.RC_flag[sequence[first_unreached_index]]

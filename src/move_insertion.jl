@@ -166,7 +166,7 @@ function cost_move_insertion(solution::Solution, position::Int,
     for i in b0:(instance.nb_cars)
         cost_on_objective[i, 1] = delta1_for_First[i] + delta2_for_First[i] + violations_caused_on_First
         if objective >= 2
-            cost_on_objective[i, 2] = delta1_for_Second[i] + delta2_for_Second[i] - violations_caused_on_Second
+            cost_on_objective[i, 2] = delta1_for_Second[i] + delta2_for_Second[i] + violations_caused_on_Second
         end
     end
 

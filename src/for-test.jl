@@ -23,7 +23,7 @@ function TEST_move_exchange!(solution::Solution, car_pos_a::Int, car_pos_b::Int,
     end
     solution.sequence[car_pos_a], solution.sequence[car_pos_b] = solution.sequence[car_pos_b], solution.sequence[car_pos_a]
 
-    update_matrices!(solution, solution.n, instance)
+    update_matrices!(solution, instance.nb_cars, instance)
     return solution
 end
 
@@ -32,8 +32,8 @@ end
 
 
 #IN MAIN - test something like :
-# for i in instance.nb_late_prec_day:(solution.n-1)
-#     for j in i:solution.n
+# for i in instance.nb_late_prec_day:(instance.nb_cars-1)
+#     for j in i:instance.nb_cars
 #         c1 = cost_move_exchange(solution, i, j, instance, 3)
 #         c2 = TEST_cost_move_exchange(solution, i, j, instance, 3)
 #         if ((c1[1] != c2[1]) || (c1[2] != c2[2]))
@@ -93,7 +93,7 @@ function TEST_move_insertion!(solution::Solution, old_index::Int, new_index::Int
     end
 
     # TODO: COMPLEXITY NON-OPTIMAL
-    update_matrices!(solution, solution.n, instance)
+    update_matrices!(solution, instance.nb_cars, instance)
 
     return solution
 end
@@ -101,8 +101,8 @@ end
 
 
 #IN MAIN - test something like :
-# for i in instance.nb_late_prec_day:(solution.n-1)
-#     for j in i:solution.n
+# for i in instance.nb_late_prec_day:(instance.nb_cars-1)
+#     for j in i:instance.nb_cars
 #         c1 = cost_move_insertion(solution, i, j, instance, 3)
 #         c2 = TEST_cost_move_insertion(solution, i, j, instance, 3)
 #         if ((c1[1] != c2[1]) || (c1[2] != c2[2]))
@@ -120,9 +120,9 @@ Bad complexity version for function cost_move_insertion.
 function TEST_cost_move_insertion(solution::Solution, car_pos_a::Int,
                              instance::Instance, objective::Int)
 
-    cost_on_objective = zeros(Int, solution.n, 3)
+    cost_on_objective = zeros(Int, instance.nb_cars, 3)
 
-    for i in (instance.nb_late_prec_day+1):solution.n
+    for i in (instance.nb_late_prec_day+1):instance.nb_cars
         s = deepcopy(solution)
         s = TEST_move_insertion!(s, car_pos_a, i, instance)
         c = cost(s, instance, objective) - cost(solution, instance, objective)

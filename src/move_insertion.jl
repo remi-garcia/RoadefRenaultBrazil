@@ -69,7 +69,7 @@ function cost_move_insertion(solution::Solution, position::Int,
         #---------------------------------------------------------- Initialization of M1
 
     sequence = copy(solution.sequence)
-    deleteat!(sequence, car_pos_a)
+    deleteat!(sequence, position)
     M1 = copy(solution.M1)
     #car = solution.sequence[position]
 
@@ -216,7 +216,7 @@ function update_lines_remove!(
         # forall sequences from last_sequence_intact+1 to pos_a-1,
         for index in (last_sequence_intact+1):(car_pos_a-1)
             # one less violation if car has the option
-            if instance.RC_flag[solution.sequence[car_pos_a]]
+            if instance.RC_flag[solution.sequence[car_pos_a], option]
                 if M1[option, index] > instance.RC_p[option] #
                     violations_caused -= 1
                 end
@@ -225,7 +225,7 @@ function update_lines_remove!(
             # one more violation if new car reached has the option
             new_index_reached = index + instance.RC_q[option]
             if new_index_reached <= instance.nb_cars #TODO: is it not < ? Don't think so
-                if instance.RC_flag[solution.sequence[new_index_reached]]
+                if instance.RC_flag[solution.sequence[new_index_reached], option]
                     if M1[option, index] >= instance.RC_p[option]
                         violations_caused += 1
                         if (car_pos_a == b0)

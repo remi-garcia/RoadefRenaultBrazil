@@ -74,11 +74,11 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     nb_paint_limitation = df_paint.limitation[1]
 
     # Ratio data
-    nb_cars, m = size(df_ratio)
+    n, m = size(df_ratio)
     RC_p = Array{Int, 1}()
     RC_q = Array{Int, 1}()
     nb_high = 0
-    for i in 1:nb_cars
+    for i in 1:n
         a, b = parse.(Int, split(df_ratio.Ratio[i], "/"))
         push!(RC_p, a)
         push!(RC_q, b)
@@ -86,19 +86,19 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
             nb_high += 1
         end
     end
-    nb_low = nb_cars - nb_high
+    nb_low = n - nb_high
 
     # vehicles data
-    RC_flag = Array{Bool, 2}(df_vehicles[!, 5:5+nb_cars-1])
+    RC_flag = Array{Bool, 2}(df_vehicles[!, 5:5+n-1])
 
     color_code = Array{Int, 1}(df_vehicles[!, 4])
 
     nb_late_prec_day = findall(x -> x == 1, df_vehicles[!, 2])[1] - 1
 
     return Instance(
-            HPRC_rank, LPRC_rank, PCB_rank,                # objectives file
-            nb_paint_limitation,                           # paint file
-            RC_p, RC_q, nb_high, nb_low,                   # ratio file
-            RC_flag, color_code, nb_late_prec_day, nb_car  # vehicles file
+            HPRC_rank, LPRC_rank, PCB_rank,                            # objectives file
+            nb_paint_limitation,                                       # paint file
+            RC_p, RC_q, nb_high, nb_low,                               # ratio file
+            RC_flag, color_code, nb_late_prec_day, length(color_code)  # vehicles file
         )
 end

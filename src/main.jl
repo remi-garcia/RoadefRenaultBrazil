@@ -56,7 +56,7 @@ function main()
             end
 
             for i in 8:7
-                for j in i:solution.n
+                for j in i:instance.nb_cars
                     c1 = cost_move_insertion(solution, i, instance, 3)
                     c2 = TEST_cost_move_insertion(solution, i, instance, 3)
                     if ((c1[j,1] != c2[j,1]) || (c1[j,2] != c2[j,2]))

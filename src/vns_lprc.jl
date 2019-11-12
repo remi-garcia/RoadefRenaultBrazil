@@ -10,10 +10,10 @@
 function critical_cars_VNS_LPRC(solution::Solution, instance::Instance)
     critical_car = Set{Int}()
     b0 = instance.nb_late_prec_day+1
-    for index_car in b0:solution.n
+    for index_car in b0:instance.nb_cars
         for option in 1:(instance.nb_HPRC+instance.nb_LPRC)
             if (solution.M1[option, index_car] > instance.RC_p[option])
-                index_car_lim = index_car + min(instance.RC_p[option], solution.n-index_car)
+                index_car_lim = index_car + min(instance.RC_p[option], instance.nb_cars-index_car)
                 for index_car_add in index_car:index_car_lim
                     if instance.RC_flag[solution.sequence[index_car_add], option]
                         push!(critical_car, index_car_add)
@@ -32,7 +32,7 @@ function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::In
     current_HPRC = -1
     b0 = instance.nb_late_prec_day+1
     # TODO To change
-    for index_car in b0:solution.n
+    for index_car in b0:instance.nb_cars
         temp_HPRC = HPRC_level(solution, index_car, instance)
         if temp_HPRC != current_HPRC
             current_HPRC = temp_HPRC
@@ -85,7 +85,7 @@ function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::I
     # Best insert
     for index_car in (sol.n-k+1):sol.n
         matrix_deltas = cost_move_insertion(solution, index_car, instance, 2)
-        array_deltas = [ (weighted_sum_VNS_LPRC(matrix_deltas[i, :]), i) for i in b0:solution.n]
+        array_deltas = [ (weighted_sum_VNS_LPRC(matrix_deltas[i, :]), i) for i in b0:instance.nb_cars]
         index_insert_best = findmin(array_deltas)[1][2]
         move_insertion!(sol, index_car, index_insert_best, instance)
     end
@@ -116,7 +116,7 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
         for index_car_a in critical_cars_set
             best_delta = -1 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
             empty!(list)
-            for index_car_b in b0:solution.n
+            for index_car_b in b0:instance.nb_cars
                 if (index_car_a != index_car_b) && ( !perturbation_exchange || same_HPRC(solution, index_car_a, index_car_b, instance) )
                     delta = weighted_sum_VNS_LPRC( cost_move_exchange(solution, index_car_a, index_car_b, instance, 2) )
                     if delta < best_delta
@@ -150,7 +150,7 @@ function localSearch_intensification_VNS_LPRC_exchange!(solution::Solution, inst
         for index_car_a in critical_cars_set
             best_delta = -1 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
             empty!(list)
-            for index_car_b in b0:solution.n
+            for index_car_b in b0:instance.nb_cars
                 if (index_car_a != index_car_b)
                     delta = weighted_sum_VNS_LPRC( cost_move_exchange(solution, index_car_a, index_car_b, instance, 2) )
                     if delta < best_delta
@@ -182,7 +182,7 @@ function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, ins
         for index_car in critical_cars_set
             best_delta = -1 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
             matrix_deltas = cost_move_insertion(solution, index_car, instance, 2)
-            array_deltas = [ (weighted_sum_VNS_LPRC(matrix_deltas[i, :]), i) for i in b0:solution.n]
+            array_deltas = [ (weighted_sum_VNS_LPRC(matrix_deltas[i, :]), i) for i in b0:instance.nb_cars]
             min = findmin(array_deltas)[1][1]
             if min < 0 && false
                 list = map( x -> x[2], filter(x -> x[1] == min, array_deltas) )

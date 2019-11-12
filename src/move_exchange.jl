@@ -28,7 +28,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int, car_pos_b::Int, inst
     car_a = solution.sequence[car_pos_a]
     car_b = solution.sequence[car_pos_b]
     solution.sequence[car_pos_a], solution.sequence[car_pos_b] = solution.sequence[car_pos_b], solution.sequence[car_pos_a]
-    #update_matrices!(solution, solution.n, instance)
+    #update_matrices!(solution, instance.nb_cars, instance)
     for option in 1:(instance.nb_HPRC + instance.nb_LPRC)
         if xor(instance.RC_flag[car_a, option], instance.RC_flag[car_b, option])
             first_modified_pos_a = car_pos_a - instance.RC_q[option] + 1
@@ -99,7 +99,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int, car_pos_b::Int, inst
             deltaM2 = solution.M2[option, car_pos_b] - deltaM2
             deltaM3 = solution.M3[option, car_pos_b] - deltaM3
 
-            for car_pos in car_pos_b+1:solution.n
+            for car_pos in car_pos_b+1:instance.nb_cars
                 solution.M2[option, car_pos] += deltaM2
                 solution.M3[option, car_pos] += deltaM3
             end

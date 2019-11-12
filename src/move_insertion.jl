@@ -70,6 +70,7 @@ function cost_move_insertion(solution::Solution, position::Int,
 
     sequence = copy(solution.sequence)
     deleteat!(sequence, position)
+    push!(sequence, solution.sequence[position])
     M1 = copy(solution.M1)
     #car = solution.sequence[position]
 
@@ -392,9 +393,9 @@ function compute_delta2(
         # there is one sequence too far from us now
         sequence_unreaching_it = index - instance.RC_q[option]
         if sequence_unreaching_it > 0
-            if xor(instance.RC_flag[sequence[index-1], option], instance.RC_flag[solution.sequence[car_pos_a], option])
+            if xor(instance.RC_flag[sequence[index], option], instance.RC_flag[solution.sequence[car_pos_a], option])
                 # The last sequence is now more violated than before
-                if instance.RC_flag[sequence[index-1]]
+                if instance.RC_flag[sequence[index]]
                     if M1[option, sequence_unreaching_it] > instance.RC_p[option]
                         delta2_for_objective[index] += 1
                     end

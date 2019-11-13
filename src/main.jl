@@ -34,10 +34,10 @@ function main()
     type = ["A"]#, "B"]
 
     # Instance and initiale solution
-    for instance_type in ["A", "B", "X"]#type#
-        #name = [INSTANCES[instance_type][1], INSTANCES[instance_type][end]]
+    for instance_type in type#["A", "B", "X"]
+        name = [INSTANCES[instance_type][1], INSTANCES[instance_type][end]]
         #name = [INSTANCES[instance_type][1], INSTANCES[instance_type][2], INSTANCES[instance_type][3], INSTANCES[instance_type][4], INSTANCES[instance_type][end]]
-        for instance_name in INSTANCES[instance_type]#name
+        for instance_name in name#INSTANCES[instance_type]
 
             start_time = time_ns()
             println("\t====================")

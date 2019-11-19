@@ -64,12 +64,12 @@ function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::I
 
     array_insertion = Array{Int, 1}()
 
-    push!(array_insertion, rand(b0:sol.n))
+    push!(array_insertion, rand(b0:instance.nb_cars))
 
     for iterator in 2:k
-        index_car = rand(b0:sol.n)
+        index_car = rand(b0:instance.nb_cars)
         while index_car in array_insertion
-            index_car = rand(b0:sol.n)
+            index_car = rand(b0:instance.nb_cars)
         end
         push!(array_insertion, index_car)
     end
@@ -77,11 +77,11 @@ function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::I
     # Put every index at the end
     sort!(array_insertion, rev=true) # sort is important to avoid to compute offset.
     for index_car in array_insertion
-        move_insertion!(sol, index_car, sol.n, instance)
+        move_insertion!(sol, index_car, instance.nb_cars, instance)
     end
 
     # Best insert
-    for index_car in (sol.n-k+1):sol.n
+    for index_car in (instance.nb_cars-k+1):instance.nb_cars
         matrix_deltas = cost_move_insertion(solution, index_car, instance, 2)
         array_deltas = [ (weighted_sum_VNS_LPRC(matrix_deltas[i, :]), i) for i in b0:instance.nb_cars]
         index_insert_best = findmin(array_deltas)[1][2]

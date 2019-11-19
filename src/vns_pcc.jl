@@ -45,7 +45,7 @@ function repair!(solution::Solution, instance::Instance)
     # First strategy
     RC_cars_groups = Dict{Int, Array{Int, 1}}()
     b0 = instance.nb_late_prec_day+1
-    for car_pos in (b0+1):solution.n
+    for car_pos in (b0+1):instance.nb_cars
         car_RC_value = RC_value(solution.sequence[car_pos], instance)
         if !haskey(RC_cars_groups, car_RC_value)
             RC_cars_groups[car_RC_value] = [car_pos]
@@ -60,7 +60,7 @@ function repair!(solution::Solution, instance::Instance)
     current_color = instance.color_code[solution.sequence[position]]
     position += 1
     first_violation = 0
-    while position <= solution.n
+    while position <= instance.nb_cars
         if instance.color_code[solution.sequence[position]] == current_color
             counter += 1
         else
@@ -107,7 +107,7 @@ function repair!(solution::Solution, instance::Instance)
 
     HPRC_cars_groups = Dict{Int, Array{Int, 1}}()
     b0 = instance.nb_late_prec_day+1
-    for car_pos in (b0+1):solution.n
+    for car_pos in (b0+1):instance.nb_cars
         car_HPRC_value = HPRC_value(solution.sequence[car_pos], instance)
         if !haskey(HPRC_cars_groups, car_HPRC_value)
             HPRC_cars_groups[car_HPRC_value] = [car_pos]
@@ -122,7 +122,7 @@ function repair!(solution::Solution, instance::Instance)
     current_color = instance.color_code[solution.sequence[position]]
     position += 1
     first_violation = 0
-    while position <= solution.n
+    while position <= instance.nb_cars
         if instance.color_code[solution.sequence[position]] == current_color
             counter += 1
         else
@@ -201,7 +201,7 @@ function perturbation_VNS_PCC_exchange(solution_init::Solution, k::Int, instance
     solution = deepcopy(solution_init)
     HPRC_cars_groups = Dict{Int, Array{Int, 1}}()
     b0 = instance.nb_late_prec_day+1
-    for car_pos in (b0+1):solution.n
+    for car_pos in (b0+1):instance.nb_cars
         car_HPRC_value = HPRC_value(solution.sequence[car_pos])
         if !haskey(HPRC_cars_groups, car_HPRC_value)
             HPRC_cars_groups[car_HPRC_value] = [car_pos]
@@ -221,7 +221,7 @@ function perturbation_VNS_PCC_exchange(solution_init::Solution, k::Int, instance
             car_pos_b = rand(HPRC_cars_groups[HPRC_group])
         end
         sequence[car_pos_a], sequence[car_pos_b] = sequence[car_pos_b], sequence[car_pos_a]
-        if is_sequence_valid(sequence, solution.n, instance)
+        if is_sequence_valid(sequence, instance.nb_cars, instance)
             move_exchange!(solution, car_pos_a, car_pos_b, instance)
         else
             sequence[car_pos_a], sequence[car_pos_b] = sequence[car_pos_b], sequence[car_pos_a]
@@ -243,28 +243,28 @@ function perturbation_VNS_PCC_insertion(solution_init::Solution, k::Int, instanc
     array_insertion = zeros(Int, k)
 
     for car_pos in 1:k
-        array_insertion[car_pos] = rand(b0:solution.n)
+        array_insertion[car_pos] = rand(b0:instance.nb_cars)
         while array_insertion[car_pos] in array_insertion[1:(car_pos-1)]
-            array_insertion[car_pos] = rand(b0:solution.n)
+            array_insertion[car_pos] = rand(b0:instance.nb_cars)
         end
     end
 
     # Put every index at the end
     sort!(array_insertion, rev=true) # sort is important to avoid to compute offset.
     for car_pos in array_insertion
-        move_insertion!(solution, car_pos, solution.n, instance)
+        move_insertion!(solution, car_pos, instance.nb_cars, instance)
     end
 
     # Best insert
     counter = 1
-    for car_pos in (solution.n-k+1):solution.n
+    for car_pos in (instance.nb_cars-k+1):instance.nb_cars
         matrix_deltas = cost_move_insertion(solution, car_pos, instance, 3)
         best_insertion = array_insertion[counter]
         best_delta = sum([WEIGHTS_OBJECTIVE_FUNCTION[i] * matrix_deltas[array_insertion[counter], i] for i in 1:3])
-        sequence = solution.sequence[1:(solution.n-k+counter)]
-        sequence[solution.n-k+1] = solution.sequence[car_pos]
-        for position in (solution.n-k+1):-1:1
-            if matrix_deltas[position, 1] <= 0 && is_sequence_valid(sequence, solution.n-k+counter, instance)
+        sequence = solution.sequence[1:(instance.nb_cars-k+counter)]
+        sequence[instance.nb_cars-k+1] = solution.sequence[car_pos]
+        for position in (instance.nb_cars-k+1):-1:1
+            if matrix_deltas[position, 1] <= 0 && is_sequence_valid(sequence, instance.nb_cars-k+counter, instance)
                 delta = sum([WEIGHTS_OBJECTIVE_FUNCTION[i] * matrix_deltas[position, i] for i in 1:3])
                 if delta < best_delta
                     best_delta = delta
@@ -301,14 +301,14 @@ function localsearch_VNS_PCC!(solution::Solution, instance::Instance)
     while improved
         solution_cost = cost(solution, instance, 3)
         phi = WEIGHTS_OBJECTIVE_FUNCTION[2] * solution_cost[2] + WEIGHTS_OBJECTIVE_FUNCTION[3] * solution_cost[3]
-        for i in b0:solution.n
+        for i in b0:instance.nb_cars
             best_delta = 0
             list = Array{Int, 1}()
-            for j in (i+1):solution.n # exchange (i, j) is the same as exchange (j, i)
+            for j in (i+1):instance.nb_cars # exchange (i, j) is the same as exchange (j, i)
                 if same_HPRC(solution, i, j, instance)
                     delta = cost_move_exchange(solution, i, j, instance, 2)[2]
                     sequence[i], sequence[j] = sequence[j], sequence[i]
-                    if delta < best_delta && is_sequence_valid(sequence, solution.n, instance)
+                    if delta < best_delta && is_sequence_valid(sequence, instance.nb_cars, instance)
                         list = [j]
                         best_delta = delta
                     elseif delta == best_delta
@@ -339,31 +339,31 @@ function VNS_PCC(solution::Solution, instance::Instance, start_time::UInt)
     perturbations = Array{Function, 1}([perturbation_VNS_PCC_insertion, perturbation_VNS_PCC_exchange])
     p = 1
     k = VNS_PCC_MINMAX[p+1][1]
-    cost_solution = sum_cost(solution, instance)
+    cost_solution = weighted_sum(solution, instance, 3)
     cost_HPRC_solution = cost(solution, instance, 1)[1]
     while TIME_LIMIT > (time_ns() - start_time) / 1.0e9
-        while k <= VNS_PCC_MINMAX[p+1][2]
+        while (k <= VNS_PCC_MINMAX[p+1][2]) && (TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
             solution_perturbation = perturbations[p](solution, k, instance)
             if cost_HPRC_solution < cost(solution_perturbation, instance, 1)[1]
                 solution_perturbation = deepcopy(solution)
             end
             localsearch_VNS_PCC!(solution_perturbation, instance)
-            cost_solution_perturbation = sum_cost(solution_perturbation, instance)
+            cost_solution_perturbation = weighted_sum(solution_perturbation, instance, 3)
             if cost_solution_perturbation < cost_solution
                 k = VNS_PCC_MINMAX[p+1][1]
             else
                 k += 1
             end
             if cost_solution_perturbation <= cost_solution
+                println("Best find!")
                 solution = deepcopy(solution_perturbation)
                 cost_HPRC_solution = cost(solution, instance, 1)[1]
-                cost_solution = sum_cost(solution, instance)
+                cost_solution = weighted_sum(solution, instance, 3)
             end
         end
         intensification_VNS_PCC!(solution, instance)
         p = 1 - p
         VNS_PCC_MINMAX[p+1][1]
     end
-
     return solution
 end

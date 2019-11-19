@@ -50,11 +50,21 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     df_ratio = CSV.File(path * RATIO_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
     df_vehicles = CSV.File(path * VEHICLES_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
 
+    # There is a fictive last column
+    df_optimisation = df_optimisation[:,1:min(2,end)]
+    df_paint = df_paint[:, 1:min(1,end)]
+    df_ratio = df_ratio[:, 1:min(3,end)]
+    df_vehicles = df_vehicles[:, 1:min((4+size(df_ratio)[1]),end)]
+
     # Avoid lines with missing value that are not usable.
-    dropmissing!(df_optimisation, :rank)
-    dropmissing!(df_paint, :limitation)
-    dropmissing!(df_ratio, :Ratio)
-    dropmissing!(df_vehicles, :SeqRank)
+    df_optimisation = df_optimisation[completecases(df_optimisation), :]
+    df_paint = df_paint[completecases(df_paint), :]
+    df_ratio = df_ratio[completecases(df_ratio), :]
+    df_vehicles = df_vehicles[completecases(df_vehicles), :]
+    #dropmissing!(df_optimisation, :rank)
+    #dropmissing!(df_paint, :limitation)
+    #dropmissing!(df_ratio, :Ratio)
+    #dropmissing!(df_vehicles, :SeqRank)
 
     # Rank parsing
     temp = findall(e -> occursin("high", e), df_optimisation[!, 2])

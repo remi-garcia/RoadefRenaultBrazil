@@ -19,31 +19,31 @@
 #   (5) Use an improvement heuristic to optimize the third objective.
 #
 
-import RoadefRenaultLocalSearch
-const RRLS = RoadefRenaultLocalSearch
+import RoadefRenaultBrazil
+const RRB = RoadefRenaultBrazil
 
 function main()
     type = ["A", "B"]
 
     # Instance and initiale solution
     for instance_type in type#["A", "B", "X"]
-        name = [RRLS.INSTANCES[instance_type][1], RRLS.INSTANCES[instance_type][end]]
+        name = [RRB.INSTANCES[instance_type][1], RRB.INSTANCES[instance_type][end]]
         for instance_name in name#INSTANCES[instance_type]
             start_time = time_ns()
             println("Instance ", instance_type, "/", instance_name)
 
             # Parser
-            instance = RRLS.parser(instance_name, instance_type)
+            instance = RRB.parser(instance_name, instance_type)
             println("Loaded...")
 
             # Greedy
-            solution = RRLS.greedy(instance)
+            solution = RRB.greedy(instance)
             println("Initial solution created...")
 
             #solution = VNS_LPRC(solution, instance)
             #println("Solution improved with VNS_LPRC")
 
-            solution = RRLS.VNS_PCC(solution, instance, start_time)
+            solution = RRB.VNS_PCC(solution, instance, start_time)
             println("Solution improved with VNS_PCC")
 
             println(solution.sequence)

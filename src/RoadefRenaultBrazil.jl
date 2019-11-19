@@ -1,4 +1,4 @@
-module RoadefRenaultLocalSearch
+module RoadefRenaultBrazil
 
 using CSV
 using DataFrames

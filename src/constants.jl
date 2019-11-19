@@ -6,6 +6,25 @@
 #         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
 #-------------------------------------------------------------------------------
 
+const WEIGHTS_OBJECTIVE_FUNCTION = [1000000, 1000, 1]
+
+const TIME_LIMIT = 2
+
+# VNS-LPRC
+const VNS_LPRC_MAX_NON_IMPROVEMENT = 150
+const VNS_LPRC_MIN_INSERT = 3
+const VNS_LPRC_MAX_INSERT = 8
+const VNS_LPRC_MIN_EXCHANGE = 5
+const VNS_LPRC_MAX_EXCHANGE = 12
+
+# VNS-PCC
+const VNS_PCC_MIN_INSERT = 2
+const VNS_PCC_MAX_INSERT = 8
+const VNS_PCC_MIN_EXCHANGE = 2
+const VNS_PCC_MAX_EXCHANGE = 10
+const VNS_PCC_MINMAX = [(VNS_PCC_MIN_INSERT, VNS_PCC_MAX_INSERT), (VNS_PCC_MIN_EXCHANGE, VNS_PCC_MAX_EXCHANGE)]
+
+# Files names
 const INSTANCES = Dict{String, Array{String, 1}}(
     "A" => [
         "022_3_4_EP_RAF_ENP",
@@ -94,20 +113,3 @@ const INSTANCES = Dict{String, Array{String, 1}}(
         "035_CH1_RAF_EP_S50_J4"
     ]
 )
-
-const WEIGHTS_OBJECTIVE_FUNCTION = [1000000, 1000, 1]
-
-# VNS-LPRC
-const VNS_LPRC_MAX_NON_IMPROVEMENT = 150
-const VNS_LPRC_MIN_INSERT = 3
-const VNS_LPRC_MAX_INSERT = 8
-const VNS_LPRC_MIN_EXCHANGE = 5
-const VNS_LPRC_MAX_EXCHANGE = 12
-
-# VNS-PCC
-const VNS_PCC_MIN_INSERT = 2
-const VNS_PCC_MAX_INSERT = 8
-const VNS_PCC_MIN_EXCHANGE = 2
-const VNS_PCC_MAX_EXCHANGE = 10
-const VNS_PCC_MINMAX = [(VNS_PCC_MIN_INSERT, VNS_PCC_MAX_INSERT), (VNS_PCC_MIN_EXCHANGE, VNS_PCC_MAX_EXCHANGE)]
-const TIME_LIMIT = 15

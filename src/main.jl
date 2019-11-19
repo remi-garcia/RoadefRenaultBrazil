@@ -27,15 +27,20 @@ include("greedy.jl")
 include("vns_lprc.jl")
 include("vns_pcc.jl")
 
+include("for-test.jl")
+
 function main()
 
-    type = ["A", "B"]
+    type = ["A"]#, "B"]
 
     # Instance and initiale solution
     for instance_type in type#["A", "B", "X"]
         name = [INSTANCES[instance_type][1], INSTANCES[instance_type][end]]
+        #name = [INSTANCES[instance_type][1], INSTANCES[instance_type][2], INSTANCES[instance_type][3], INSTANCES[instance_type][4], INSTANCES[instance_type][end]]
         for instance_name in name#INSTANCES[instance_type]
+
             start_time = time_ns()
+            println("\t====================")
             println("Instance ",instance_type,"/",instance_name)
 
             # Parser
@@ -45,14 +50,24 @@ function main()
             # Greedy
             solution = greedy(instance)
             println("Initial solution created...")
+            print_cost(solution, instance)
 
-            #solution = VNS_LPRC(solution, instance)
-            #println("Solution improved with VNS_LPRC")
+            # print("Solution improved with ILS_HPRC : ")
+            # solution = ILS_HPRC(solution, instance)
+            # println("done..")
+            # print_cost(solution, instance)
 
-            solution = VNS_PCC(solution, instance, start_time)
-            println("Solution improved with VNS_PCC")
+            # print("Solution improved with VNS_LPRC : ")
+            # solution = VNS_LPRC(solution, instance)
+            # println("done..")
+            # print_cost(solution, instance)
 
-            println(solution.sequence)
+            # print("Solution improved with VNS_PCC : ")
+            # solution = VNS_PCC(solution, instance, start_time)
+            # println("done..")
+            # print_cost(solution, instance)
+
+            println()
             println()
         end
     end

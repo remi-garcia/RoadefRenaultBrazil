@@ -48,6 +48,8 @@ const RRB = RoadefRenaultBrazil
 end;
 
 @testset "move_insertion.jl" begin
+    type_fichier = "A"
+    nom_fichier = "024_38_3_EP_ENP_RAF"
     @testset "move_insertion!" begin
         solution_test = deepcopy(solution)
         RRB.move_insertion!(solution_test, 1, 1, instance)

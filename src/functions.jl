@@ -247,34 +247,6 @@ function cost(solution::Solution, instance::Instance, objective::Int)
     return cost_on_objective
 end
 
-"""
-    sum_cost(solution::Solution, instance::Instance)
-
-Return the weighted sum of objectives value of the solution `solution`.
-"""
-function sum_cost(solution::Solution, instance::Instance)
-    cost_solution = cost(solution, instance, 3)
-    return sum([WEIGHTS_OBJECTIVE_FUNCTION[i] * cost_solution[i] for i in 1:3])
-end
-
-"""
-    HPRC_level(solution::Solution, index::Int, instance::Instance)
-
-Return the HPRC level of `index` car in the current `solution`.
-"""
-function HPRC_level(solution::Solution, index::Int, instance::Instance)
-    return sum(solution.M2[option, index] for option in 1:instance.nb_HPRC)
-end
-
-"""
-    same_HPRC(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance::Instance)
-
-Return `true` if car `car_pos_a` and `car_pos_b` have the same HPRC level. `false` otherwise.
-"""
-function same_HPRC(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance::Instance)
-    return HPRC_level(solution, car_pos_a, instance) == HPRC_level(solution, car_pos_b, instance)
-end
-
 function HPRC_value(car::Int, instance::Instance)
     car_HPRC_value = "0"
     for option in 1:instance.nb_HPRC

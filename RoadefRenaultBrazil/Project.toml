@@ -1,6 +1,0 @@
-authors = ["Rémi <47191601+remi-garcia@users.noreply.github.com>"]
-name = "RoadefRenaultBrazil"
-uuid = "eadc7814-0b0c-11ea-19f5-cb0e5afd5b45"
-version = "0.1.0"
-
-[deps]

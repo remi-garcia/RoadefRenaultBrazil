@@ -2,7 +2,7 @@
 
 **Work in progress.**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)  [![Build Status](https://travis-ci.org/remi-garcia/RoadefRenaultBrazil.svg?branch=master)](https://travis-ci.org/remi-garcia/RoadefRenaultBrazil)
 
 The objective is to work on the Challenge ROADEF'2005 using `An efficient implementation of a VNS/ILS heuristic for a real-life car sequencing problem` as our basis.
 

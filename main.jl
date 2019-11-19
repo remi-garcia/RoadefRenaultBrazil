@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 # File: main.jl
-# Description: VNS for the RENAULT Roadef 2005 challenge
+# Description: RENAULT Roadef 2005 challenge
 #   inspired by work of
 #   Celso C. Ribeiro, Daniel Aloise, Thiago F. Noronha,
 #   Caroline Rocha, Sebastián Urrutia
@@ -19,48 +19,36 @@
 #   (5) Use an improvement heuristic to optimize the third objective.
 #
 
-include("parser.jl")
-include("solution.jl")
-include("functions.jl")
-include("constants.jl")
-include("greedy.jl")
-include("vns_lprc.jl")
-include("vns_pcc.jl")
-
-include("for-test.jl")
+import RoadefRenaultBrazil
+const RRB = RoadefRenaultBrazil
 
 function main()
-
-    type = ["A"]#, "B"]
+    type = ["A", "B"]
 
     # Instance and initiale solution
     for instance_type in type#["A", "B", "X"]
-        name = [INSTANCES[instance_type][1], INSTANCES[instance_type][end]]
-        #name = [INSTANCES[instance_type][1], INSTANCES[instance_type][2], INSTANCES[instance_type][3], INSTANCES[instance_type][4], INSTANCES[instance_type][end]]
+        name = [RRB.INSTANCES[instance_type][1], RRB.INSTANCES[instance_type][end]]
         for instance_name in name#INSTANCES[instance_type]
-
             start_time = time_ns()
             println("\t====================")
-            println("Instance ",instance_type,"/",instance_name)
+            println("Instance ", instance_type, "/", instance_name)
 
             # Parser
-            instance = parser(instance_name, instance_type)
+            instance = RRB.parser(instance_name, instance_type)
             println("Loaded...")
 
             # Greedy
-            solution = greedy(instance)
+            solution = RRB.greedy(instance)
             println("Initial solution created...")
-            print_cost(solution, instance)
+            RRB.print_cost(solution, instance)
 
             # print("Solution improved with ILS_HPRC : ")
-            # solution = ILS_HPRC(solution, instance)
+            # solution = RRB.ILS_HPRC(solution, instance)
             # println("done..")
             # print_cost(solution, instance)
 
-            # print("Solution improved with VNS_LPRC : ")
-            # solution = VNS_LPRC(solution, instance)
-            # println("done..")
-            # print_cost(solution, instance)
+            solution = RRB.VNS_PCC(solution, instance, start_time)
+            println("Solution improved with VNS_PCC")
 
             # print("Solution improved with VNS_PCC : ")
             # solution = VNS_PCC(solution, instance, start_time)

@@ -130,7 +130,7 @@ end;
     end;
 end;
 
-@testset "vns_lprc.jl" begin
+#=@testset "vns_lprc.jl" begin
     type_fichier = "A"
     nom_fichier = "024_38_3_EP_ENP_RAF"
     instance = RRB.parser(nom_fichier, type_fichier)
@@ -138,4 +138,4 @@ end;
     solution_vns_LPRC = RRB.VNS_LPRC(solution_greedy, instance)
 
     @test RRB.cost_VNS_LPRC(solution_vns_LPRC, instance) <= RRB.cost_VNS_LPRC(solution_greedy, instance)
-end;
+end;=#

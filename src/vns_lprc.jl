@@ -29,16 +29,14 @@ end
 function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::Instance)
     # Dict that contain for each HRPC level an array of all index that have this HPRC level.
     all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
-    current_HPRC = -1
     b0 = instance.nb_late_prec_day+1
-    # TODO To change
+  
     for index_car in b0:instance.nb_cars
-        temp_HPRC = HPRC_level(solution, index_car, instance)
-        if temp_HPRC != current_HPRC
-            current_HPRC = temp_HPRC
-            all_list_same_HPRC[current_HPRC] = Array{Int, 1}()
+        key_HPRC = HPRC_value(solution.sequence[index_car], instance)
+        if !(key_HPRC in keys(all_list_same_HPRC))
+            all_list_same_HPRC[key_HPRC] = Array{Int, 1}()
         end
-        push!(all_list_same_HPRC[current_HPRC], index_car)
+        push!(all_list_same_HPRC[key_HPRC], index_car)
     end
     # Delete all HPRC with length less than 2 (Can't exchange 2 vehicles if there is less than 2)
     filter!(x -> length(x.second) >= 2, all_list_same_HPRC)
@@ -107,6 +105,15 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
 
     # useful variable
     b0 = instance.nb_late_prec_day+1
+    all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
+    b0 = instance.nb_late_prec_day+1
+    for index_car in b0:solution.n
+        key_HPRC = HPRC_value(solution.sequence[index_car], instance)
+        if !(key_HPRC in keys(all_list_same_HPRC))
+            all_list_same_HPRC[key_HPRC] = Array{Int, 1}()
+        end
+        push!(all_list_same_HPRC[key_HPRC], index_car)
+    end
 
     improved = true
     list = Array{Int, 1}()
@@ -116,9 +123,13 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
         for index_car_a in critical_cars_set
             best_delta = -1 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
             empty!(list)
+            hprc_value = HPRC_value(solution.sequence[index_car_a], instance)
             for index_car_b in b0:instance.nb_cars
-                if (index_car_a != index_car_b) && ( !perturbation_exchange || same_HPRC(solution, index_car_a, index_car_b, instance) )
-                    delta = weighted_sum_VNS_LPRC( cost_move_exchange(solution, index_car_a, index_car_b, instance, 2) )
+                if (!perturbation_exchange
+                     || (index_car_a != index_car_b
+                        && index_car_b in all_list_same_HPRC[hprc_value])
+                    )
+                    delta = weighted_sum_VNS_LPRC(cost_move_exchange(solution, index_car_a, index_car_b, instance, 2))
                     if delta < best_delta
                         list = [index_car_b]
                         best_delta = delta
@@ -260,7 +271,6 @@ function VNS_LPRC(solution::Solution, instance::Instance)
                 s_opt = s
                 nb_intens_not_better = 0
             end
-            println(cost_VNS_LPRC(s_opt, instance), " nb: ", nb_intens_not_better)
         end
         p = 1 - p
         k = k_min[p+1]

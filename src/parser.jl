@@ -38,6 +38,7 @@ struct Instance
     color_code::Array{Int, 1}
     # Number of vehicles that weren't build the precedet day.
     nb_late_prec_day::Int # Usage 1:nb_late_prec_day give the list of index of those vehicles.
+    nb_cars::Int
 end
 
 # This function is used to read data of an instance from all files, and agregate into an Instance structure.
@@ -62,7 +63,9 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     temp = findall(e -> occursin("low", e), df_optimisation[!, 2])
     if length(temp) > 0
         LPRC_rank = df_optimisation[!, 1][temp[1]]
-    else LPRC_rank = -1 end
+    else
+        LPRC_rank = -1
+    end
 
     temp = findall(e -> occursin("paint", e), df_optimisation[!, 2])
     PCB_rank = df_optimisation[!, 1][temp[1]]
@@ -93,9 +96,9 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     nb_late_prec_day = findall(x -> x == 1, df_vehicles[!, 2])[1] - 1
 
     return Instance(
-            HPRC_rank, LPRC_rank, PCB_rank,        # objectives file
-            nb_paint_limitation,                   # paint file
-            RC_p, RC_q, nb_high, nb_low,           # ratio file
-            RC_flag, color_code, nb_late_prec_day  # vehicles file
+            HPRC_rank, LPRC_rank, PCB_rank,                            # objectives file
+            nb_paint_limitation,                                       # paint file
+            RC_p, RC_q, nb_high, nb_low,                               # ratio file
+            RC_flag, color_code, nb_late_prec_day, length(color_code)  # vehicles file
         )
 end

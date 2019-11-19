@@ -8,12 +8,6 @@ There is 3 types of instances labeled A, B and X, so folders
 should be named Instances_A/, Instances_B/, and Instances_X/.
 =#
 
-# Library used to read CSV file, that is the format of data.
-using CSV
-
-# Library importing the DataFrame type that is easier to manipulate.
-using DataFrames
-
 # Constant of the problem
 const OPTIMISATION_FILE_NAME = "optimization_objectives.txt"
 const PAINT_FILE_NAME = "paint_batch_limit.txt"

@@ -1,8 +1,6 @@
 using Test
 using Random
 
-include(string(@__DIR__)*"/../src/main.jl")
-
 @testset "move_exchange.jl" begin
     type_fichier = "X"
     nom_fichier = INSTANCES[type_fichier][end]

@@ -40,10 +40,10 @@ function main()
             # Greedy
             solution = RRB.greedy(instance)
             println("Initial solution created...")
-            print_cost(solution, instance)
+            RRB.print_cost(solution, instance)
 
             # print("Solution improved with ILS_HPRC : ")
-            # solution = ILS_HPRC(solution, instance)
+            # solution = RRB.ILS_HPRC(solution, instance)
             # println("done..")
             # print_cost(solution, instance)
 

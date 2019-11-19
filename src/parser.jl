@@ -61,18 +61,18 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     #dropmissing!(df_vehicles, :SeqRank)
 
     # Rank parsing
-    temp = findall(e -> occursin("high", e), df_optimisation[!, 2])
-    HPRC_rank = df_optimisation[!, 1][temp[1]]
+    temp = findall(e -> occursin("high", e), df_optimisation[:, 2])
+    HPRC_rank = df_optimisation[:, 1][temp[1]]
 
-    temp = findall(e -> occursin("low", e), df_optimisation[!, 2])
+    temp = findall(e -> occursin("low", e), df_optimisation[:, 2])
     if length(temp) > 0
-        LPRC_rank = df_optimisation[!, 1][temp[1]]
+        LPRC_rank = df_optimisation[:, 1][temp[1]]
     else
         LPRC_rank = -1
     end
 
-    temp = findall(e -> occursin("paint", e), df_optimisation[!, 2])
-    PCB_rank = df_optimisation[!, 1][temp[1]]
+    temp = findall(e -> occursin("paint", e), df_optimisation[:, 2])
+    PCB_rank = df_optimisation[:, 1][temp[1]]
 
     # Paint limitation
     nb_paint_limitation = df_paint.limitation[1]
@@ -93,11 +93,11 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     nb_low = n - nb_high
 
     # vehicles data
-    RC_flag = Array{Bool, 2}(df_vehicles[!, 5:5+n-1])
+    RC_flag = Array{Bool, 2}(df_vehicles[:, 5:5+n-1])
 
-    color_code = Array{Int, 1}(df_vehicles[!, 4])
+    color_code = Array{Int, 1}(df_vehicles[:, 4])
 
-    nb_late_prec_day = findall(x -> x == 1, df_vehicles[!, 2])[1] - 1
+    nb_late_prec_day = findall(x -> x == 1, df_vehicles[:, 2])[1] - 1
 
     return Instance(
             HPRC_rank, LPRC_rank, PCB_rank,                            # objectives file

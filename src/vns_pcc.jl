@@ -20,7 +20,7 @@ function find_first_violation(solution::Solution, instance::Instance)
     first_violation = -1
     current_color = batch_color = instance.color_code[solution.sequence[1]]
     batch_size = 1
-    for i in 2:solution.n
+    for i in 2:instance.nb_cars
         current_color = instance.color_code[solution.sequence[i]]
         if current_color == batch_color
             batch_size += 1
@@ -172,8 +172,8 @@ function repair!(solution::Solution, instance::Instance)
     while first_violation != -1
         # Compute the best_insertion index
         solution_value = sum_cost(solution, instance)
-        cost_insertion = zeros(solution.n)
-        for i in 1:solution.n
+        cost_insertion = zeros(instance.nb_cars)
+        for i in 1:instance.nb_cars
             if i <= instance.nb_late_prec_day || instance.color_code[i] == instance.color_code[first_violation]# Pour empêcher d'insérer dans les nb_late_prec_day
                 cost_insertion[i] = Inf
             else

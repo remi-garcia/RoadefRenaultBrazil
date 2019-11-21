@@ -43,7 +43,18 @@ const RRB = RoadefRenaultBrazil
     end;
 
     @testset "cost_move_exchange!" begin
-        #TODO
+        for i in 1:5
+            solution_test = deepcopy(solution)
+            car_pos_a = rand(1:instance.nb_cars)
+            car_pos_b = rand(1:instance.nb_cars)
+            vector_cost = RRB.cost_move_exchange(solution_test, car_pos_a, car_pos_b, instance, 3)
+            costs = RRB.cost(solution, instance, 3)
+            RRB.move_exchange!(solution_test, car_pos_a, car_pos_b, instance)
+            costs_bis = RRB.cost(solution_test, instance, 3)
+            @test vector_cost == (costs_bis .- costs)
+            vector_cost_bis = RRB.cost_move_exchange(solution_test, car_pos_a, car_pos_b, instance, 3)
+            @test vector_cost == -vector_cost_bis
+        end
     end;
 end;
 
@@ -110,9 +121,20 @@ end;
         @test solution_test.M3 == solution_test_test.M3
     end;
 
-    @testset "cost_move_insertion!" begin
-        #TODO
-    end;
+    #=@testset "cost_move_insertion!" begin
+        for i in 1:3
+            position = rand(1:instance.nb_cars)
+            vector_cost = RRB.cost_move_insertion(solution, position, instance, 3)
+            costs = RRB.cost(solution, instance, 3)
+            for j in 1:3
+                solution_test = deepcopy(solution)
+                insertion_position = rand(1:instance.nb_cars)
+                RRB.move_insertion!(solution_test, position, insertion_position, instance)
+                costs_bis = RRB.cost(solution_test, instance, 3)
+                @test vector_cost[insertion_position] == (costs_bis .- costs)
+            end
+        end
+    end;=#
 end;
 
 @testset "solution.jl" begin
@@ -129,13 +151,3 @@ end;
         @test solution.M3 == solution_test.M3
     end;
 end;
-
-#=@testset "vns_lprc.jl" begin
-    type_fichier = "A"
-    nom_fichier = "024_38_3_EP_ENP_RAF"
-    instance = RRB.parser(nom_fichier, type_fichier)
-    solution_greedy = RRB.greedy(instance)
-    solution_vns_LPRC = RRB.VNS_LPRC(solution_greedy, instance)
-
-    @test RRB.cost_VNS_LPRC(solution_vns_LPRC, instance) <= RRB.cost_VNS_LPRC(solution_greedy, instance)
-end;=#

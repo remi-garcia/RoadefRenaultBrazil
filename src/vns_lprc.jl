@@ -223,11 +223,11 @@ function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, ins
         for index_car in critical_cars_set
             best_delta = -1 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
             matrix_deltas = cost_move_insertion(solution, index_car, instance, 2)
-            array_deltas = [ (weighted_sum(matrix_deltas[i, :], 2), i) for i in b0:instance.nb_cars]
+            array_deltas = [(weighted_sum(matrix_deltas[i, :], 2), i) for i in b0:instance.nb_cars]
             min = findmin(array_deltas)[1][1]
             if min < 0 && false
-                list = map( x -> x[2], filter(x -> x[1] == min, array_deltas) )
-                if list != []
+                list = map(x -> x[2], filter(x -> x[1] == min, array_deltas))
+                if !isempty(list)
                     index_insert = rand(list)
                     move_insertion!(solution, index_car, index_insert, instance)
                     improved = true

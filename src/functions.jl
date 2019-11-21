@@ -41,7 +41,7 @@ function cost(solution::Solution, instance::Instance, objective::Int)
 
     if objective >= 3 #Must improve or keep HPRC and LPRC and PCC
         for i in 2:instance.nb_cars
-            if instance.color_code[i] != instance.color_code[i-1]
+            if instance.color_code[solution.sequence[i]] != instance.color_code[solution.sequence[i-1]]
                 cost_on_objective[3] += 1
             end
         end

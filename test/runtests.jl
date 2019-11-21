@@ -47,13 +47,13 @@ const RRB = RoadefRenaultBrazil
             solution_test = deepcopy(solution)
             car_pos_a = rand(1:instance.nb_cars)
             car_pos_b = rand(1:instance.nb_cars)
-            vector_cost = RRB.cost_move_exchange(solution, car_pos_a, car_pos_b, instance, 3)
+            vector_cost = RRB.cost_move_exchange(solution_test, car_pos_a, car_pos_b, instance, 3)
             costs = RRB.cost(solution, instance, 3)
             RRB.move_exchange!(solution_test, car_pos_a, car_pos_b, instance)
             costs_bis = RRB.cost(solution_test, instance, 3)
-            @test false in (vector_cost .== costs .- costs_bis)
+            @test vector_cost == (costs_bis .- costs)
             vector_cost_bis = RRB.cost_move_exchange(solution_test, car_pos_a, car_pos_b, instance, 3)
-            @test false in (vector_cost .== -vector_cost_bis)
+            @test vector_cost == -vector_cost_bis
         end
     end;
 end;
@@ -122,7 +122,18 @@ end;
     end;
 
     @testset "cost_move_insertion!" begin
-        #TODO
+        for i in 1:3
+            position = rand(1:instance.nb_cars)
+            vector_cost = RRB.cost_move_insertion(solution, position, instance, 3)
+            costs = RRB.cost(solution, instance, 3)
+            for j in 1:3
+                solution_test = deepcopy(solution)
+                insertion_position = rand(1:instance.nb_cars)
+                RRB.move_insertion!(solution_test, position, insertion_position, instance)
+                costs_bis = RRB.cost(solution_test, instance, 3)
+                @test vector_cost[insertion_position] == (costs_bis .- costs)
+            end
+        end
     end;
 end;
 

@@ -25,29 +25,27 @@ Return the (partial) set of values of objectives (without weight) of the solutio
 function cost(solution::Solution, instance::Instance, objective::Int)
     cost_on_objective = zeros(Int, 3)
 
-    value = 0
     for car in 1:instance.nb_cars
         for option in 1:instance.nb_HPRC
-            value += max(0 , solution.M1[option, car] - instance.RC_p[option])
+            cost_on_objective[1] += max(0 , solution.M1[option, car] - instance.RC_p[option])
         end
     end
-    cost_on_objective[1] = value
 
-    value = 0
     if objective >= 2 #Must improve or keep HPRC and LPRC
         for car in 1:instance.nb_cars
             for option in (instance.nb_HPRC+1):(instance.nb_HPRC+instance.nb_LPRC)
-                value += max(0 , solution.M1[option, car] - instance.RC_p[option])
+                cost_on_objective[2] += max(0 , solution.M1[option, car] - instance.RC_p[option])
             end
         end
     end
-    cost_on_objective[2] = value
 
-    value = 0
     if objective >= 3 #Must improve or keep HPRC and LPRC and PCC
-        #TODO
+        for i in 2:instance.nb_cars
+            if instance.color_code[i] != instance.color_code[i-1]
+                cost_on_objective[3] += 1
+            end
+        end
     end
-    cost_on_objective[3] = value
 
     return cost_on_objective
 end

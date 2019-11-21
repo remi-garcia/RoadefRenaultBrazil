@@ -221,7 +221,7 @@ function cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
     end
 
     if objective >= 3 #Must improve or keep HPRC and LPRC and PCC
-        if !instance.color_code[car_pos_a] == instance.color_code[car_pos_b]
+        if !(instance.color_code[car_pos_a] == instance.color_code[car_pos_b])
             # First position
             if car_pos_a > 1
                 if instance.color_code[car_pos_a] != instance.color_code[car_pos_a-1]

@@ -43,7 +43,17 @@ const RRB = RoadefRenaultBrazil
     end;
 
     @testset "cost_move_exchange!" begin
-        #TODO
+        for i in 1:5
+            solution_test = deepcopy(solution)
+            car_pos_a = rand(1:instance.nb_cars)
+            car_pos_b = rand(1:instance.nb_cars)
+            vector_cost = RRB.cost_move_exchange(solution, car_pos_a, car_pos_b, instance, 3)
+            RRB.move_exchange!(solution_test, car_pos_a, car_pos_b, instance)
+            vector_cost_bis = RRB.cost_move_exchange(solution_test, car_pos_a, car_pos_b, instance, 3)
+            @test vector_cost[1] == -vector_cost_bis[1]
+            @test vector_cost[2] == -vector_cost_bis[2]
+            @test vector_cost[3] == -vector_cost_bis[3]
+        end
     end;
 end;
 

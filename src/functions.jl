@@ -43,11 +43,13 @@ function cost(solution::Solution, instance::Instance, objective::Int)
     end
     cost_on_objective[2] = value
 
-    value = 0
     if objective >= 3 #Must improve or keep HPRC and LPRC and PCC
-        #TODO
+        for i in 2:instance.nb_cars
+            if instance.color_code[i] != instance.color_code[i-1]
+                cost_on_objective[3] += 1
+            end
+        end
     end
-    cost_on_objective[3] = value
 
     return cost_on_objective
 end

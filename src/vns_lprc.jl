@@ -83,7 +83,7 @@ function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::I
     # Best insert
     for index_car in (instance.nb_cars-k+1):instance.nb_cars
         matrix_deltas = cost_move_insertion(solution, index_car, instance, 2)
-        array_deltas = [ (weighted_sum_VNS_LPRC(matrix_deltas[i, :]), i) for i in b0:instance.nb_cars]
+        array_deltas = [ (weighted_sum(matrix_deltas[i, :], 2), i) for i in b0:instance.nb_cars]
         index_insert_best = findmin(array_deltas)[1][2]
         move_insertion!(sol, index_car, index_insert_best, instance)
     end
@@ -91,7 +91,13 @@ function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::I
     return sol
 end
 
-# Perturbation of VNS_LPRC
+"""
+    perturbation_VNS_LPRC(solution::Solution, p::Int, k::Int, instance::Instance)
+
+Wrapper that will call `perturbation_VNS_LPRC_exchange(solution, k, instance)` when `p` is set to 1,
+and `perturbation_VNS_LPRC_insertion(solution, k, instance)` otherwise.
+Return a new solution and doesn't modify `solution`.
+"""
 function perturbation_VNS_LPRC(solution::Solution, p::Int, k::Int, instance::Instance)
     if p == 1
         return perturbation_VNS_LPRC_exchange(solution, k, instance)
@@ -100,7 +106,13 @@ function perturbation_VNS_LPRC(solution::Solution, p::Int, k::Int, instance::Ins
     end
 end
 
-# The Local Search is based on a car exchange move.
+"""
+    localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, instance::Instance)
+
+Return and modified `solution` optimizing `weighted_sum` for second objective.
+`perturbation_exchange` should be `true` when the last perturbation was called with an exchange move,
+and allowed us to move only when it will not degrade HPPRC value.
+"""
 function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, instance::Instance)
 
     # useful variable
@@ -129,7 +141,7 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
                      || (index_car_a != index_car_b
                         && index_car_b in all_list_same_HPRC[hprc_value])
                     )
-                    delta = weighted_sum_VNS_LPRC(cost_move_exchange(solution, index_car_a, index_car_b, instance, 2))
+                    delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 2), 2)
                     if delta < best_delta
                         list = [index_car_b]
                         best_delta = delta
@@ -148,7 +160,11 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
     return solution
 end
 
+"""
+    localSearch_intensification_VNS_LPRC_exchange!(solution::Solution, instance::Instance)
 
+Return and modified `solution` optimizing `weighted_sum` for second objective.
+"""
 function localSearch_intensification_VNS_LPRC_exchange!(solution::Solution, instance::Instance)
     # useful variable
     b0 = instance.nb_late_prec_day+1
@@ -163,7 +179,7 @@ function localSearch_intensification_VNS_LPRC_exchange!(solution::Solution, inst
             empty!(list)
             for index_car_b in b0:instance.nb_cars
                 if (index_car_a != index_car_b)
-                    delta = weighted_sum_VNS_LPRC( cost_move_exchange(solution, index_car_a, index_car_b, instance, 2) )
+                    delta = weighted_sum( cost_move_exchange(solution, index_car_a, index_car_b, instance, 2), 2)
                     if delta < best_delta
                         list = [index_car_b]
                         best_delta = delta
@@ -182,6 +198,12 @@ function localSearch_intensification_VNS_LPRC_exchange!(solution::Solution, inst
     return solution
 end
 
+
+"""
+    localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, instance::Instance)
+
+Return and modified `solution` optimizing `weighted_sum` for second objective.
+"""
 function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, instance::Instance)
     # useful variable
     b0 = instance.nb_late_prec_day+1
@@ -193,7 +215,7 @@ function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, ins
         for index_car in critical_cars_set
             best_delta = -1 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
             matrix_deltas = cost_move_insertion(solution, index_car, instance, 2)
-            array_deltas = [ (weighted_sum_VNS_LPRC(matrix_deltas[i, :]), i) for i in b0:instance.nb_cars]
+            array_deltas = [ (weighted_sum(matrix_deltas[i, :], 2), i) for i in b0:instance.nb_cars]
             min = findmin(array_deltas)[1][1]
             if min < 0 && false
                 list = map( x -> x[2], filter(x -> x[1] == min, array_deltas) )
@@ -208,37 +230,53 @@ function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, ins
     return solution
 end
 
-# Apply two local search, first one with insertion move, and the second one with exchange move.
+
+"""
+    intensification_VNS_LPRC!(solution::Solution, instance::Instance)
+
+Wrapper that call `localSearch_intensification_VNS_LPRC_insertion!(solution, instance)`
+and `localSearch_intensification_VNS_LPRC_exchange!(solution, instance)` in this order
+and return `solution` (that has been modified) optimizing `weighted_sum` for second objective.
+"""
 function intensification_VNS_LPRC!(solution::Solution, instance::Instance)
     localSearch_intensification_VNS_LPRC_insertion!(solution, instance)
     localSearch_intensification_VNS_LPRC_exchange!(solution, instance)
     return solution
 end
 
-# Compute the weighted sum of a cost solution (an array)
-function weighted_sum_VNS_LPRC(cost_solution::Array{Int, 1})
-    # TODO: this function can be dropped as soon as a sum_cost calculation is added in `fonction.jl`
-    return sum(cost_solution[i] * WEIGHTS_OBJECTIVE_FUNCTION[i] for i in 1:2)
-end
 
-# Return a tuple of solution, first element is the cost,and the second one is the number of HRPC violated.
+"""
+    cost_VNS_LPRC(solution::Solution, instance::Instance)
+
+Return the value of `weighted_sum` for second objective
+"""
 function cost_VNS_LPRC(solution::Solution, instance::Instance)
-    cost_solution = cost(solution, instance, 2)
-    return weighted_sum_VNS_LPRC(cost_solution)
+    return weighted_sum(solution, instance, 2)
 end
 
-# function that determine if left is better than right.
+
+"""
+    is_better_VNS_LPRC(left::Solution, right::Solution, instance::Instance)
+
+Return if `true` if the value of the cost of left is less than the cost of right
+using the weighted_sum and if HPRC value of left is less or equal than
+HPRC value of right. `false` otherwise.
+"""
 function is_better_VNS_LPRC(left::Solution, right::Solution, instance::Instance)
     left_cost = cost(left, instance, 2)
     right_cost = cost(right, instance, 2)
 
-    cost_better = weighted_sum_VNS_LPRC(left_cost) < weighted_sum_VNS_LPRC(right_cost)
+    cost_better = weighted_sum(left_cost, 2) < weighted_sum(right_cost, 2)
     HPRC_not_worse = left_cost[1] <= right_cost[1]
 
     return cost_better && HPRC_not_worse
 end
 
-# VNS-LPRC algorithm describe in section 6.
+"""
+    VNS_LPRC(solution::Solution, instance::Instance, start_time::UInt)
+
+Return a solution that optimize `weighted_sum` for second objective without deterioring HPRC value.
+"""
 function VNS_LPRC(solution::Solution, instance::Instance, start_time::UInt)
 
     # We note that p = 0 is for insertion move and p = 1 is for exchange move

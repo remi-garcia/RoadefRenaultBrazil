@@ -48,7 +48,10 @@ const RRB = RoadefRenaultBrazil
             car_pos_a = rand(1:instance.nb_cars)
             car_pos_b = rand(1:instance.nb_cars)
             vector_cost = RRB.cost_move_exchange(solution, car_pos_a, car_pos_b, instance, 3)
+            costs = RRB.cost(solution, instance, 3)
             RRB.move_exchange!(solution_test, car_pos_a, car_pos_b, instance)
+            costs_bis = RRB.cost(solution_test, instance, 3)
+            @test false in (vector_cost .== costs .- costs_bis)
             vector_cost_bis = RRB.cost_move_exchange(solution_test, car_pos_a, car_pos_b, instance, 3)
             @test false in (vector_cost .== -vector_cost_bis)
         end

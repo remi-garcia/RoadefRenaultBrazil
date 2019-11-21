@@ -239,7 +239,7 @@ function is_better_VNS_LPRC(left::Solution, right::Solution, instance::Instance)
 end
 
 # VNS-LPRC algorithm describe in section 6.
-function VNS_LPRC(solution::Solution, instance::Instance)
+function VNS_LPRC(solution::Solution, instance::Instance, start_time::UInt)
 
     # We note that p = 0 is for insertion move and p = 1 is for exchange move
     # because section 6.1 and 6.5 contradict themselves
@@ -254,7 +254,8 @@ function VNS_LPRC(solution::Solution, instance::Instance)
     p = 1
     k = k_min[p+1]
     nb_intens_not_better = 0
-    while nb_intens_not_better < VNS_LPRC_MAX_NON_IMPROVEMENT
+    while nb_intens_not_better < VNS_LPRC_MAX_NON_IMPROVEMENT &&
+            (96/100) * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         while k < k_max[p+1]
             neighbor = perturbation_VNS_LPRC(s, p, k, instance)
             localSearch_VNS_LPRC!(neighbor, p == 1, instance)

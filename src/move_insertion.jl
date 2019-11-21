@@ -164,7 +164,44 @@ function cost_move_insertion(solution::Solution, position::Int,
 
     # Cost on obective PCC
     if objective >= 3
-        #TODO
+        for index in b0:instance.nb_cars
+            car = solution.sequence[position]
+
+            # Due to deletion
+            if position > 1
+                if instance.color_code[car] != instance.color_code[solution.sequence[position-1]]
+                    cost_on_objective[index, 3] -= 1
+                end
+
+                if position < instance.nb_cars
+                    if instance.color_code[solution.sequence[position-1]] != instance.color_code[solution.sequence[position+1]]
+                        cost_on_objective[index, 3] += 1
+                    end
+                end
+            end
+            if position < instance.nb_cars
+                if instance.color_code[car] != instance.color_code[solution.sequence[position+1]]
+                    cost_on_objective[index, 3] -= 1
+                end
+            end
+
+            # Due to insertion
+            if index > 1 && index < instance.nb_cars
+                if instance.color_code[sequence[index-1]] != instance.color_code[sequence[index]]
+                    cost_on_objective[index, 3] -= 1
+                end
+            end
+            if index > 1
+                if instance.color_code[sequence[index-1]] != instance.color_code[car]
+                    cost_on_objective[index, 3] += 1
+                end
+            end
+            if index < instance.nb_cars
+                if instance.color_code[sequence[index]] != instance.color_code[car]
+                    cost_on_objective[index, 3] += 1
+                end
+            end
+        end
     end
 
     return cost_on_objective

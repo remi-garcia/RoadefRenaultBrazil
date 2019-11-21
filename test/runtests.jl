@@ -121,20 +121,20 @@ end;
         @test solution_test.M3 == solution_test_test.M3
     end;
 
-    #=@testset "cost_move_insertion!" begin
+    @testset "cost_move_insertion!" begin
         for i in 1:3
             position = rand(1:instance.nb_cars)
             vector_cost = RRB.cost_move_insertion(solution, position, instance, 3)
             costs = RRB.cost(solution, instance, 3)
             for j in 1:3
                 solution_test = deepcopy(solution)
-                insertion_position = rand(1:instance.nb_cars)
+                insertion_position = rand(instance.nb_late_prec_day+1:instance.nb_cars)
                 RRB.move_insertion!(solution_test, position, insertion_position, instance)
                 costs_bis = RRB.cost(solution_test, instance, 3)
-                @test vector_cost[insertion_position] == (costs_bis .- costs)
+                @test vector_cost[insertion_position,:] == (costs_bis .- costs)
             end
         end
-    end;=#
+    end;
 end;
 
 @testset "solution.jl" begin

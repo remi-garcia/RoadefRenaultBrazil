@@ -17,34 +17,33 @@
 function remove(solution::Solution, instance::Instance, nbcar::Int, crit::Array{Int,1})
     i = instance.nb_late_prec_day+1
     removed = Array{Int, 1}([])
-    while i <= solution.n && length(removed) <= nbcar
+    sol = deepcopy(solution)
+    while i <= instance.nb_cars && length(removed) <= nbcar
         #TODO Don't take the first nbcar cars but randomly pick nbcar cars
         if crit[i] == 1
-            push!(removed, solution.sequence[i])
-            deleteat!(solution.sequence, i)
-            solution.n = solution.n - 1
-            update_matrices!(solution, solution.n, instance)
+            push!(removed, sol.sequence[i])
+            deleteat!(sol.sequence, i)
+            update_matrices!(sol, length(sol.sequence), instance)
             deleteat!(crit, i)
         else
             i = i + 1
         end
     end
-    return solution, removed
+    return sol, removed
 end
 
-
+#TODO Rendre ça intelligent
 function greedyadd(solution::Solution, instance::Instance, car::Int)
     i = instance.nb_late_prec_day + 1
     tmp = deepcopy(solution)
     splice!(tmp.sequence, i:i-1, car)
-    tmp.n = tmp.n+1
-    update_matrices!(tmp, tmp.n, instance)
+    update_matrices!(tmp, length(tmp.sequence), instance)
     bestcost = costHPRC(tmp, instance)
     bestsol = deepcopy(tmp)
     deleteat!(tmp.sequence, i)
-    for j in i:solution.n
+    for j in i:length(tmp.sequence)
         splice!(tmp.sequence, j:j-1, car)
-        update_matrices!(tmp, tmp.n, instance)
+        update_matrices!(tmp, length(tmp.sequence), instance)
         ncost = costHPRC(tmp, instance)
         if ncost < bestcost
             bestcost = ncost
@@ -66,20 +65,19 @@ end
 
 # Retourne le coût du premier objectif pour la solution solution
 function costHPRC(solution::Solution, instance::Instance)
-    c = sum(solution.M2[i, solution.n] for i in 1:instance.nb_HPRC)
-    return c
+    return cost(solution, instance, 1)[1]
 end
 
-
-function localSearch(solution::Solution, instance::Instance, move!::Function, cost_move::Function)
+#TODO changer rendre intelligent
+function localSearchExchange(solution::Solution, instance::Instance)
     while true
         phi = costHPRC(solution, instance)
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
-        for i in b0:solution.n
+        for i in b0:instance.nb_cars
             best_delta = 0
             L = []
-            for j in b0:solution.n
-                delta = cost_move(solution, i, j, instance, 1) - costHPRC(solution, instance)
+            for j in b0:instance.nb_cars
+                delta = cost_move_exchange(solution, i, j, instance,1)[1]
                 if delta < best_delta
                     L = [j]
                     best_delta = delta
@@ -89,7 +87,7 @@ function localSearch(solution::Solution, instance::Instance, move!::Function, co
             end
             if L != []
                 k = rand(L)
-                move!(solution, i, k, instance)
+                move_exchange!(solution, i, k, instance)
             end
         end
         if phi == costHPRC(solution, instance)
@@ -100,16 +98,47 @@ function localSearch(solution::Solution, instance::Instance, move!::Function, co
     return solution
 end
 
-function fastLocalSearch(solution::Solution, instance::Instance, move!::Function, cost_move::Function, crit::Array{Int, 1})
+#TODO rendre intelligent
+function localSearchInsertion(solution::Solution, instance::Instance)
     while true
         phi = costHPRC(solution, instance)
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
-        for i in b0:solution.n
+        for i in b0:instance.nb_cars
+            best_delta = 0
+            L = []
+            couts = cost_move_insertion(solution,i,instance,1)
+            for j in b0:instance.nb_cars
+                delta = couts[j, 1]
+                if delta < best_delta
+                    L = [j]
+                    best_delta = delta
+                elseif delta == best_delta
+                    push!(L, j)
+                end
+            end
+            if L != []
+                k = rand(L)
+                move_insertion!(solution, i, k, instance)
+            end
+        end
+        if phi == costHPRC(solution, instance)
+            break
+        end
+    end
+
+    return solution
+end
+
+function fastLocalSearchExchange(solution::Solution, instance::Instance, crit::Array{Int, 1})
+    while true
+        phi = costHPRC(solution, instance)
+        b0 = instance.nb_late_prec_day + 1      #First car of the current production day
+        for i in b0:instance.nb_cars
             if crit[i] == 1
                 best_delta = 0
                 L = []
-                for j in b0:solution.n
-                    delta = cost_move(solution, i, j, instance, 1) - costHPRC(solution, instance)
+                for j in b0:instance.nb_cars
+                    delta = cost_move_exchange(solution, i, j, instance, 1)[1]
                     if delta < best_delta
                         L = [j]
                         best_delta = delta
@@ -119,7 +148,7 @@ function fastLocalSearch(solution::Solution, instance::Instance, move!::Function
                 end
                 if L != []
                     k = rand(L)
-                    move!(solution, i, k, instance)
+                    move_exchange!(solution, i, k, instance)
                 end
             end
         end
@@ -133,24 +162,23 @@ end
 
 #Inidquate which cars are invloved in violation of HPRC and the number
 function criticalCars(solution::Solution, instance::Instance)
-    criticars = zeros(Int, solution.n)             # criticars[i] = 1 if car i violate HPRC otherwhise criticars[i] = 0
+    criticars = zeros(Int, instance.nb_cars)             # criticars[i] = 1 if car i violate HPRC otherwhise criticars[i] = 0
     nb_crit = 0                             # Number of cars involved in HPRC violation.
     j = 1
-    for i in 1:instance.nb_HPRC
-        j = 1
-        while j <= solution.n
-            if solution.M2[i,j] > instance.RC_p[i]
-                k = 0
-                while k < instance.RC_p[i] && (j+k) <= solution.n
-                    if instance.RC_flag[j + k, i] == true && criticars[j + k] == 0
-                        criticars[j + k] = 1
+    for opt in 1:instance.nb_HPRC
+        car = 1
+        while car <= instance.nb_cars
+            if solution.M2[opt,car] > instance.RC_p[opt]
+                cursor = 0
+                while cursor < instance.RC_p[opt] && (car+cursor) <= instance.nb_cars
+                    if instance.RC_flag[car+cursor, opt] == true && criticars[car + cursor] == 0
+                        criticars[car + cursor] = 1
                         nb_crit = nb_crit + 1
                     end
-                    k = k + 1
+                    cursor = cursor + 1
                 end
-                j = j + k   # Cars between indexes j and j+k already seen in second while so we can skip them
             end
-            j = j + 1
+            car = car + 1
         end
     end
 
@@ -158,8 +186,8 @@ function criticalCars(solution::Solution, instance::Instance)
 end
 
 function intensification(solution::Solution, instance::Instance)
-    solution = localSearch(solution, instance, move_insertion!, cost_move_insertion)
-    solution = localSearch(solution, instance, move_exchange!, cost_move_exchange)
+    solution = localSearchInsertion(solution, instance)
+    solution = localSearchExchange(solution, instance)
     return solution
 end
 
@@ -170,22 +198,20 @@ function restart(solution::Solution, instance::Instance)
 end
 
 
-function ILS_HPRC(solution::Solution, instance::Instance)
+function ILS_HPRC(solution::Solution, instance::Instance, start_time::UInt)
     i = 0                               # Number of itération since the last improvement
     s = deepcopy(solution)
     s_opt = deepcopy(solution)
     lastopt = deepcopy(solution)
     cond = 0 #TODO
-    while cond < STOPPING_CRITERIA_ILS_HPRC && costHPRC(s_opt, instance) != 0
+    while cond < STOPPING_CRITERIA_ILS_HPRC && costHPRC(s_opt, instance) != 0 && (0.9 * TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
         crit = criticalCars(s, instance)
         neighbor = perturbation(s, instance, NBCAR_PERTURBATION, crit[1])
         crit = criticalCars(neighbor, instance)
-        if crit[2] > (s.n * 0.6)
-            println("LS")
-            neighbor = localSearch(neighbor, instance, move_exchange!, cost_move_exchange)
+        if crit[2] > (instance.nb_cars * 0.6)
+            neighbor = localSearchExchange(neighbor, instance)
         else
-            println("FLS")
-            neighbor = fastLocalSearch(neighbor, instance, move_exchange!, cost_move_exchange, crit[1])
+            neighbor = fastLocalSearchExchange(neighbor, instance, crit[1])
         end
         if costHPRC(s, instance) <= costHPRC(neighbor, instance)
             s = neighbor

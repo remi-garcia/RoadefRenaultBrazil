@@ -7,6 +7,11 @@
 #-------------------------------------------------------------------------------
 
 #Compute set of critical cars involved in an HPRC or LPRC constraint violation.
+"""
+    critical_cars_VNS_LPRC(solution::Solution, instance::Instance)
+
+Return the set of critical cars involved in HPRC or LPRC level.
+"""
 function critical_cars_VNS_LPRC(solution::Solution, instance::Instance)
     critical_car = Set{Int}()
     b0 = instance.nb_late_prec_day+1
@@ -25,7 +30,13 @@ function critical_cars_VNS_LPRC(solution::Solution, instance::Instance)
     return critical_car
 end
 
-# Make k randomly exchange. Each exchange must occur in the same HPRC level in order to avoid increasing the HPRC.
+
+"""
+    perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::Instance)
+
+Return a new solution, where k random exchange has been done, between cars with
+the same HPRC level avoiding to increase HPRC level.
+"""
 function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::Instance)
     # Dict that contain for each HRPC level an array of all index that have this HPRC level.
     all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
@@ -57,7 +68,11 @@ function perturbation_VNS_LPRC_exchange(solution::Solution, k::Int, instance::In
     return sol
 end
 
-# Delete k vehicles from the sequence and add them in the sequence according a greedy criterion.
+"""
+    perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::Instance)
+
+Return a new solution, where we have deleted `k` solutions, and added them according a greedy criterion.
+"""
 function perturbation_VNS_LPRC_insertion(solution::Solution, k::Int, instance::Instance)
     sol = deepcopy(solution)
     b0 = instance.nb_late_prec_day+1

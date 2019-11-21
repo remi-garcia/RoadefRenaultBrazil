@@ -8,12 +8,6 @@ There is 3 types of instances labeled A, B and X, so folders
 should be named Instances_A/, Instances_B/, and Instances_X/.
 =#
 
-# Library used to read CSV file, that is the format of data.
-using CSV
-
-# Library importing the DataFrame type that is easier to manipulate.
-using DataFrames
-
 # Constant of the problem
 const OPTIMISATION_FILE_NAME = "optimization_objectives.txt"
 const PAINT_FILE_NAME = "paint_batch_limit.txt"
@@ -50,25 +44,35 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     df_ratio = CSV.File(path * RATIO_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
     df_vehicles = CSV.File(path * VEHICLES_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
 
+    # There is a fictive last column
+    df_optimisation = df_optimisation[:,1:min(2,end)]
+    df_paint = df_paint[:, 1:min(1,end)]
+    df_ratio = df_ratio[:, 1:min(3,end)]
+    df_vehicles = df_vehicles[:, 1:min((4+size(df_ratio)[1]),end)]
+
     # Avoid lines with missing value that are not usable.
-    dropmissing!(df_optimisation, :rank)
-    dropmissing!(df_paint, :limitation)
-    dropmissing!(df_ratio, :Ratio)
-    dropmissing!(df_vehicles, :SeqRank)
+    df_optimisation = df_optimisation[completecases(df_optimisation), :]
+    df_paint = df_paint[completecases(df_paint), :]
+    df_ratio = df_ratio[completecases(df_ratio), :]
+    df_vehicles = df_vehicles[completecases(df_vehicles), :]
+    #dropmissing!(df_optimisation, :rank)
+    #dropmissing!(df_paint, :limitation)
+    #dropmissing!(df_ratio, :Ratio)
+    #dropmissing!(df_vehicles, :SeqRank)
 
     # Rank parsing
-    temp = findall(e -> occursin("high", e), df_optimisation[!, 2])
-    HPRC_rank = df_optimisation[!, 1][temp[1]]
+    temp = findall(e -> occursin("high", e), df_optimisation[:, 2])
+    HPRC_rank = df_optimisation[:, 1][temp[1]]
 
-    temp = findall(e -> occursin("low", e), df_optimisation[!, 2])
+    temp = findall(e -> occursin("low", e), df_optimisation[:, 2])
     if length(temp) > 0
-        LPRC_rank = df_optimisation[!, 1][temp[1]]
+        LPRC_rank = df_optimisation[:, 1][temp[1]]
     else
         LPRC_rank = -1
     end
 
-    temp = findall(e -> occursin("paint", e), df_optimisation[!, 2])
-    PCB_rank = df_optimisation[!, 1][temp[1]]
+    temp = findall(e -> occursin("paint", e), df_optimisation[:, 2])
+    PCB_rank = df_optimisation[:, 1][temp[1]]
 
     # Paint limitation
     nb_paint_limitation = df_paint.limitation[1]
@@ -89,11 +93,11 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     nb_low = n - nb_high
 
     # vehicles data
-    RC_flag = Array{Bool, 2}(df_vehicles[!, 5:5+n-1])
+    RC_flag = Array{Bool, 2}(df_vehicles[:, 5:5+n-1])
 
-    color_code = Array{Int, 1}(df_vehicles[!, 4])
+    color_code = Array{Int, 1}(df_vehicles[:, 4])
 
-    nb_late_prec_day = findall(x -> x == 1, df_vehicles[!, 2])[1] - 1
+    nb_late_prec_day = findall(x -> x == 1, df_vehicles[:, 2])[1] - 1
 
     return Instance(
             HPRC_rank, LPRC_rank, PCB_rank,                            # objectives file

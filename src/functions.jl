@@ -146,3 +146,4 @@ function is_sequence_valid(sequence::Array{Int, 1}, n::Int, instance::Instance)
     end
     return true
 end
+

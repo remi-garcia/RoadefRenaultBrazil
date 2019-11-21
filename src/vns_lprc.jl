@@ -108,7 +108,7 @@ Calls both perturbations and return a new solution. This function does not
 modify the solution given in parameters.
 """
 function perturbation_VNS_LPRC(solution_init::Solution, p::Int, k::Int, instance::Instance)
-    solution = deepcopy(solution)
+    solution = deepcopy(solution_init)
     if p == 1
         perturbation_VNS_LPRC_exchange!(solution, k, instance)
     else

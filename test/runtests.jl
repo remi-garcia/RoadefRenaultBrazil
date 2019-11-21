@@ -121,7 +121,7 @@ end;
         @test solution_test.M3 == solution_test_test.M3
     end;
 
-    @testset "cost_move_insertion!" begin
+    #=@testset "cost_move_insertion!" begin
         for i in 1:3
             position = rand(1:instance.nb_cars)
             vector_cost = RRB.cost_move_insertion(solution, position, instance, 3)
@@ -134,7 +134,7 @@ end;
                 @test vector_cost[insertion_position] == (costs_bis .- costs)
             end
         end
-    end;
+    end;=#
 end;
 
 @testset "solution.jl" begin
@@ -151,13 +151,3 @@ end;
         @test solution.M3 == solution_test.M3
     end;
 end;
-
-#=@testset "vns_lprc.jl" begin
-    type_fichier = "A"
-    nom_fichier = "024_38_3_EP_ENP_RAF"
-    instance = RRB.parser(nom_fichier, type_fichier)
-    solution_greedy = RRB.greedy(instance)
-    solution_vns_LPRC = RRB.VNS_LPRC(solution_greedy, instance)
-
-    @test RRB.cost_VNS_LPRC(solution_vns_LPRC, instance) <= RRB.cost_VNS_LPRC(solution_greedy, instance)
-end;=#

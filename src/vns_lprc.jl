@@ -284,8 +284,8 @@ function VNS_LPRC(solution::Solution, instance::Instance, start_time::UInt)
     p = 1
     k = k_min[p+1]
     nb_intens_not_better = 0
-    while nb_intens_not_better < VNS_LPRC_MAX_NON_IMPROVEMENT
-          && (96/100) * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
+    while (nb_intens_not_better < VNS_LPRC_MAX_NON_IMPROVEMENT
+          && (96/100) * TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
         while k < k_max[p+1]
             neighbor = perturbation_VNS_LPRC(s, p, k, instance)
             localSearch_VNS_LPRC!(neighbor, p == 1, instance)

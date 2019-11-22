@@ -6,8 +6,6 @@
 #         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
 #-------------------------------------------------------------------------------
 
-
-
 """
     Solution
 
@@ -35,23 +33,10 @@ mutable struct Solution
     )
 end
 
-
 # Build an initial
-function init_solution(nom_fichier::String, type_fichier::String)
-    # Read in data files
-    instance = parser(nom_fichier, type_fichier)
+"""
 
-    n = length(instance.color_code)
-    m = instance.nb_HPRC + instance.nb_LPRC # number of ratio
-    solution = Solution(n, m)
-
-    for i in 1:instance.nb_late_prec_day
-        solution.sequence[i] = i
-    end
-    return solution
-end
-
-# Build an initial
+"""
 function init_solution(instance::Instance)
     n = length(instance.color_code)
     m = instance.nb_HPRC + instance.nb_LPRC # number of ratio
@@ -63,6 +48,8 @@ function init_solution(instance::Instance)
     return solution
 end
 
+init_solution(nom_fichier::String, type_fichier::String) =
+    init_solution(parser(nom_fichier, type_fichier))
 
 """
     update_matrices!(solution::Solution, nb::Int, instance::Instance)

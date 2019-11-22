@@ -42,25 +42,16 @@ function main()
             println("Initial solution created...")
             RRB.print_cost(solution, instance)
 
-            # print("Solution improved with ILS_HPRC : ")
             # solution = RRB.ILS_HPRC(solution, instance)
-            # println("done..")
-            RRB.print_cost(solution, instance)
+            # println("Solution improved with ILS_HPRC")
+            # RRB.print_cost(solution, instance)
 
             solution = RRB.VNS_LPRC(solution, instance, start_time)
             println("Solution improved with VNS_LPRC")
-
-            # print("Solution improved with VNS_PCC : ")
-            # solution = VNS_LPRC(solution, instance, start_time)
-            # println("done..")
             RRB.print_cost(solution, instance)
 
             solution = RRB.VNS_PCC(solution, instance, start_time)
             println("Solution improved with VNS_PCC")
-
-            # print("Solution improved with VNS_PCC : ")
-            # solution = VNS_PCC(solution, instance, start_time)
-            # println("done..")
             RRB.print_cost(solution, instance)
 
             println()

@@ -10,29 +10,25 @@
 #         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
 #-------------------------------------------------------------------------------
 
-##=====================================##
-##        USEFUL ALGORITHMS            ##
-##=====================================##
-
-function remove(solution::Solution, instance::Instance, nbcar::Int, crit::Array{Int,1})
+function remove(solution_init::Solution, instance::Instance, nbcar::Int, crit::Array{Int,1})
     i = instance.nb_late_prec_day+1
     removed = Array{Int, 1}([])
-    sol = deepcopy(solution)
+    solution = deepcopy(solution_init)
     while i <= instance.nb_cars && length(removed) <= nbcar
         #TODO Don't take the first nbcar cars but randomly pick nbcar cars
         if crit[i] == 1
-            push!(removed, sol.sequence[i])
-            deleteat!(sol.sequence, i)
-            update_matrices!(sol, length(sol.sequence), instance)
+            push!(removed, solution.sequence[i])
+            deleteat!(solution.sequence, i)
+            update_matrices!(solution, length(solution.sequence), instance)
             deleteat!(crit, i)
         else
             i = i + 1
         end
     end
-    return sol, removed
+    return solution, removed
 end
 
-#TODO Rendre ça intelligent
+#TODO Need rework
 function greedyadd(solution::Solution, instance::Instance, car::Int)
     i = instance.nb_late_prec_day + 1
     tmp = deepcopy(solution)

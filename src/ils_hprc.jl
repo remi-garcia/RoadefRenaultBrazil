@@ -11,10 +11,10 @@
 #-------------------------------------------------------------------------------
 
 function remove(solution_init::Solution, instance::Instance, nbcar::Int, crit::Array{Int,1})
-    i = instance.nb_late_prec_day+1
-    removed = Array{Int, 1}([])
     solution = deepcopy(solution_init)
-    while i <= instance.nb_cars && length(removed) <= nbcar
+    i = instance.nb_late_prec_day+1
+    removed = Array{Int, 1}()
+    while i <= length(crit) && length(removed) <= nbcar
         #TODO Don't take the first nbcar cars but randomly pick nbcar cars
         if crit[i] == 1
             push!(removed, solution.sequence[i])
@@ -29,18 +29,18 @@ function remove(solution_init::Solution, instance::Instance, nbcar::Int, crit::A
 end
 
 #TODO Need rework
-function greedyadd(solution::Solution, instance::Instance, car::Int)
+function greedy_add(solution::Solution, instance::Instance, car::Int)
     i = instance.nb_late_prec_day + 1
     tmp = deepcopy(solution)
     splice!(tmp.sequence, i:i-1, car)
     update_matrices!(tmp, length(tmp.sequence), instance)
-    bestcost = costHPRC(tmp, instance)
+    bestcost = cost_HPRC(tmp, instance)
     bestsol = deepcopy(tmp)
     deleteat!(tmp.sequence, i)
     for j in i:length(tmp.sequence)
         splice!(tmp.sequence, j:j-1, car)
         update_matrices!(tmp, length(tmp.sequence), instance)
-        ncost = costHPRC(tmp, instance)
+        ncost = cost_HPRC(tmp, instance)
         if ncost < bestcost
             bestcost = ncost
             bestsol = deepcopy(tmp)
@@ -51,23 +51,20 @@ function greedyadd(solution::Solution, instance::Instance, car::Int)
 end
 
 
-function perturbation(solution::Solution, instance::Instance, nbcar::Int, crit::Array{Int,1})
+function perturbation_ils_hprc(solution::Solution, instance::Instance, nbcar::Int, crit::Array{Int,1})
     sol, removed = remove(solution, instance, nbcar, crit)
     for i in removed
-        sol = greedyadd(sol, instance, i)
+        sol = greedy_add(sol, instance, i)
     end
     return sol
 end
 
-# Retourne le coût du premier objectif pour la solution solution
-function costHPRC(solution::Solution, instance::Instance)
-    return cost(solution, instance, 1)[1]
-end
+cost_HPRC(solution::Solution, instance::Instance) = cost(solution, instance, 1)[1]
 
-#TODO changer rendre intelligent
-function localSearchExchange(solution::Solution, instance::Instance)
+#TODO Need rework
+function local_search_exchange_ils_hprc(solution::Solution, instance::Instance)
     while true
-        phi = costHPRC(solution, instance)
+        phi = cost_HPRC(solution, instance)
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
         for i in b0:instance.nb_cars
             best_delta = 0
@@ -86,7 +83,7 @@ function localSearchExchange(solution::Solution, instance::Instance)
                 move_exchange!(solution, i, k, instance)
             end
         end
-        if phi == costHPRC(solution, instance)
+        if phi == cost_HPRC(solution, instance)
             break
         end
     end
@@ -94,10 +91,10 @@ function localSearchExchange(solution::Solution, instance::Instance)
     return solution
 end
 
-#TODO rendre intelligent
-function localSearchInsertion(solution::Solution, instance::Instance)
+#TODO Need rework
+function local_search_insertion_ils_hprc(solution::Solution, instance::Instance)
     while true
-        phi = costHPRC(solution, instance)
+        phi = cost_HPRC(solution, instance)
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
         for i in b0:instance.nb_cars
             best_delta = 0
@@ -117,7 +114,7 @@ function localSearchInsertion(solution::Solution, instance::Instance)
                 move_insertion!(solution, i, k, instance)
             end
         end
-        if phi == costHPRC(solution, instance)
+        if phi == cost_HPRC(solution, instance)
             break
         end
     end
@@ -125,9 +122,9 @@ function localSearchInsertion(solution::Solution, instance::Instance)
     return solution
 end
 
-function fastLocalSearchExchange(solution::Solution, instance::Instance, crit::Array{Int, 1})
+function fast_local_search_exchange_ils_hprc(solution::Solution, instance::Instance, crit::Array{Int, 1})
     while true
-        phi = costHPRC(solution, instance)
+        phi = cost_HPRC(solution, instance)
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
         for i in b0:instance.nb_cars
             if crit[i] == 1
@@ -148,7 +145,7 @@ function fastLocalSearchExchange(solution::Solution, instance::Instance, crit::A
                 end
             end
         end
-        if phi == costHPRC(solution, instance)
+        if phi == cost_HPRC(solution, instance)
             break
         end
     end
@@ -181,15 +178,15 @@ function criticalCars(solution::Solution, instance::Instance)
     return criticars, nb_crit
 end
 
-function intensification(solution::Solution, instance::Instance)
-    solution = localSearchInsertion(solution, instance)
-    solution = localSearchExchange(solution, instance)
+function intensification_ils_hprc(solution::Solution, instance::Instance)
+    solution = local_search_insertion_ils_hprc(solution, instance)
+    solution = local_search_exchange_ils_hprc(solution, instance)
     return solution
 end
 
-function restart(solution::Solution, instance::Instance)
+function restart_ils_hprc(solution::Solution, instance::Instance)
     crit = criticalCars(solution, instance)[1]
-    solution = perturbation(solution, instance, NBCAR_DIVERSIFICATION, crit)
+    solution = perturbation_ils_hprc(solution, instance, NBCAR_DIVERSIFICATION, crit)
     return solution
 end
 
@@ -200,29 +197,29 @@ function ILS_HPRC(solution::Solution, instance::Instance, start_time::UInt)
     s_opt = deepcopy(solution)
     lastopt = deepcopy(solution)
     cond = 0 #TODO
-    while cond < STOPPING_CRITERIA_ILS_HPRC && costHPRC(s_opt, instance) != 0 && (0.9 * TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
+    while cond < STOPPING_CRITERIA_ILS_HPRC && cost_HPRC(s_opt, instance) != 0 && (0.9 * TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
         crit = criticalCars(s, instance)
-        neighbor = perturbation(s, instance, NBCAR_PERTURBATION, crit[1])
+        neighbor = perturbation_ils_hprc(s, instance, NBCAR_PERTURBATION, crit[1])
         crit = criticalCars(neighbor, instance)
         if crit[2] > (instance.nb_cars * 0.6)
-            neighbor = localSearchExchange(neighbor, instance)
+            neighbor = local_search_exchange_ils_hprc(neighbor, instance)
         else
-            neighbor = fastLocalSearchExchange(neighbor, instance, crit[1])
+            neighbor = fast_local_search_exchange_ils_hprc(neighbor, instance, crit[1])
         end
-        if costHPRC(s, instance) <= costHPRC(neighbor, instance)
+        if cost_HPRC(s, instance) <= cost_HPRC(neighbor, instance)
             s = neighbor
         end
         if i == ALPHA_ILS
-            s = intensification(s, instance)
+            s = intensification_ils_hprc(s, instance)
         end
         if i == BETA_ILS
             cond = cond + 1
-            if costHPRC(lastopt, instance) > costHPRC(s_opt, instance)
+            if cost_HPRC(lastopt, instance) > cost_HPRC(s_opt, instance)
                 lastopt = s_opt
                 cond = 0
             end
-            if costHPRC(s, instance) == costHPRC(s_opt, instance) && cond < STOPPING_CRITERIA_ILS_HPRC
-                s = restart(s, instance)
+            if cost_HPRC(s, instance) == cost_HPRC(s_opt, instance) && cond < STOPPING_CRITERIA_ILS_HPRC
+                s = restart_ils_hprc(s, instance)
                 i = 0
             elseif cond < STOPPING_CRITERIA_ILS_HPRC
                 s = s_opt
@@ -231,7 +228,7 @@ function ILS_HPRC(solution::Solution, instance::Instance, start_time::UInt)
                 s = greedy(instance)
             end
         end
-        if costHPRC(s, instance) < costHPRC(s_opt, instance)            # There is an improvement
+        if cost_HPRC(s, instance) < cost_HPRC(s_opt, instance)            # There is an improvement
             s_opt = s
             i = 0                   # So the number of iteration since the last improvement shall return to 0
         else

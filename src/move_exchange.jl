@@ -10,17 +10,17 @@
 #TODO: Need refactoring
 
 """
-    move_exchange!(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance::Instance)
+    move_exchange!(solution::Solution, car_pos_a::Int,
+                   car_pos_b::Int, instance::Instance)
 
 Interverts the car `car_pos_a` with the car `car_pos_b` in `solution.sequence`. Updates
 `solution.M1`, `solution.M2` and `solution.M3`.
 """
-function move_exchange!(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance::Instance)
-
+function move_exchange!(solution::Solution, car_pos_a::Int,
+                        car_pos_b::Int, instance::Instance)
     if car_pos_b < car_pos_a
         return move_exchange!(solution, car_pos_b, car_pos_a, instance)
     end
-
     if car_pos_b == car_pos_a
         return solution
     end
@@ -35,22 +35,23 @@ function move_exchange!(solution::Solution, car_pos_a::Int, car_pos_b::Int, inst
             last_modified_sequence_a = min(car_pos_a, car_pos_b - instance.RC_q[option])
             first_modified_sequence_b = max(car_pos_a+1, car_pos_b - instance.RC_q[option]+1)
 
-            plusminusone = 1
+            plus_minus_one = 1
             if instance.RC_flag[car_a, option]
-                plusminusone = -1
+                plus_minus_one = -1
             end
 
             if first_modified_pos_a < 1
                 first_modified_pos_a = 1
             end
 
-            deltaM2 = 0 ; deltaM3 = 0
+            deltaM2 = 0
+            deltaM3 = 0
             if last_modified_sequence_a > 0
                 deltaM2 = solution.M2[option, last_modified_sequence_a]
                 deltaM3 = solution.M3[option, last_modified_sequence_a]
 
                 for car_pos in first_modified_pos_a:last_modified_sequence_a
-                    solution.M1[option, car_pos] += plusminusone
+                    solution.M1[option, car_pos] += plus_minus_one
                     if car_pos == 1
                         solution.M2[option, car_pos] = 0
                         solution.M3[option, car_pos] = 0
@@ -82,7 +83,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int, car_pos_b::Int, inst
             deltaM3 = solution.M3[option, car_pos_b]
 
             for car_pos in first_modified_sequence_b:car_pos_b
-                solution.M1[option, car_pos] -= plusminusone
+                solution.M1[option, car_pos] -= plus_minus_one
                 #TODO: maybe I should not have remove the ``if( == 1)``
                 solution.M2[option, car_pos] = solution.M2[option, car_pos-1]
                 solution.M3[option, car_pos] = solution.M3[option, car_pos-1]
@@ -175,7 +176,6 @@ function cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
                     else
                         cost_on_objective[1] -= solution.M2[option, car_pos_b]
                     end
-
                 end
             end
         end

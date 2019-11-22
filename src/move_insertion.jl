@@ -44,21 +44,15 @@ end
 
 """
     cost_move_insertion(solution::Solution, car_pos_a::Int,
-                        instance::Instance, objective::Int)
+                        instance::Instance, objectives::Array{Int,1})
 
-Return the cost of the insertion of the car `car_pos_a` before the car
-`car_pos_b` with respect to objective `objective`. A negative cost means that
-the move is interesting with respect to objective `objective`.
-CAREFUL: Return an array of delta!
+Returns the cost of the insertion of the car `car_pos_a` for all valid positions
+with respect to objectives `objectives`. A negative cost means that
+the move is interesting with respect to treated objective.
 """
 function cost_move_insertion(solution::Solution, position::Int,
-                             instance::Instance, objective::Int)
-    #TODO it might be important that objective is a vector of Int, then we could
-    #return a vector of cost.
-
-    # objective should take values between 1 and 3.
-    @assert objective >= 1
-    @assert objective <= 3
+                             instance::Instance, objectives::Array{Int,1})
+    @assert length(objectives) == 3
 
     cost_on_objective = zeros(Int, instance.nb_cars, 3)
     b0 = instance.nb_late_prec_day+1
@@ -73,17 +67,17 @@ function cost_move_insertion(solution::Solution, position::Int,
     sequence = copy(solution.sequence)
     deleteat!(sequence, position)
     M1 = copy(solution.M1)
-    #car = solution.sequence[position]
 
     #violations_caused_on_X removing the car will cause a variation on number of violations
-    # objective >= 1 #Must improve or keep HPRC
-    M1, violations_caused_on_first = update_lines_remove!(
-        solution, instance, # instance
-        M1, position, # calcul
-        1, instance.nb_HPRC # lines modified
-    )
+    if objectives[1] == 1
+        M1, violations_caused_on_first = update_lines_remove!(
+            solution, instance, # instance
+            M1, position, # calcul
+            1, instance.nb_HPRC # lines modified
+        )
+    end
 
-    if objective >= 2 #Must improve or keep HPRC
+    if objectives[2] == 1
         M1, violations_caused_on_second = update_lines_remove!(
             solution, instance, # instance
             M1, position, # calcul
@@ -93,36 +87,41 @@ function cost_move_insertion(solution::Solution, position::Int,
 
         #---------------------------------------------------------- Cost of insertion
 
-    # objective >= 1 #Must improve or keep HPRC
+    # Cost on HPRC
+    if objectives[1] == 1
+        #What about insertion at b0 (first place available)
+        delta2_for_first[b0] = compute_delta2_for_b0(
+            solution, instance, # instance
+            M1, sequence, position, # calcul
+            1, instance.nb_HPRC # for options
+        )
+        delta1_for_first[b0] = compute_delta1(
+            solution, instance, # instance
+            M1, sequence, b0, position, # calcul
+            1, instance.nb_HPRC # for options
+        )
 
-    #What about insertion at b0 (first place available)
-    delta2_for_first[b0] = compute_delta2_for_b0(
-        solution, instance, # instance
-        M1, sequence, position, # calcul
-        1, instance.nb_HPRC # for options
-    )
-    delta1_for_first[b0] = compute_delta1(
-        solution, instance, # instance
-        M1, sequence, b0, position, # calcul
-        1, instance.nb_HPRC # for options
-    )
-
-    # for all other valid positions
-    for index in (b0+1):(instance.nb_cars)
-        # Delta 1 is compute as for b0
-        delta1_for_first[index] = compute_delta1(solution, instance,
-                                                 M1, sequence, index, position,
-                                                 1, instance.nb_HPRC)
+        # for all other valid positions
+        for index in (b0+1):(instance.nb_cars)
+            # Delta 1 is compute as for b0
+            delta1_for_first[index] = compute_delta1(solution, instance,
+                                                     M1, sequence, index, position,
+                                                     1, instance.nb_HPRC)
+        end
+        for index in (b0+1):(instance.nb_cars)
+            delta2_for_first = compute_delta2(solution, instance,
+                                              M1, sequence, index, position,
+                                              1, instance.nb_HPRC,
+                                              delta2_for_first)
+        end
+        # The cost is variation of deletion + delta1 (new sequence) + delta2 (modified sequences)
+        for i in b0:(instance.nb_cars)
+            cost_on_objective[i, 1] = delta1_for_first[i] + delta2_for_first[i] + violations_caused_on_first
+        end
     end
-    for index in (b0+1):(instance.nb_cars)
-        delta2_for_first = compute_delta2(solution, instance,
-                                          M1, sequence, index, position,
-                                          1, instance.nb_HPRC,
-                                          delta2_for_first)
-    end
 
-    # Same for seconde objective
-    if objective >= 2
+    # Cost on LPRC
+    if objectives[2] == 1
         delta2_for_second[b0] = compute_delta2_for_b0(
             solution, instance,
             M1, sequence, position,
@@ -146,18 +145,15 @@ function cost_move_insertion(solution::Solution, position::Int,
                 (instance.nb_HPRC+1), (instance.nb_HPRC+instance.nb_LPRC),
                 delta2_for_second)
         end
-    end
 
-    # The cost is variation of deletion + delta1 (new sequence) + delta2 (modified sequences)
-    for i in b0:(instance.nb_cars)
-        cost_on_objective[i, 1] = delta1_for_first[i] + delta2_for_first[i] + violations_caused_on_first
-        if objective >= 2
+        # The cost is variation of deletion + delta1 (new sequence) + delta2 (modified sequences)
+        for i in b0:(instance.nb_cars)
             cost_on_objective[i, 2] = delta1_for_second[i] + delta2_for_second[i] + violations_caused_on_second
         end
     end
 
-    # Cost on obective PCC
-    if objective >= 3
+    # Cost on PCC
+    if objectives[3] == 1
         for index in b0:instance.nb_cars
             car = solution.sequence[position]
 
@@ -200,6 +196,17 @@ function cost_move_insertion(solution::Solution, position::Int,
 
     return cost_on_objective
 end
+
+"""
+    cost_move_insertion(solution::Solution, car_pos_a::Int,
+                        instance::Instance, objective::Int)
+
+Returns the cost of the insertion of the car `car_pos_a` for all valid positions
+with respect to objectives 1 to `objective`. A negative cost means that the move
+is interesting with respect to treated objective.
+"""
+cost_move_insertion(solution::Solution, position::Int, instance::Instance, objective::Int) =
+    cost_move_insertion(solution, position, instance, [ones(Int, objective) ; zeros(Int, 3-objective)])
 
 
         #-------------------------------------------------------#

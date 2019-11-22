@@ -111,11 +111,11 @@ end
 
 """
     cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
-                       instance::Instance, objective::Int)
+                       instance::Instance, objectives::Array{Int,1})
 
-Return the cost of the exchange of the car `car_pos_a` with the car `car_pos_b` with respect to
-objective `objective`. A negative cost means that the move is interesting with
-respect to objective `objective`.
+Returns the cost of the exchange of the car `car_pos_a` with the car `car_pos_b` with
+respect to objective `objectives`. A negative cost means that the move is interesting
+with respect to objective `objectives`.
 """
 function cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
                             instance::Instance, objectives::Array{Int,1})
@@ -182,6 +182,24 @@ function cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
 end
 
 """
+    cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
+                       instance::Instance, objective::Int)
+
+Returns the cost of the exchange of the car `car_pos_a` with the car `car_pos_b` with
+respect to objectives 1 to `objective`. A negative cost means that the move is
+interesting with respect to objective 1 to `objective`.
+"""
+cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance::Instance, objective::Int) =
+    cost_move_exchange(solution, car_pos_a, car_pos_b, instance, [ones(Int, objective) ; zeros(Int, 3-objective)])
+
+
+            #-------------------------------------------------------#
+            #                                                       #
+            #                   Factorization                       #
+            #                                                       #
+            #-------------------------------------------------------#
+
+"""
     compute_delta_exchange(solution::Solution, instance::Instance,
                            car_pos_a::Int, car_pos_b::Int,
                            first_line::Int, last_line::Int)
@@ -232,14 +250,3 @@ function compute_delta_exchange(solution::Solution, instance::Instance,
     end
     return variation
 end
-
-"""
-    cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
-                       instance::Instance, objective::Int)
-
-Return the cost of the exchange of the car `car_pos_a` with the car `car_pos_b` with respect to
-objectives 1 to `objective`. A negative cost means that the move is interesting with
-respect to objective 1 to `objective`.
-"""
-cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance::Instance, objective::Int) =
-    cost_move_exchange(solution, car_pos_a, car_pos_b, instance, [ones(Int, objective) ; zeros(Int, 3-objective)])

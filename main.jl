@@ -40,20 +40,24 @@ function main()
             # Greedy
             solution = RRB.greedy(instance)
             println("Initial solution created...")
-            RRB.print_cost(solution, instance)
+            costs[1,:] = RRB.cost(solution, instance, 3)
 
-            # solution = RRB.ILS_HPRC(solution, instance)
-            # println("Solution improved with ILS_HPRC")
-            # RRB.print_cost(solution, instance)
+            solution = RRB.ILS_HPRC(solution, instance,  start_time)
+            println("Solution improved with ILS_HPRC")
+            costs[2,:] = RRB.cost(solution, instance, 3)
 
             solution = RRB.VNS_LPRC(solution, instance, start_time)
             println("Solution improved with VNS_LPRC")
-            RRB.print_cost(solution, instance)
+            costs[3,:] = RRB.cost(solution, instance, 3)
 
-            # solution = RRB.VNS_PCC(solution, instance, start_time)
-            # println("Solution improved with VNS_PCC")
-            # RRB.print_cost(solution, instance)
+            #solution = RRB.VNS_PCC(solution, instance, start_time)
+            #println("Solution improved with VNS_PCC")
+            #costs[4,:] = RRB.cost(solution, instance, 3)
 
+            println("\tGr. \tILS \tVNS_lp\tVNS_pc")
+            println("HP \t", costs[1,1] ,"\t", costs[2,1] ,"\t", costs[3,1] ,"\t", costs[4,1])
+            println("LP \t", costs[1,2] ,"\t", costs[2,2] ,"\t", costs[3,2] ,"\t", costs[4,2])
+            println("PCC \t", costs[1,3] ,"\t", costs[2,3] ,"\t", costs[3,3] ,"\t", costs[4,3])
             println()
             println()
         end

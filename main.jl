@@ -23,7 +23,7 @@ import RoadefRenaultBrazil
 const RRB = RoadefRenaultBrazil
 
 function main()
-    type = ["A", "B"]
+    type = ["A", "B", "X"]
 
     # Instance and initiale solution
     for instance_type in type#["A", "B", "X"]
@@ -43,7 +43,7 @@ function main()
             RRB.print_cost(solution, instance)
 
             # ILS-HPRC
-            solution = RRB.ILS_HPRC(solution, instance)
+            solution = RRB.ILS_HPRC(solution, instance, start_time)
             println("Solution improved with ILS_HPRC")
             RRB.print_cost(solution, instance)
 
@@ -53,7 +53,7 @@ function main()
             RRB.print_cost(solution, instance)
 
             # VNS-PCC
-            solution = RRB.VNS_PCC(solution, instance, start_time)
+            #solution = RRB.VNS_PCC(solution, instance, start_time)
             println("Solution improved with VNS_PCC")
             RRB.print_cost(solution, instance)
 

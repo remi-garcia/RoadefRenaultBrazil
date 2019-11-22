@@ -30,15 +30,15 @@ end
 
 #TODO Need rework
 function greedy_add(solution::Solution, instance::Instance, car::Int)
-    i = instance.nb_late_prec_day + 1
+    b0 = instance.nb_late_prec_day + 1
     tmp = deepcopy(solution)
-    splice!(tmp.sequence, i:i-1, car)
+    insert!(tmp.sequence, b0, car)
     update_matrices!(tmp, length(tmp.sequence), instance)
     bestcost = cost_HPRC(tmp, instance)
     bestsol = deepcopy(tmp)
-    deleteat!(tmp.sequence, i)
-    for j in i:length(tmp.sequence)
-        splice!(tmp.sequence, j:j-1, car)
+    deleteat!(tmp.sequence, b0)
+    for j in b0:length(tmp.sequence)
+        insert!(tmp.sequence, j, car)
         update_matrices!(tmp, length(tmp.sequence), instance)
         ncost = cost_HPRC(tmp, instance)
         if ncost < bestcost
@@ -67,15 +67,18 @@ function local_search_exchange_ils_hprc(solution::Solution, instance::Instance)
         phi = cost_HPRC(solution, instance)
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
         for i in b0:instance.nb_cars
+            hprc_current_car = HPRC_value(i, instance)
             best_delta = 0
             L = []
             for j in b0:instance.nb_cars
-                delta = cost_move_exchange(solution, i, j, instance,1)[1]
-                if delta < best_delta
-                    L = [j]
-                    best_delta = delta
-                elseif delta == best_delta
-                    push!(L, j)
+                if hprc_current_car != HPRC_value(j, instance)
+                    delta = cost_move_exchange(solution, i, j, instance,1)[1]
+                    if delta < best_delta
+                        L = [j]
+                        best_delta = delta
+                    elseif delta == best_delta
+                        push!(L, j)
+                    end
                 end
             end
             if L != []
@@ -91,7 +94,6 @@ function local_search_exchange_ils_hprc(solution::Solution, instance::Instance)
     return solution
 end
 
-#TODO Need rework
 function local_search_insertion_ils_hprc(solution::Solution, instance::Instance)
     while true
         phi = cost_HPRC(solution, instance)
@@ -128,15 +130,18 @@ function fast_local_search_exchange_ils_hprc(solution::Solution, instance::Insta
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
         for i in b0:instance.nb_cars
             if crit[i] == 1
+                hprc_current_car = HPRC_value(i, instance)
                 best_delta = 0
                 L = []
                 for j in b0:instance.nb_cars
-                    delta = cost_move_exchange(solution, i, j, instance, 1)[1]
-                    if delta < best_delta
-                        L = [j]
-                        best_delta = delta
-                    elseif delta == best_delta
-                        push!(L, j)
+                    if hprc_current_car != HPRC_value(j, instance)
+                        delta = cost_move_exchange(solution, i, j, instance, 1)[1]
+                        if delta < best_delta
+                            L = [j]
+                            best_delta = delta
+                        elseif delta == best_delta
+                            push!(L, j)
+                        end
                     end
                 end
                 if L != []
@@ -193,6 +198,7 @@ end
 
 function ILS_HPRC(solution::Solution, instance::Instance, start_time::UInt)
     i = 0                               # Number of itération since the last improvement
+    nb_strong_perturbation = 0                      # Number of restart done for a solution
     s = deepcopy(solution)
     s_opt = deepcopy(solution)
     lastopt = deepcopy(solution)
@@ -218,14 +224,19 @@ function ILS_HPRC(solution::Solution, instance::Instance, start_time::UInt)
                 lastopt = s_opt
                 cond = 0
             end
-            if cost_HPRC(s, instance) == cost_HPRC(s_opt, instance) && cond < STOPPING_CRITERIA_ILS_HPRC
-                s = restart_ils_hprc(s, instance)
-                i = 0
-            elseif cond < STOPPING_CRITERIA_ILS_HPRC
-                s = s_opt
+            if cost_HPRC(s, instance) > cost_HPRC(s_opt, instance)
+                s = s_opt                   # Restart from s*
                 i = 0
             else
-                s = greedy(instance)
+                if nb_strong_perturbation < 3
+                    s = restart_ils_hprc(s, instance)       # Restart from strong perturbation (50 cars)
+                    nb_strong_perturbation = nb_strong_perturbation + 1
+                    i = 0
+                else
+                    s = greedy(instance)                    # Regenerate an initial solution and restart
+                    nb_strong_perturbation = 0
+                    i = 0
+                end
             end
         end
         if cost_HPRC(s, instance) < cost_HPRC(s_opt, instance)            # There is an improvement

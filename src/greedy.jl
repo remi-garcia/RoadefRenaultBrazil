@@ -8,11 +8,13 @@
 #-------------------------------------------------------------------------------
 
 """
-    filter_on_max_criterion(candidates::Array{Int64,1}, criterion::Union{Array{Int64,1},Array{Float64,1}})
+    filter_on_max_criterion(candidates::Array{Int64,1},
+                            criterion::Union{Array{Int64,1},Array{Float64,1}})
 
 Takes a set of candidates and removes all elements with bad criterion.
 """
-function filter_on_max_criterion(candidates::Array{Int64,1}, criterion::Union{Array{Int64,1},Array{Float64,1}})
+function filter_on_max_criterion(candidates::Array{Int64,1},
+                                 criterion::Union{Array{Int64,1},Array{Float64,1}})
     tmp_candidates = [candidates[1]]
     max_criterion = criterion[1]
     for i in 2:length(criterion)
@@ -28,11 +30,13 @@ function filter_on_max_criterion(candidates::Array{Int64,1}, criterion::Union{Ar
 end
 
 """
-    filter_on_min_criterion(candidates::Array{Int64,1}, criterion::Array{Int64,1})
+    filter_on_min_criterion(candidates::Array{Int64,1},
+                            criterion::Array{Int64,1})
 
 Takes a set of candidates and removes all elements with bad criterion.
 """
-function filter_on_min_criterion(candidates::Array{Int64,1}, criterion::Array{Int64,1})
+function filter_on_min_criterion(candidates::Array{Int64,1},
+                                 criterion::Array{Int64,1})
     tmp_candidates = [candidates[1]]
     min_criterion = criterion[1]
     for i in 2:length(criterion)

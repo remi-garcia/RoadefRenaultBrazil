@@ -8,11 +8,13 @@
 
 
 """
-    move_insertion!(solution::Solution, old_index::Int, new_index::Int, instance::Instance)
+    move_insertion!(solution::Solution, old_index::Int,
+                    new_index::Int, instance::Instance)
 
 Replaces car at `old_index` at `new_index` and updates the solution's matrices.
 """
-function move_insertion!(solution::Solution, old_index::Int, new_index::Int, instance::Instance)
+function move_insertion!(solution::Solution, old_index::Int,
+                         new_index::Int, instance::Instance)
 
     #Update sequence
     # car = solution.sequence[old_index]
@@ -40,15 +42,13 @@ function move_insertion!(solution::Solution, old_index::Int, new_index::Int, ins
     return solution
 end
 
-
-
 """
     cost_move_insertion(solution::Solution, car_pos_a::Int,
                         instance::Instance, objective::Int)
 
-Return the cost of the insertion of the car `car_pos_a` before the car `car_pos_b` with respect
-to objective `objective`. A negative cost means that the move is interesting
-with respect to objective `objective`.
+Return the cost of the insertion of the car `car_pos_a` before the car
+`car_pos_b` with respect to objective `objective`. A negative cost means that
+the move is interesting with respect to objective `objective`.
 CAREFUL: Return an array of delta!
 """
 function cost_move_insertion(solution::Solution, position::Int,
@@ -63,8 +63,10 @@ function cost_move_insertion(solution::Solution, position::Int,
     cost_on_objective = zeros(Int, instance.nb_cars, 3)
     b0 = instance.nb_late_prec_day+1
 
-    delta1_for_First = zeros(Int,instance.nb_cars) ; delta1_for_Second = zeros(Int,instance.nb_cars)
-    delta2_for_First = zeros(Int,instance.nb_cars) ; delta2_for_Second = zeros(Int,instance.nb_cars)
+    delta1_for_first = zeros(Int, instance.nb_cars)
+    delta1_for_second = zeros(Int, instance.nb_cars)
+    delta2_for_first = zeros(Int, instance.nb_cars)
+    delta2_for_second = zeros(Int, instance.nb_cars)
 
         #---------------------------------------------------------- Initialization of M1
 
@@ -75,14 +77,14 @@ function cost_move_insertion(solution::Solution, position::Int,
 
     #violations_caused_on_X removing the car will cause a variation on number of violations
     # objective >= 1 #Must improve or keep HPRC
-    M1, violations_caused_on_First = update_lines_remove!(
+    M1, violations_caused_on_first = update_lines_remove!(
         solution, instance, # instance
         M1, position, # calcul
         1, instance.nb_HPRC # lines modified
     )
 
     if objective >= 2 #Must improve or keep HPRC
-        M1, violations_caused_on_Second = update_lines_remove!(
+        M1, violations_caused_on_second = update_lines_remove!(
             solution, instance, # instance
             M1, position, # calcul
             instance.nb_HPRC+1, instance.nb_HPRC+instance.nb_LPRC # lines modified
@@ -94,12 +96,12 @@ function cost_move_insertion(solution::Solution, position::Int,
     # objective >= 1 #Must improve or keep HPRC
 
     #What about insertion at b0 (first place available)
-    delta2_for_First[b0] = compute_delta2_for_b0(
+    delta2_for_first[b0] = compute_delta2_for_b0(
         solution, instance, # instance
         M1, sequence, position, # calcul
         1, instance.nb_HPRC # for options
     )
-    delta1_for_First[b0] = compute_delta1(
+    delta1_for_first[b0] = compute_delta1(
         solution, instance, # instance
         M1, sequence, b0, position, # calcul
         1, instance.nb_HPRC # for options
@@ -108,63 +110,92 @@ function cost_move_insertion(solution::Solution, position::Int,
     # for all other valid positions
     for index in (b0+1):(instance.nb_cars)
         # Delta 1 is compute as for b0
-        delta1_for_First[index] = compute_delta1(
-            solution, instance, # instance
-            M1, sequence, index, position, # calcul
-            1, instance.nb_HPRC # for options
-        )
+        delta1_for_first[index] = compute_delta1(solution, instance,
+                                                 M1, sequence, index, position,
+                                                 1, instance.nb_HPRC)
     end
     for index in (b0+1):(instance.nb_cars)
-        delta2_for_First = compute_delta2(
-            solution, instance, # instance
-            M1, sequence, index, position, # calcul
-            1, instance.nb_HPRC, # lines modified
-            delta2_for_First
-        )
+        delta2_for_first = compute_delta2(solution, instance,
+                                          M1, sequence, index, position,
+                                          1, instance.nb_HPRC,
+                                          delta2_for_first)
     end
 
     # Same for seconde objective
     if objective >= 2
-        delta2_for_Second[b0] = compute_delta2_for_b0(
-            solution, instance, # instance
-            M1, sequence, position, # calcul
-            instance.nb_HPRC+1, instance.nb_HPRC+instance.nb_LPRC  # for options
-        )
-        delta1_for_Second[b0] = compute_delta1(
-            solution, instance, # instance
-            M1, sequence, b0, position, # calcul
-            instance.nb_HPRC+1, instance.nb_HPRC+instance.nb_LPRC  # for options
-        )
-
+        delta2_for_second[b0] = compute_delta2_for_b0(
+            solution, instance,
+            M1, sequence, position,
+            instance.nb_HPRC+1,
+            instance.nb_HPRC+instance.nb_LPRC)
+        delta1_for_second[b0] = compute_delta1(
+            solution, instance,
+            M1, sequence, b0, position,
+            instance.nb_HPRC+1, instance.nb_HPRC+instance.nb_LPRC)
         for index in (b0+1):instance.nb_cars
             # Delta 1 is compute as for b0
-            delta1_for_Second[index] = compute_delta1(
-                solution, instance, # instance
-                M1, sequence, index, position, # calcul
-                instance.nb_HPRC+1, instance.nb_HPRC+instance.nb_LPRC # for options
-            )
+            delta1_for_second[index] = compute_delta1(
+                solution, instance,
+                M1, sequence, index, position,
+                instance.nb_HPRC+1, instance.nb_HPRC+instance.nb_LPRC)
         end
         for index in (b0+1):(instance.nb_cars)
-            delta2_for_Second = compute_delta2(
-                solution, instance, # instance
-                M1, sequence, index, position, # calcul
-                (instance.nb_HPRC+1), (instance.nb_HPRC+instance.nb_LPRC), # lines modified
-                delta2_for_Second
-            )
+            delta2_for_second = compute_delta2(
+                solution, instance,
+                M1, sequence, index, position,
+                (instance.nb_HPRC+1), (instance.nb_HPRC+instance.nb_LPRC),
+                delta2_for_second)
         end
     end
 
     # The cost is variation of deletion + delta1 (new sequence) + delta2 (modified sequences)
     for i in b0:(instance.nb_cars)
-        cost_on_objective[i, 1] = delta1_for_First[i] + delta2_for_First[i] + violations_caused_on_First
+        cost_on_objective[i, 1] = delta1_for_first[i] + delta2_for_first[i] + violations_caused_on_first
         if objective >= 2
-            cost_on_objective[i, 2] = delta1_for_Second[i] + delta2_for_Second[i] + violations_caused_on_Second
+            cost_on_objective[i, 2] = delta1_for_second[i] + delta2_for_second[i] + violations_caused_on_second
         end
     end
 
     # Cost on obective PCC
     if objective >= 3
-        #TODO
+        for index in b0:instance.nb_cars
+            car = solution.sequence[position]
+
+            # Due to deletion
+            if position > 1
+                if instance.color_code[car] != instance.color_code[solution.sequence[position-1]]
+                    cost_on_objective[index, 3] -= 1
+                end
+
+                if position < instance.nb_cars
+                    if instance.color_code[solution.sequence[position-1]] != instance.color_code[solution.sequence[position+1]]
+                        cost_on_objective[index, 3] += 1
+                    end
+                end
+            end
+            if position < instance.nb_cars
+                if instance.color_code[car] != instance.color_code[solution.sequence[position+1]]
+                    cost_on_objective[index, 3] -= 1
+                end
+            end
+
+            # Due to insertion
+            if index > 1 && index < instance.nb_cars
+                if instance.color_code[sequence[index-1]] != instance.color_code[sequence[index]]
+                    cost_on_objective[index, 3] -= 1
+                end
+            end
+            if index > 1
+                if instance.color_code[sequence[index-1]] != instance.color_code[car]
+                    cost_on_objective[index, 3] += 1
+                end
+            end
+            if index < instance.nb_cars
+                if instance.color_code[sequence[index]] != instance.color_code[car]
+                    cost_on_objective[index, 3] += 1
+                end
+            end
+        end
     end
 
     return cost_on_objective
@@ -179,19 +210,15 @@ end
 
 
 """
-        update_lines_cost_move_insert!(
-                        solution::Solution, instance::Instance, # instance
-                        M1::Array{Int,2}, n::Int, car_pos_a::Int, cost_on_objective::Array{Int,2}, # calcul
-                        first_line::Int, last_line::Int # lines modified
-                    )
+    update_lines_remove!(solution::Solution, instance::Instance,
+                         M1::Array{Int,2}, car_pos_a::Int,
+                         first_line::Int, last_line::Int)
 
 For factorization
 """
-function update_lines_remove!(
-                        solution::Solution, instance::Instance, # instance
-                        M1::Array{Int,2}, car_pos_a::Int, # calcul
-                        first_line::Int, last_line::Int # lines modified
-                    )
+function update_lines_remove!(solution::Solution, instance::Instance,
+                              M1::Array{Int,2}, car_pos_a::Int,
+                              first_line::Int, last_line::Int)
 
     violations_caused = 0 # Removing car_pos_a will change the number of violations.
     due_to_sequence_removed = 0
@@ -246,19 +273,15 @@ end
 
 
 """
-        compute_delta2_for_b0(
-                        solution::Solution, instance::Instance, # instance
-                        M1::Array{Int,2}, sequence::Array{Int,1}, car_pos_a::Int, # calcul
-                        first_line::Int, last_line::Int # lines modified
-                    )
+    compute_delta2_for_b0(solution::Solution, instance::Instance,
+                          M1::Array{Int,2}, sequence::Array{Int,1},
+                          car_pos_a::Int, first_line::Int, last_line::Int)
 
 For factorization
 """
-function compute_delta2_for_b0(
-                        solution::Solution, instance::Instance, # instance
-                        M1::Array{Int,2}, sequence::Array{Int,1}, car_pos_a::Int, # calcul
-                        first_line::Int, last_line::Int # lines modified
-                    )
+function compute_delta2_for_b0(solution::Solution, instance::Instance,
+                               M1::Array{Int,2}, sequence::Array{Int,1},
+                               car_pos_a::Int, first_line::Int, last_line::Int)
 
     b0 = instance.nb_late_prec_day+1
     delta2 = 0
@@ -301,19 +324,15 @@ end
 
 
 """
-        compute_delta1(
-                        solution::Solution, instance::Instance, # instance
-                        M1::Array{Int,2}, sequence::Array{Int,1}, cursor::Int, car_pos_a::Int, # calcul
-                        first_line::Int, last_line::Int # lines modified
-                    )
+    compute_delta1(solution::Solution, instance::Instance,
+                   M1::Array{Int,2}, sequence::Array{Int,1}, cursor::Int,
+                   car_pos_a::Int, first_line::Int, last_line::Int)
 
 For factorization
 """
-function compute_delta1(
-                        solution::Solution, instance::Instance, # instance
-                        M1::Array{Int,2}, sequence::Array{Int,1}, cursor::Int, car_pos_a::Int, # calcul
-                        first_line::Int, last_line::Int # lines modified
-                    )
+function compute_delta1(solution::Solution, instance::Instance,
+                        M1::Array{Int,2}, sequence::Array{Int,1}, cursor::Int,
+                        car_pos_a::Int, first_line::Int, last_line::Int)
 
     delta1 = 0
     for option in first_line:last_line
@@ -341,23 +360,18 @@ end
 
 
 """
-        compute_delta2(
-                        solution::Solution, instance::Instance, # instance
-                        M1::Array{Int,2}, sequence::Array{Int,1}, index::Int, car_pos_a::Int, # calcul
-                        first_line::Int, last_line::Int, # lines modified
-                        delta2_for_objective
-                    )
+    compute_delta2(solution::Solution, instance::Instance,
+                   M1::Array{Int,2}, sequence::Array{Int,1}, index::Int,
+                   car_pos_a::Int, first_line::Int, last_line::Int,
+                   delta2_for_objective)
 
 For factorization
 """
-function compute_delta2(
-            solution::Solution, instance::Instance, # instance
-            M1::Array{Int,2}, sequence::Array{Int,1}, index::Int, car_pos_a::Int, # calcul
-            first_line::Int, last_line::Int, # lines modified
-            delta2_for_objective
-        )
-
-    #TODO: How to treat this case?
+function compute_delta2(solution::Solution, instance::Instance,
+                        M1::Array{Int,2}, sequence::Array{Int,1}, index::Int,
+                        car_pos_a::Int, first_line::Int, last_line::Int,
+                        delta2_for_objective)
+    #TODO: How to handle this case?
     if index == instance.nb_cars
         C_insert = solution.sequence[car_pos_a]
         for option in first_line:last_line

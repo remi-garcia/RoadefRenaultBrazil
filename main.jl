@@ -50,9 +50,9 @@ function main()
             println("Solution improved with VNS_LPRC")
             RRB.print_cost(solution, instance)
 
-            solution = RRB.VNS_PCC(solution, instance, start_time)
-            println("Solution improved with VNS_PCC")
-            RRB.print_cost(solution, instance)
+            # solution = RRB.VNS_PCC(solution, instance, start_time)
+            # println("Solution improved with VNS_PCC")
+            # RRB.print_cost(solution, instance)
 
             println()
             println()

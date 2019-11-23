@@ -88,19 +88,20 @@ function local_search_exchange_ils_hprc(solution::Solution, instance::Instance)
         for i in b0:instance.nb_cars
             hprc_current_car = HPRC_value(i, instance)
             best_delta = 0
-            L = []
+            L = Array{Int,1}(undef,0)
             for j in b0:instance.nb_cars
                 if hprc_current_car != HPRC_value(j, instance)
                     delta = cost_move_exchange(solution, i, j, instance,1)[1]
                     if delta < best_delta
-                        L = [j]
+                        empty!(L)
+                        push!(L, j)
                         best_delta = delta
                     elseif delta == best_delta
                         push!(L, j)
                     end
                 end
             end
-            if L != []
+            if !isempty(L)
                 k = rand(L)
                 move_exchange!(solution, i, k, instance)
             end
@@ -124,18 +125,19 @@ function local_search_insertion_ils_hprc(solution::Solution, instance::Instance)
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
         for i in b0:instance.nb_cars
             best_delta = 0
-            L = []
+            L = Array{Int,1}(undef,0)
             couts = cost_move_insertion(solution,i,instance,1)
             for j in b0:instance.nb_cars
                 delta = couts[j, 1]
                 if delta < best_delta
-                    L = [j]
+                    empty!(L)
+                    push!(L, j)
                     best_delta = delta
                 elseif delta == best_delta
                     push!(L, j)
                 end
             end
-            if L != []
+            if !isempty(L)
                 k = rand(L)
                 move_insertion!(solution, i, k, instance)
             end
@@ -162,19 +164,20 @@ function fast_local_search_exchange_ils_hprc(solution::Solution, instance::Insta
             if crit[i] == 1
                 hprc_current_car = HPRC_value(i, instance)
                 best_delta = 0
-                L = []
+                L = Array{Int,1}(undef,0)
                 for j in b0:instance.nb_cars
                     if hprc_current_car != HPRC_value(j, instance)
                         delta = cost_move_exchange(solution, i, j, instance, 1)[1]
                         if delta < best_delta
-                            L = [j]
+                            empty!(L)
+                            push!(L, j)
                             best_delta = delta
                         elseif delta == best_delta
                             push!(L, j)
                         end
                     end
                 end
-                if L != []
+                if !isempty(L)
                     k = rand(L)
                     move_exchange!(solution, i, k, instance)
                 end

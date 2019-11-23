@@ -11,7 +11,7 @@ include("move_insertion.jl")
 include("move_exchange.jl")
 
 """
-    cost(solution::Solution, instance::Instance, objectives::Array{Int,1})
+    cost(solution::Solution, instance::Instance, objectives::BitArray{1})
 
 Returns the (partial) set of objective values (without weights) of `solution`.
 """

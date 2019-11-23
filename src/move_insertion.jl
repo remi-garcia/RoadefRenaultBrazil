@@ -44,7 +44,7 @@ end
 
 """
     cost_move_insertion(solution::Solution, car_pos_a::Int,
-                        instance::Instance, objectives::Array{Int,1})
+                        instance::Instance, objectives::BitArray{1})
 
 Returns the cost of the insertion of the car `car_pos_a` for all valid positions
 with respect to objectives `objectives`. A negative cost means that

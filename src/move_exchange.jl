@@ -111,7 +111,7 @@ end
 
 """
     cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
-                       instance::Instance, objectives::Array{Int,1})
+                       instance::Instance, objectives::BitArray{1})
 
 Returns the cost of the exchange of the car `car_pos_a` with the car `car_pos_b` with
 respect to objective `objectives`. A negative cost means that the move is interesting

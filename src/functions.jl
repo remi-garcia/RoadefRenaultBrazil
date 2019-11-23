@@ -11,20 +11,23 @@ include("move_insertion.jl")
 include("move_exchange.jl")
 
 """
-    cost(solution::Solution, instance::Instance, objective::Int)
+    cost(solution::Solution, instance::Instance, objectives::BitArray{1})
 
 Returns the (partial) set of objective values (without weights) of `solution`.
 """
-function cost(solution::Solution, instance::Instance, objective::Int)
+function cost(solution::Solution, instance::Instance, objectives::BitArray{1})
+    @assert length(objectives) == 3
     cost_on_objective = zeros(Int, 3)
 
-    for car in 1:instance.nb_cars
-        for option in 1:instance.nb_HPRC
-            cost_on_objective[1] += max(0 , solution.M1[option, car] - instance.RC_p[option])
+    if objectives[1]
+        for car in 1:instance.nb_cars
+            for option in 1:instance.nb_HPRC
+                cost_on_objective[1] += max(0 , solution.M1[option, car] - instance.RC_p[option])
+            end
         end
     end
 
-    if objective >= 2 #Must improve or keep HPRC and LPRC
+    if objectives[2]
         for car in 1:instance.nb_cars
             for option in (instance.nb_HPRC+1):(instance.nb_HPRC+instance.nb_LPRC)
                 cost_on_objective[2] += max(0 , solution.M1[option, car] - instance.RC_p[option])
@@ -32,7 +35,7 @@ function cost(solution::Solution, instance::Instance, objective::Int)
         end
     end
 
-    if objective >= 3 #Must improve or keep HPRC and LPRC and PCC
+    if objectives[3]
         for i in 2:instance.nb_cars
             if instance.color_code[solution.sequence[i]] != instance.color_code[solution.sequence[i-1]]
                 cost_on_objective[3] += 1
@@ -42,6 +45,14 @@ function cost(solution::Solution, instance::Instance, objective::Int)
 
     return cost_on_objective
 end
+
+"""
+    cost(solution::Solution, instance::Instance, objective::Int)
+
+Returns the set of unweighted values for objectives 1 to `objective` of `solution`.
+"""
+cost(solution::Solution, instance::Instance, objective::Int) =
+    cost(solution::Solution, instance::Instance, [trues(objective) ; falses(3-objective)])
 
 """
     weighted_sum(cost_solution::Array{Int, 1})

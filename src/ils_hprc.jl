@@ -10,6 +10,11 @@
 #         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
 #-------------------------------------------------------------------------------
 
+"""
+    remove(solution_init::Solution, instance::Instance, nbcar::Int, crit::Array{Int,1})
+
+Removes `nbcar` cars of the sequence of `solution_init`. Cars must be tagged in `crit`.
+"""
 function remove(solution_init::Solution, instance::Instance, nbcar::Int, crit::Array{Int,1})
     solution = deepcopy(solution_init)
     i = instance.nb_late_prec_day+1
@@ -28,6 +33,11 @@ function remove(solution_init::Solution, instance::Instance, nbcar::Int, crit::A
     return solution, removed
 end
 
+"""
+    greedy_add(solution::Solution, instance::Instance, car::Int)
+
+Inserts `car` in the sequence of `solution`.
+"""
 #TODO Need rework
 function greedy_add(solution::Solution, instance::Instance, car::Int)
     b0 = instance.nb_late_prec_day + 1
@@ -50,7 +60,11 @@ function greedy_add(solution::Solution, instance::Instance, car::Int)
     return bestsol
 end
 
+"""
+    perturbation_ils_hprc(solution::Solution, instance::Instance, nbcar::Int, crit::Array{Int,1})
 
+Removes `nbcars` of `solution` and inserts them elsewhere in the sequence.
+"""
 function perturbation_ils_hprc(solution::Solution, instance::Instance, nbcar::Int, crit::Array{Int,1})
     sol, removed = remove(solution, instance, nbcar, crit)
     for i in removed
@@ -61,6 +75,11 @@ end
 
 cost_HPRC(solution::Solution, instance::Instance) = cost(solution, instance, 1)[1]
 
+"""
+    local_search_exchange_ils_hprc(solution::Solution, instance::Instance)
+
+Performs a local search on `solution` using only exchange moves with respect to `instance`.
+"""
 #TODO Need rework
 function local_search_exchange_ils_hprc(solution::Solution, instance::Instance)
     while true
@@ -94,6 +113,11 @@ function local_search_exchange_ils_hprc(solution::Solution, instance::Instance)
     return solution
 end
 
+"""
+    local_search_insertion_ils_hprc(solution::Solution, instance::Instance)
+
+Performs a local search on `solution` using only insertion moves with respect to `instance`.
+"""
 function local_search_insertion_ils_hprc(solution::Solution, instance::Instance)
     while true
         phi = cost_HPRC(solution, instance)
@@ -124,6 +148,12 @@ function local_search_insertion_ils_hprc(solution::Solution, instance::Instance)
     return solution
 end
 
+"""
+    fast_local_search_exchange_ils_hprc(solution::Solution, instance::Instance, crit::Array{Int, 1})
+
+Performs a local search on `solution` using only exchange moves with respect to `instance`
+for well chosen cars tagged in `crit`.
+"""
 function fast_local_search_exchange_ils_hprc(solution::Solution, instance::Instance, crit::Array{Int, 1})
     while true
         phi = cost_HPRC(solution, instance)
@@ -158,7 +188,11 @@ function fast_local_search_exchange_ils_hprc(solution::Solution, instance::Insta
     return solution
 end
 
-#Inidquate which cars are invloved in violation of HPRC and the number
+"""
+    criticalCars(solution::Solution, instance::Instance)
+
+Indiquates which cars are involved in violation of HPRC and their number
+"""
 function criticalCars(solution::Solution, instance::Instance)
     criticars = zeros(Int, instance.nb_cars)             # criticars[i] = 1 if car i violate HPRC otherwhise criticars[i] = 0
     nb_crit = 0                             # Number of cars involved in HPRC violation.
@@ -183,22 +217,38 @@ function criticalCars(solution::Solution, instance::Instance)
     return criticars, nb_crit
 end
 
+"""
+    intensification_ils_hprc(solution::Solution, instance::Instance)
+
+Performs a local search on `solution` using insertion moves first then exchange moves with
+respect to `instance`.
+"""
 function intensification_ils_hprc(solution::Solution, instance::Instance)
     solution = local_search_insertion_ils_hprc(solution, instance)
     solution = local_search_exchange_ils_hprc(solution, instance)
     return solution
 end
 
+#TODO: signature
+"""
+    restart_ils_hprc(solution::Solution, instance::Instance)
+
+"""
 function restart_ils_hprc(solution::Solution, instance::Instance)
     crit = criticalCars(solution, instance)[1]
     solution = perturbation_ils_hprc(solution, instance, NBCAR_DIVERSIFICATION, crit)
     return solution
 end
 
+"""
+    ILS_HPRC(solution::Solution, instance::Instance, start_time::UInt)
 
+Main function of the ILS metaheuristic. Improves the `solution` on its first objective
+with respect to `instance`.
+"""
 function ILS_HPRC(solution::Solution, instance::Instance, start_time::UInt)
-    i = 0                               # Number of itération since the last improvement
-    nb_strong_perturbation = 0                      # Number of restart done for a solution
+    i = 0                               # Number of iterations since the last improvement
+    nb_strong_perturbation = 0                      # Number of restarts done for a solution
     s = deepcopy(solution)
     s_opt = deepcopy(solution)
     lastopt = deepcopy(solution)
@@ -241,11 +291,10 @@ function ILS_HPRC(solution::Solution, instance::Instance, start_time::UInt)
         end
         if cost_HPRC(s, instance) < cost_HPRC(s_opt, instance)            # There is an improvement
             s_opt = s
-            i = 0                   # So the number of iteration since the last improvement shall return to 0
+            i = 0                   # So the number of iterations since the last improvement shall return to 0
         else
             i = i + 1
         end
-        #println(i)
     end
     return s_opt
 end

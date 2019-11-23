@@ -15,11 +15,11 @@ include("move_exchange.jl")
 
 Returns the (partial) set of objective values (without weights) of `solution`.
 """
-function cost(solution::Solution, instance::Instance, objectives::Array{Int,1})
+function cost(solution::Solution, instance::Instance, objectives::BitArray{1})
     @assert length(objectives) == 3
     cost_on_objective = zeros(Int, 3)
 
-    if objectives[1] == 1
+    if objectives[1]
         for car in 1:instance.nb_cars
             for option in 1:instance.nb_HPRC
                 cost_on_objective[1] += max(0 , solution.M1[option, car] - instance.RC_p[option])
@@ -27,7 +27,7 @@ function cost(solution::Solution, instance::Instance, objectives::Array{Int,1})
         end
     end
 
-    if objectives[2] == 1
+    if objectives[2]
         for car in 1:instance.nb_cars
             for option in (instance.nb_HPRC+1):(instance.nb_HPRC+instance.nb_LPRC)
                 cost_on_objective[2] += max(0 , solution.M1[option, car] - instance.RC_p[option])
@@ -35,7 +35,7 @@ function cost(solution::Solution, instance::Instance, objectives::Array{Int,1})
         end
     end
 
-    if objectives[3] == 1
+    if objectives[3]
         for i in 2:instance.nb_cars
             if instance.color_code[solution.sequence[i]] != instance.color_code[solution.sequence[i-1]]
                 cost_on_objective[3] += 1
@@ -52,7 +52,7 @@ end
 Returns the set of unweighted values for objectives 1 to `objective` of `solution`.
 """
 cost(solution::Solution, instance::Instance, objective::Int) =
-    cost(solution::Solution, instance::Instance, [ones(Int, objective) ; zeros(Int, 3-objective)])
+    cost(solution::Solution, instance::Instance, [trues(objective) ; falses(3-objective)])
 
 """
     weighted_sum(cost_solution::Array{Int, 1})

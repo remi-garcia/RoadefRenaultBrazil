@@ -118,7 +118,7 @@ respect to objective `objectives`. A negative cost means that the move is intere
 with respect to objective `objectives`.
 """
 function cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
-                            instance::Instance, objectives::Array{Int,1})
+                            instance::Instance, objectives::BitArray{1})
     @assert length(objectives) == 3
 
     if car_pos_b < car_pos_a
@@ -131,17 +131,17 @@ function cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
 
     cost_on_objective = zeros(Int, 3)
 
-    if objectives[1] == 1 # Cost on HPRC
+    if objectives[1] # Cost on HPRC
         cost_on_objective[1] = compute_delta_exchange(solution, instance, car_pos_a, car_pos_b,
                                     1, instance.nb_HPRC)
     end
 
-    if objectives[2] == 1 # Cost on LPRC
+    if objectives[2] # Cost on LPRC
         cost_on_objective[2] = compute_delta_exchange(solution, instance, car_pos_a, car_pos_b,
                                     instance.nb_HPRC+1, instance.nb_HPRC+instance.nb_LPRC)
     end
 
-    if objectives[3] == 1 # Cost on PCC
+    if objectives[3] # Cost on PCC
         car_a = solution.sequence[car_pos_a]
         car_b = solution.sequence[car_pos_b]
         if !(instance.color_code[car_a] == instance.color_code[car_b])
@@ -190,7 +190,7 @@ respect to objectives 1 to `objective`. A negative cost means that the move is
 interesting with respect to objective 1 to `objective`.
 """
 cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int, instance::Instance, objective::Int) =
-    cost_move_exchange(solution, car_pos_a, car_pos_b, instance, [ones(Int, objective) ; zeros(Int, 3-objective)])
+    cost_move_exchange(solution, car_pos_a, car_pos_b, instance, [trues(objective) ; falses(3-objective)])
 
 
             #-------------------------------------------------------#

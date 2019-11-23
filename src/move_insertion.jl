@@ -48,10 +48,10 @@ end
 
 Returns the cost of the insertion of the car `car_pos_a` for all valid positions
 with respect to objectives `objectives`. A negative cost means that
-the move is interesting with respect to treated objective.
+the move is interesting with respect to treated objectives.
 """
 function cost_move_insertion(solution::Solution, position::Int,
-                             instance::Instance, objectives::Array{Int,1})
+                             instance::Instance, objectives::BitArray{1})
     @assert length(objectives) == 3
 
     cost_on_objective = zeros(Int, instance.nb_cars, 3)
@@ -69,7 +69,7 @@ function cost_move_insertion(solution::Solution, position::Int,
     M1 = copy(solution.M1)
 
     #violations_caused_on_X removing the car will cause a variation on number of violations
-    if objectives[1] == 1
+    if objectives[1]
         M1, violations_caused_on_first = update_lines_remove!(
             solution, instance, # instance
             M1, position, # calcul
@@ -77,7 +77,7 @@ function cost_move_insertion(solution::Solution, position::Int,
         )
     end
 
-    if objectives[2] == 1
+    if objectives[2]
         M1, violations_caused_on_second = update_lines_remove!(
             solution, instance, # instance
             M1, position, # calcul
@@ -88,7 +88,7 @@ function cost_move_insertion(solution::Solution, position::Int,
         #---------------------------------------------------------- Cost of insertion
 
     # Cost on HPRC
-    if objectives[1] == 1
+    if objectives[1]
         #What about insertion at b0 (first place available)
         delta2_for_first[b0] = compute_delta2_for_b0(
             solution, instance, # instance
@@ -121,7 +121,7 @@ function cost_move_insertion(solution::Solution, position::Int,
     end
 
     # Cost on LPRC
-    if objectives[2] == 1
+    if objectives[2]
         delta2_for_second[b0] = compute_delta2_for_b0(
             solution, instance,
             M1, sequence, position,
@@ -153,7 +153,7 @@ function cost_move_insertion(solution::Solution, position::Int,
     end
 
     # Cost on PCC
-    if objectives[3] == 1
+    if objectives[3]
         for index in b0:instance.nb_cars
             car = solution.sequence[position]
 
@@ -206,7 +206,7 @@ with respect to objectives 1 to `objective`. A negative cost means that the move
 is interesting with respect to treated objective.
 """
 cost_move_insertion(solution::Solution, position::Int, instance::Instance, objective::Int) =
-    cost_move_insertion(solution, position, instance, [ones(Int, objective) ; zeros(Int, 3-objective)])
+    cost_move_insertion(solution, position, instance, [trues(objective) ; falses(3-objective)])
 
 
         #-------------------------------------------------------#

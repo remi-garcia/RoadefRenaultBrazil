@@ -37,6 +37,8 @@ function main()
             instance = RRB.parser(instance_name, instance_type)
             println("Loaded...")
 
+            costs = zeros(Int,4,3)
+
             # Greedy
             solution = RRB.greedy(instance)
             println("Initial solution created...")

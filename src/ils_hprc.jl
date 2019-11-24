@@ -81,11 +81,11 @@ function local_search_exchange_ils_hprc(solution::Solution, instance::Instance)
         phi = cost_HPRC(solution, instance)
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
         for i in b0:instance.nb_cars
-            hprc_current_car = HPRC_value(i, instance)
+            hprc_current_car = HPRC_value(solution.sequence[i], instance)
             best_delta = 0
             L = Array{Int,1}(undef,0)
             for j in b0:instance.nb_cars
-                if hprc_current_car != HPRC_value(j, instance)
+                if hprc_current_car != HPRC_value(solution.sequence[j], instance)
                     delta = cost_move_exchange(solution, i, j, instance,1)[1]
                     if delta < best_delta
                         empty!(L)
@@ -157,11 +157,11 @@ function fast_local_search_exchange_ils_hprc(solution::Solution, instance::Insta
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
         for i in b0:instance.nb_cars
             if crit[i] == 1
-                hprc_current_car = HPRC_value(i, instance)
+                hprc_current_car = HPRC_value(solution.sequence[i], instance)
                 best_delta = 0
                 L = Array{Int,1}(undef,0)
                 for j in b0:instance.nb_cars
-                    if hprc_current_car != HPRC_value(j, instance)
+                    if hprc_current_car != HPRC_value(solution.sequence[j], instance)
                         delta = cost_move_exchange(solution, i, j, instance, 1)[1]
                         if delta < best_delta
                             empty!(L)
@@ -252,14 +252,13 @@ function ILS_HPRC(solution::Solution, instance::Instance, start_time::UInt)
     lastopt = deepcopy(solution)
     cond = 0 #TODO
     while cond < STOPPING_CRITERIA_ILS_HPRC && cost_HPRC(s_opt, instance) != 0 && (0.9 * TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
-        println(i)
         crit = criticalCars(s, instance)
         neighbor = perturbation_ils_hprc(s, instance, NBCAR_PERTURBATION, crit[1])
         crit = criticalCars(neighbor, instance)
         if crit[2] > (instance.nb_cars * 0.6)
-            @time neighbor = local_search_exchange_ils_hprc(neighbor, instance)
+            neighbor = local_search_exchange_ils_hprc(neighbor, instance)
         else
-            @time neighbor = fast_local_search_exchange_ils_hprc(neighbor, instance, crit[1])
+            neighbor = fast_local_search_exchange_ils_hprc(neighbor, instance, crit[1])
         end
         if cost_HPRC(s, instance) <= cost_HPRC(neighbor, instance)
             s = neighbor

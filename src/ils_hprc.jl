@@ -18,46 +18,41 @@ Removes `nbcar` cars of the sequence of `solution_init`. Cars must be tagged in 
 function remove(solution_init::Solution, instance::Instance, nbcar::Int, crit::Array{Int,1})
     solution = deepcopy(solution_init)
     i = instance.nb_late_prec_day+1
-    removed = Array{Int, 1}()
-    while i <= length(crit) && length(removed) <= nbcar
+    nb_removed = 0
+    while i <= length(crit) && nb_removed <= nbcar
         #TODO Don't take the first nbcar cars but randomly pick nbcar cars
         if crit[i] == 1
-            push!(removed, solution.sequence[i])
-            deleteat!(solution.sequence, i)
-            update_matrices!(solution, length(solution.sequence), instance)
+            nb_removed = nb_removed + 1
+            move_insertion!(solution, i, instance.nb_cars, instance)
             deleteat!(crit, i)
         else
             i = i + 1
         end
     end
-    return solution, removed
+    #update_matrices!(solution, length(crit), instance)
+    return solution, nb_removed
 end
 
 """
-    greedy_add(solution::Solution, instance::Instance, car::Int)
+    greedy_add(solution::Solution, instance::Instance, nb_removed::Int)
 
 Inserts `car` in the sequence of `solution`.
 """
 #TODO Need rework
-function greedy_add(solution::Solution, instance::Instance, car::Int)
+function greedy_add(solution_init::Solution, instance::Instance, nb_removed::Int)
     b0 = instance.nb_late_prec_day + 1
-    tmp = deepcopy(solution)
-    insert!(tmp.sequence, b0, car)
-    update_matrices!(tmp, length(tmp.sequence), instance)
-    bestcost = cost_HPRC(tmp, instance)
-    bestsol = deepcopy(tmp)
-    deleteat!(tmp.sequence, b0)
-    for j in b0:length(tmp.sequence)
-        insert!(tmp.sequence, j, car)
-        update_matrices!(tmp, length(tmp.sequence), instance)
-        ncost = cost_HPRC(tmp, instance)
-        if ncost < bestcost
-            bestcost = ncost
-            bestsol = deepcopy(tmp)
+    solution = deepcopy(solution_init)
+    costs = cost_move_insertion(solution, instance.nb_cars, instance, 1)
+    delta = costs[b0]
+    posdelta = b0
+    for pos in b0+1:instance.nb_cars-nb_removed
+        if costs[pos] < delta
+            delta = costs[pos]
+            posdelta = pos
         end
-        deleteat!(tmp.sequence, j)
     end
-    return bestsol
+    move_insertion!(solution, instance.nb_cars, posdelta, instance)
+    return solution
 end
 
 """
@@ -66,9 +61,9 @@ end
 Removes `nbcars` of `solution` and inserts them elsewhere in the sequence.
 """
 function perturbation_ils_hprc(solution::Solution, instance::Instance, nbcar::Int, crit::Array{Int,1})
-    sol, removed = remove(solution, instance, nbcar, crit)
-    for i in removed
-        sol = greedy_add(sol, instance, i)
+    sol, nb_removed = remove(solution, instance, nbcar, crit)
+    for i in 1:nb_removed
+        sol = greedy_add(sol, instance, nb_removed)
     end
     return sol
 end
@@ -126,9 +121,9 @@ function local_search_insertion_ils_hprc(solution::Solution, instance::Instance)
         for i in b0:instance.nb_cars
             best_delta = 0
             L = Array{Int,1}(undef,0)
-            couts = cost_move_insertion(solution,i,instance,1)
+            costs = cost_move_insertion(solution,i,instance,1)
             for j in b0:instance.nb_cars
-                delta = couts[j, 1]
+                delta = costs[j, 1]
                 if delta < best_delta
                     empty!(L)
                     push!(L, j)
@@ -257,13 +252,14 @@ function ILS_HPRC(solution::Solution, instance::Instance, start_time::UInt)
     lastopt = deepcopy(solution)
     cond = 0 #TODO
     while cond < STOPPING_CRITERIA_ILS_HPRC && cost_HPRC(s_opt, instance) != 0 && (0.9 * TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
+        println(i)
         crit = criticalCars(s, instance)
         neighbor = perturbation_ils_hprc(s, instance, NBCAR_PERTURBATION, crit[1])
         crit = criticalCars(neighbor, instance)
         if crit[2] > (instance.nb_cars * 0.6)
-            neighbor = local_search_exchange_ils_hprc(neighbor, instance)
+            @time neighbor = local_search_exchange_ils_hprc(neighbor, instance)
         else
-            neighbor = fast_local_search_exchange_ils_hprc(neighbor, instance, crit[1])
+            @time neighbor = fast_local_search_exchange_ils_hprc(neighbor, instance, crit[1])
         end
         if cost_HPRC(s, instance) <= cost_HPRC(neighbor, instance)
             s = neighbor

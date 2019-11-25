@@ -30,6 +30,8 @@ function main()
         for instance_name in RRB.INSTANCES[instance_type]
         # names = [RRB.INSTANCES[instance_type][1], RRB.INSTANCES[instance_type][end]]
         # for instance_name in names
+            GC.gc()
+            @time begin
             start_time = time_ns()
             println("\t====================")
             println("Instance ", instance_type, "/", instance_name)
@@ -58,12 +60,16 @@ function main()
             # VNS-PCC
             #solution = RRB.VNS_PCC(solution, instance, start_time)
             #println("Solution improved with VNS_PCC")
-            #costs[4,:] = RRB.cost(solution, instance, 3)
+            RRB.repair!(solution, instance)
+            println("Solution repaired")
+            costs[4,:] = RRB.cost(solution, instance, 3)
 
             println("\tGr. \tILS \tVNS_lp\tVNS_pc")
             println("HP \t", costs[1,1] ,"\t", costs[2,1] ,"\t", costs[3,1] ,"\t", costs[4,1])
             println("LP \t", costs[1,2] ,"\t", costs[2,2] ,"\t", costs[3,2] ,"\t", costs[4,2])
             println("PCC \t", costs[1,3] ,"\t", costs[2,3] ,"\t", costs[3,3] ,"\t", costs[4,3])
+            println()
+            end
             println()
             println()
         end

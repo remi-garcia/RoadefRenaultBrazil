@@ -186,7 +186,6 @@ function repair!(solution::Solution, instance::Instance)
         move_insertion!(solution, first_violation, best_insertion, instance)
 
         first_violation = find_first_violation(solution, instance)
-        println("repaired")
     end
     return solution
 end

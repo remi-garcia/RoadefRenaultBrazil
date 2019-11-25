@@ -75,7 +75,7 @@ Performs a local search on `solution` using only exchange moves with respect to 
 #TODO Need rework
 function local_search_exchange_ils_hprc(solution::Solution, instance::Instance, start_time::UInt)
     while 0.9 * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
-        phi = cost_HPRC(solution, instance)
+        overall_delta = 0
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
         for i in b0:instance.nb_cars
             hprc_current_car = HPRC_value(solution.sequence[i], instance)
@@ -97,8 +97,9 @@ function local_search_exchange_ils_hprc(solution::Solution, instance::Instance, 
                 k = rand(new_possible_positions)
                 move_exchange!(solution, i, k, instance)
             end
+            overall_delta += best_delta
         end
-        if phi == cost_HPRC(solution, instance)
+        if overall_delta == 0
             break
         end
     end
@@ -113,7 +114,7 @@ Performs a local search on `solution` using only insertion moves with respect to
 """
 function local_search_insertion_ils_hprc(solution::Solution, instance::Instance, start_time::UInt)
     while 0.9 * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
-        phi = cost_HPRC(solution, instance)
+        overall_delta = 0
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
         for i in b0:instance.nb_cars
             best_delta = 0
@@ -133,8 +134,9 @@ function local_search_insertion_ils_hprc(solution::Solution, instance::Instance,
                 k = rand(new_possible_positions)
                 move_insertion!(solution, i, k, instance)
             end
+            overall_delta += best_delta
         end
-        if phi == cost_HPRC(solution, instance)
+        if overall_delta == 0
             break
         end
     end

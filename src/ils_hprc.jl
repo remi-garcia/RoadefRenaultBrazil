@@ -11,41 +11,36 @@
 #-------------------------------------------------------------------------------
 
 """
-    remove(solution_init::Solution, instance::Instance, nbcar::Int, crit::Array{Int,1})
+    remove!(solution_init::Solution, instance::Instance,
+           k::Int, crit::Array{Int, 1})
 
-Removes `nbcar` cars of the sequence of `solution_init`. Cars must be tagged in `crit`.
+Removes `k` cars of the sequence of `solution_init`. Cars must be tagged in `crit`.
 """
-function remove(solution_init::Solution, instance::Instance, nbcar::Int, crit::Array{Int,1})
+function remove!(solution_init::Solution, instance::Instance,
+                k::Int, crit::Array{Int, 1})
     solution = deepcopy(solution_init)
-    i = instance.nb_late_prec_day+1
-    nb_removed = 0
-    while i <= length(crit) && nb_removed <= nbcar
-        #TODO Don't take the first nbcar cars but randomly pick nbcar cars
-        if crit[i] == 1
-            nb_removed = nb_removed + 1
-            move_insertion!(solution, i, instance.nb_cars, instance)
-            deleteat!(crit, i)
-        else
-            i = i + 1
-        end
+    indices = sort(randperm(length(crit))[1:k])
+    crit_sort = sort(crit, rev = true)
+    for i in 1:k
+        position = crit_sort[indices[i]]
+        move_insertion!(solution, position, instance.nb_cars, instance)
     end
     #update_matrices!(solution, length(crit), instance)
-    return solution, nb_removed
+    return solution
 end
 
 """
-    greedy_add(solution::Solution, instance::Instance, nb_removed::Int)
+    greedy_add!(solution::Solution, instance::Instance, k::Int)
 
 Inserts `car` in the sequence of `solution`.
 """
 #TODO Need rework
-function greedy_add(solution_init::Solution, instance::Instance, nb_removed::Int)
+function greedy_add!(solution::Solution, instance::Instance, k::Int)
     b0 = instance.nb_late_prec_day + 1
-    solution = deepcopy(solution_init)
     costs = cost_move_insertion(solution, instance.nb_cars, instance, 1)
     delta = costs[b0]
     posdelta = b0
-    for pos in b0+1:instance.nb_cars-nb_removed
+    for pos in b0+1:instance.nb_cars-k
         if costs[pos] < delta
             delta = costs[pos]
             posdelta = pos
@@ -56,48 +51,50 @@ function greedy_add(solution_init::Solution, instance::Instance, nb_removed::Int
 end
 
 """
-    perturbation_ils_hprc(solution::Solution, instance::Instance, nbcar::Int, crit::Array{Int,1})
+    perturbation_ils_hprc(solution::Solution, instance::Instance, k::Int, crit::Array{Int,1})
 
 Removes `nbcars` of `solution` and inserts them elsewhere in the sequence.
 """
-function perturbation_ils_hprc(solution::Solution, instance::Instance, nbcar::Int, crit::Array{Int,1})
-    sol, nb_removed = remove(solution, instance, nbcar, crit)
-    for i in 1:nb_removed
-        sol = greedy_add(sol, instance, nb_removed)
+function perturbation_ils_hprc(solution_init::Solution, instance::Instance, k::Int, crit::Array{Int,1})
+    solution = deepcopy(solution_init)
+    k = minimum([k, length(crit)])
+    remove!(solution, instance, k, crit)
+    for i in 1:k
+        greedy_add!(solution, instance, k)
     end
-    return sol
+    return solution
 end
 
 cost_HPRC(solution::Solution, instance::Instance) = cost(solution, instance, 1)[1]
 
 """
-    local_search_exchange_ils_hprc(solution::Solution, instance::Instance)
+    local_search_exchange_ils_hprc(solution::Solution, instance::Instance, start_time::UInt)
 
 Performs a local search on `solution` using only exchange moves with respect to `instance`.
 """
 #TODO Need rework
-function local_search_exchange_ils_hprc(solution::Solution, instance::Instance)
-    while true
+function local_search_exchange_ils_hprc(solution::Solution, instance::Instance, start_time::UInt)
+    while 0.9 * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         phi = cost_HPRC(solution, instance)
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
         for i in b0:instance.nb_cars
             hprc_current_car = HPRC_value(solution.sequence[i], instance)
             best_delta = 0
-            L = Array{Int,1}(undef,0)
+            new_possible_positions = Array{Int, 1}()
             for j in b0:instance.nb_cars
                 if hprc_current_car != HPRC_value(solution.sequence[j], instance)
                     delta = cost_move_exchange(solution, i, j, instance,1)[1]
                     if delta < best_delta
-                        empty!(L)
-                        push!(L, j)
+                        empty!(new_possible_positions)
+                        push!(new_possible_positions, j)
                         best_delta = delta
                     elseif delta == best_delta
-                        push!(L, j)
+                        push!(new_possible_positions, j)
                     end
                 end
             end
-            if !isempty(L)
-                k = rand(L)
+            if !isempty(new_possible_positions)
+                k = rand(new_possible_positions)
                 move_exchange!(solution, i, k, instance)
             end
         end
@@ -110,30 +107,30 @@ function local_search_exchange_ils_hprc(solution::Solution, instance::Instance)
 end
 
 """
-    local_search_insertion_ils_hprc(solution::Solution, instance::Instance)
+    local_search_insertion_ils_hprc(solution::Solution, instance::Instance, start_time::UInt)
 
 Performs a local search on `solution` using only insertion moves with respect to `instance`.
 """
-function local_search_insertion_ils_hprc(solution::Solution, instance::Instance)
-    while true
+function local_search_insertion_ils_hprc(solution::Solution, instance::Instance, start_time::UInt)
+    while 0.9 * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         phi = cost_HPRC(solution, instance)
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
         for i in b0:instance.nb_cars
             best_delta = 0
-            L = Array{Int,1}(undef,0)
+            new_possible_positions = Array{Int, 1}()
             costs = cost_move_insertion(solution,i,instance,1)
             for j in b0:instance.nb_cars
                 delta = costs[j, 1]
                 if delta < best_delta
-                    empty!(L)
-                    push!(L, j)
+                    empty!(new_possible_positions)
+                    push!(new_possible_positions, j)
                     best_delta = delta
                 elseif delta == best_delta
-                    push!(L, j)
+                    push!(new_possible_positions, j)
                 end
             end
-            if !isempty(L)
-                k = rand(L)
+            if !isempty(new_possible_positions)
+                k = rand(new_possible_positions)
                 move_insertion!(solution, i, k, instance)
             end
         end
@@ -146,40 +143,38 @@ function local_search_insertion_ils_hprc(solution::Solution, instance::Instance)
 end
 
 """
-    fast_local_search_exchange_ils_hprc(solution::Solution, instance::Instance, crit::Array{Int, 1})
+    fast_local_search_exchange_ils_hprc(solution::Solution, instance::Instance, crit::Array{Int, 1}, start_time::UInt)
 
 Performs a local search on `solution` using only exchange moves with respect to `instance`
 for well chosen cars tagged in `crit`.
 """
-function fast_local_search_exchange_ils_hprc(solution::Solution, instance::Instance, crit::Array{Int, 1})
-    while true
-        phi = cost_HPRC(solution, instance)
+function fast_local_search_exchange_ils_hprc(solution::Solution, instance::Instance, crit::Array{Int, 1}, start_time::UInt)
+    while !isempty(crit) && (0.9 * TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
-        for i in b0:instance.nb_cars
-            if crit[i] == 1
-                hprc_current_car = HPRC_value(solution.sequence[i], instance)
-                best_delta = 0
-                L = Array{Int,1}(undef,0)
-                for j in b0:instance.nb_cars
-                    if hprc_current_car != HPRC_value(solution.sequence[j], instance)
-                        delta = cost_move_exchange(solution, i, j, instance, 1)[1]
-                        if delta < best_delta
-                            empty!(L)
-                            push!(L, j)
-                            best_delta = delta
-                        elseif delta == best_delta
-                            push!(L, j)
-                        end
-                    end
-                end
-                if !isempty(L)
-                    k = rand(L)
-                    move_exchange!(solution, i, k, instance)
+        position_car_a = rand(crit)
+        hprc_current_car = HPRC_value(solution.sequence[position_car_a], instance)
+        best_delta = 0
+        new_possible_positions = Array{Int, 1}()
+        for position_car_b in b0:instance.nb_cars
+            if hprc_current_car != HPRC_value(solution.sequence[position_car_b], instance)
+                delta = cost_move_exchange(solution, position_car_a, position_car_b, instance, 1)[1]
+                if delta < best_delta
+                    empty!(new_possible_positions)
+                    push!(new_possible_positions, position_car_b)
+                    best_delta = delta
+                elseif delta == best_delta
+                    push!(new_possible_positions, position_car_b)
                 end
             end
         end
-        if phi == cost_HPRC(solution, instance)
-            break
+        if !isempty(new_possible_positions)
+            k = rand(new_possible_positions)
+            move_exchange!(solution, position_car_a, k, instance)
+            # Update critical cars:
+            #TODO
+            deleteat!(crit, findfirst(isequal(position_car_a), crit))
+        else
+            deleteat!(crit, findfirst(isequal(position_car_a), crit))
         end
     end
 
@@ -187,43 +182,37 @@ function fast_local_search_exchange_ils_hprc(solution::Solution, instance::Insta
 end
 
 """
-    criticalCars(solution::Solution, instance::Instance)
+    critical_cars_VNS_LPRC(solution::Solution, instance::Instance)
 
-Indiquates which cars are involved in violation of HPRC and their number
+Returns the set cars involved in at least one HPRC violation.
 """
-function criticalCars(solution::Solution, instance::Instance)
-    criticars = zeros(Int, instance.nb_cars)             # criticars[i] = 1 if car i violate HPRC otherwhise criticars[i] = 0
-    nb_crit = 0                             # Number of cars involved in HPRC violation.
-    j = 1
-    for opt in 1:instance.nb_HPRC
-        car = 1
-        while car <= instance.nb_cars
-            if solution.M2[opt,car] > instance.RC_p[opt]
-                cursor = 0
-                while cursor < instance.RC_p[opt] && (car+cursor) <= instance.nb_cars
-                    if instance.RC_flag[car+cursor, opt] == true && criticars[car + cursor] == 0
-                        criticars[car + cursor] = 1
-                        nb_crit = nb_crit + 1
+function critical_cars_ILS_HPRC(solution::Solution, instance::Instance)
+    critical_car = Set{Int}()
+    b0 = instance.nb_late_prec_day+1
+    for index_car in b0:instance.nb_cars
+        for option in 1:instance.nb_HPRC
+            if solution.M1[option, index_car] > instance.RC_p[option]
+                index_car_lim = index_car + min(instance.RC_p[option], instance.nb_cars-index_car)
+                for index_car_add in index_car:index_car_lim
+                    if instance.RC_flag[solution.sequence[index_car_add], option]
+                        push!(critical_car, index_car_add)
                     end
-                    cursor = cursor + 1
                 end
             end
-            car = car + 1
         end
     end
-
-    return criticars, nb_crit
+    return collect(critical_car)
 end
 
 """
-    intensification_ils_hprc(solution::Solution, instance::Instance)
+    intensification_ils_hprc(solution::Solution, instance::Instance, start_time::UInt)
 
 Performs a local search on `solution` using insertion moves first then exchange moves with
 respect to `instance`.
 """
-function intensification_ils_hprc(solution::Solution, instance::Instance)
-    solution = local_search_insertion_ils_hprc(solution, instance)
-    solution = local_search_exchange_ils_hprc(solution, instance)
+function intensification_ils_hprc(solution::Solution, instance::Instance, start_time::UInt)
+    solution = local_search_insertion_ils_hprc(solution, instance, start_time)
+    solution = local_search_exchange_ils_hprc(solution, instance, start_time)
     return solution
 end
 
@@ -233,7 +222,7 @@ end
 
 """
 function restart_ils_hprc(solution::Solution, instance::Instance)
-    crit = criticalCars(solution, instance)[1]
+    crit = critical_cars_ILS_HPRC(solution, instance)
     solution = perturbation_ils_hprc(solution, instance, NBCAR_DIVERSIFICATION, crit)
     return solution
 end
@@ -252,19 +241,19 @@ function ILS_HPRC(solution::Solution, instance::Instance, start_time::UInt)
     lastopt = deepcopy(solution)
     cond = 0 #TODO
     while cond < STOPPING_CRITERIA_ILS_HPRC && cost_HPRC(s_opt, instance) != 0 && (0.9 * TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
-        crit = criticalCars(s, instance)
-        neighbor = perturbation_ils_hprc(s, instance, NBCAR_PERTURBATION, crit[1])
-        crit = criticalCars(neighbor, instance)
-        if crit[2] > (instance.nb_cars * 0.6)
-            neighbor = local_search_exchange_ils_hprc(neighbor, instance)
+        crit = critical_cars_ILS_HPRC(s, instance)
+        neighbor = perturbation_ils_hprc(s, instance, NBCAR_PERTURBATION, crit)
+        crit = critical_cars_ILS_HPRC(neighbor, instance)
+        if length(crit) > (instance.nb_cars * 0.6)
+            neighbor = local_search_exchange_ils_hprc(neighbor, instance, start_time)
         else
-            neighbor = fast_local_search_exchange_ils_hprc(neighbor, instance, crit[1])
+            neighbor = fast_local_search_exchange_ils_hprc(neighbor, instance, crit, start_time)
         end
         if cost_HPRC(s, instance) <= cost_HPRC(neighbor, instance)
             s = neighbor
         end
         if i == ALPHA_ILS
-            s = intensification_ils_hprc(s, instance)
+            s = intensification_ils_hprc(s, instance, start_time)
         end
         if i == BETA_ILS
             cond = cond + 1

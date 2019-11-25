@@ -27,8 +27,9 @@ function main()
 
     # Instance and initiale solution
     for instance_type in type#["A", "B", "X"]
-        name = [RRB.INSTANCES[instance_type][1], RRB.INSTANCES[instance_type][end]]
-        for instance_name in name#INSTANCES[instance_type]
+        for instance_name in RRB.INSTANCES[instance_type]
+        # names = [RRB.INSTANCES[instance_type][1], RRB.INSTANCES[instance_type][end]]
+        # for instance_name in names
             start_time = time_ns()
             println("\t====================")
             println("Instance ", instance_type, "/", instance_name)

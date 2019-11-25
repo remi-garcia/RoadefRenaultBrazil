@@ -5,19 +5,19 @@
 #   Celso C. Ribeiro, Daniel Aloise, Thiago F. Noronha,
 #   Caroline Rocha, Sebastián Urrutia
 #
-# Date: November 03, 2019
+# Date: November 25, 2019
 # Author: Jonathan Fontaine, Killian Fretaud, Rémi Garcia,
 #         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
 #-------------------------------------------------------------------------------
 
 """
     remove!(solution_init::Solution, instance::Instance,
-           k::Int, crit::Array{Int, 1})
+            k::Int, crit::Array{Int, 1})
 
-Removes `k` cars of the sequence of `solution_init`. Cars must be tagged in `crit`.
+Removes `k` critical cars of the sequence of `solution_init`.
 """
 function remove!(solution_init::Solution, instance::Instance,
-                k::Int, crit::Array{Int, 1})
+                 k::Int, crit::Array{Int, 1})
     solution = deepcopy(solution_init)
     indices = sort(randperm(length(crit))[1:k])
     crit_sort = sort(crit, rev = true)
@@ -25,16 +25,15 @@ function remove!(solution_init::Solution, instance::Instance,
         position = crit_sort[indices[i]]
         move_insertion!(solution, position, instance.nb_cars, instance)
     end
-    #update_matrices!(solution, length(crit), instance)
+
     return solution
 end
 
 """
     greedy_add!(solution::Solution, instance::Instance, k::Int)
 
-Inserts `car` in the sequence of `solution`.
+Reinserts last car in the sequence of `solution`.
 """
-#TODO Need rework
 function greedy_add!(solution::Solution, instance::Instance, k::Int)
     b0 = instance.nb_late_prec_day + 1
     costs = cost_move_insertion(solution, instance.nb_cars, instance, 1)
@@ -47,33 +46,39 @@ function greedy_add!(solution::Solution, instance::Instance, k::Int)
         end
     end
     move_insertion!(solution, instance.nb_cars, posdelta, instance)
+
     return solution
 end
 
 """
-    perturbation_ils_hprc(solution::Solution, instance::Instance, k::Int, crit::Array{Int,1})
+    perturbation_ils_hprc(solution::Solution, instance::Instance,
+                          k::Int, crit::Array{Int,1})
 
-Removes `nbcars` of `solution` and inserts them elsewhere in the sequence.
+Removes `k` cars of `solution` and inserts them back in the sequence.
 """
-function perturbation_ils_hprc(solution_init::Solution, instance::Instance, k::Int, crit::Array{Int,1})
+function perturbation_ils_hprc(solution_init::Solution, instance::Instance,
+                               k::Int, crit::Array{Int,1})
     solution = deepcopy(solution_init)
     k = minimum([k, length(crit)])
     remove!(solution, instance, k, crit)
     for i in 1:k
         greedy_add!(solution, instance, k)
     end
+
     return solution
 end
 
 cost_HPRC(solution::Solution, instance::Instance) = cost(solution, instance, 1)[1]
 
 """
-    local_search_exchange_ils_hprc(solution::Solution, instance::Instance, start_time::UInt)
+    local_search_exchange_ils_hprc!(solution::Solution, instance::Instance,
+                                    start_time::UInt)
 
-Performs a local search on `solution` using only exchange moves with respect to `instance`.
+Performs a local search on `solution` using only exchange moves with respect to
+`instance`.
 """
-#TODO Need rework
-function local_search_exchange_ils_hprc(solution::Solution, instance::Instance, start_time::UInt)
+function local_search_exchange_ils_hprc!(solution::Solution, instance::Instance,
+                                         start_time::UInt)
     while 0.9 * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         overall_delta = 0
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
@@ -108,11 +113,14 @@ function local_search_exchange_ils_hprc(solution::Solution, instance::Instance, 
 end
 
 """
-    local_search_insertion_ils_hprc(solution::Solution, instance::Instance, start_time::UInt)
+    local_search_insertion_ils_hprc!(solution::Solution, instance::Instance,
+                                     start_time::UInt)
 
-Performs a local search on `solution` using only insertion moves with respect to `instance`.
+Performs a local search on `solution` using only insertion moves with respect to
+`instance`.
 """
-function local_search_insertion_ils_hprc(solution::Solution, instance::Instance, start_time::UInt)
+function local_search_insertion_ils_hprc!(solution::Solution, instance::Instance,
+                                          start_time::UInt)
     while 0.9 * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         overall_delta = 0
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
@@ -145,12 +153,14 @@ function local_search_insertion_ils_hprc(solution::Solution, instance::Instance,
 end
 
 """
-    fast_local_search_exchange_ils_hprc(solution::Solution, instance::Instance, crit::Array{Int, 1}, start_time::UInt)
+    fast_local_search_exchange_ils_hprc!(solution::Solution, instance::Instance,
+                                         crit::Array{Int, 1}, start_time::UInt)
 
 Performs a local search on `solution` using only exchange moves with respect to `instance`
 for well chosen cars tagged in `crit`.
 """
-function fast_local_search_exchange_ils_hprc(solution::Solution, instance::Instance, crit::Array{Int, 1}, start_time::UInt)
+function fast_local_search_exchange_ils_hprc!(solution::Solution, instance::Instance,
+                                              crit::Array{Int, 1}, start_time::UInt)
     while !isempty(crit) && (0.9 * TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
         position_car_a = rand(crit)
@@ -207,25 +217,27 @@ function critical_cars_ILS_HPRC(solution::Solution, instance::Instance)
 end
 
 """
-    intensification_ils_hprc(solution::Solution, instance::Instance, start_time::UInt)
+    intensification_ils_hprc!(solution::Solution, instance::Instance,
+                              start_time::UInt)
 
 Performs a local search on `solution` using insertion moves first then exchange moves with
 respect to `instance`.
 """
-function intensification_ils_hprc(solution::Solution, instance::Instance, start_time::UInt)
-    solution = local_search_insertion_ils_hprc(solution, instance, start_time)
-    solution = local_search_exchange_ils_hprc(solution, instance, start_time)
+function intensification_ils_hprc!(solution::Solution, instance::Instance,
+                                   start_time::UInt)
+    local_search_insertion_ils_hprc!(solution, instance, start_time)
+    local_search_exchange_ils_hprc!(solution, instance, start_time)
     return solution
 end
 
-#TODO: signature
 """
     restart_ils_hprc(solution::Solution, instance::Instance)
 
+
 """
-function restart_ils_hprc(solution::Solution, instance::Instance)
-    crit = critical_cars_ILS_HPRC(solution, instance)
-    solution = perturbation_ils_hprc(solution, instance, NBCAR_DIVERSIFICATION, crit)
+function restart_ils_hprc(solution_init::Solution, instance::Instance)
+    crit = critical_cars_ILS_HPRC(solution_init, instance)
+    solution = perturbation_ils_hprc(solution_init, instance, NBCAR_DIVERSIFICATION, crit)
     return solution
 end
 
@@ -247,15 +259,15 @@ function ILS_HPRC(solution::Solution, instance::Instance, start_time::UInt)
         neighbor = perturbation_ils_hprc(s, instance, NBCAR_PERTURBATION, crit)
         crit = critical_cars_ILS_HPRC(neighbor, instance)
         if length(crit) > (instance.nb_cars * 0.6)
-            neighbor = local_search_exchange_ils_hprc(neighbor, instance, start_time)
+            neighbor = local_search_exchange_ils_hprc!(neighbor, instance, start_time)
         else
-            neighbor = fast_local_search_exchange_ils_hprc(neighbor, instance, crit, start_time)
+            neighbor = fast_local_search_exchange_ils_hprc!(neighbor, instance, crit, start_time)
         end
         if cost_HPRC(s, instance) <= cost_HPRC(neighbor, instance)
             s = neighbor
         end
         if i == ALPHA_ILS
-            s = intensification_ils_hprc(s, instance, start_time)
+            s = intensification_ils_hprc!(s, instance, start_time)
         end
         if i == BETA_ILS
             cond = cond + 1

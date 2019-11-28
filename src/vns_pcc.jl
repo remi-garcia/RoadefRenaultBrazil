@@ -282,10 +282,86 @@ function perturbation_VNS_PCC_insertion(solution_init::Solution, k::Int, instanc
 end
 
 """
+    localSearch_intensification_VNS_PCC_exchange!(solution::Solution, instance::Instance)
+
+Optimizes the weighted sum of first and second objectives using `move_exchange!`.
+"""
+function localSearch_intensification_VNS_PCC_exchange!(solution::Solution, instance::Instance)
+    # TODO: copy of VNS_LPRC
+    # useful variable
+    b0 = instance.nb_late_prec_day+1
+
+    list = Array{Int, 1}()
+    improved = true
+    while improved
+        improved = false
+        critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
+        for index_car_a in critical_cars_set
+            best_delta = -1 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
+            empty!(list)
+            for index_car_b in b0:instance.nb_cars
+                if (index_car_a != index_car_b)
+                    delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 2), 2)
+                    if delta < best_delta
+                        list = [index_car_b]
+                        best_delta = delta
+                    elseif delta == best_delta
+                        push!(list, index_car_b)
+                    end
+                end
+            end
+            if !isempty(list)
+                index_car_b = rand(list)
+                move_exchange!(solution, index_car_a, index_car_b, instance)
+                improved = true
+            end
+        end
+    end
+
+    return solution
+end
+
 
 """
-function intensification_VNS_PCC!(solution::Solution, instance::Instance)
+    localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, instance::Instance)
 
+Optimizes the weighted sum of first and second objectives using `move_insertion!`.
+"""
+function localSearch_intensification_VNS_PCC_insertion!(solution::Solution, instance::Instance)
+    # TODO: copy of VNS_LPRC
+    # useful variable
+    b0 = instance.nb_late_prec_day+1
+
+    improved = true
+    while improved
+        improved = false
+        critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
+        for index_car in critical_cars_set
+            best_delta = -1 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
+            matrix_deltas = cost_move_insertion(solution, index_car, instance, 2)
+            array_deltas = [(weighted_sum(matrix_deltas[i, :], 2), i) for i in b0:instance.nb_cars]
+            min = findmin(array_deltas)[1][1]
+            if min < 0 && false
+                list = map(x -> x[2], filter(x -> x[1] == min, array_deltas))
+                if !isempty(list)
+                    index_insert = rand(list)
+                    move_insertion!(solution, index_car, index_insert, instance)
+                    improved = true
+                end
+            end
+        end
+    end
+    return solution
+end
+
+"""
+    intensification_VNS_LPRC!(solution::Solution, instance::Instance)
+
+Calls both intensification.
+"""
+function intensification_VNS_PCC!(solution::Solution, instance::Instance)
+    localSearch_intensification_VNS_PCC_insertion!(solution, instance)
+    localSearch_intensification_VNS_PCC_exchange!(solution, instance)
     return solution
 end
 
@@ -293,18 +369,27 @@ end
 
 """
 function localsearch_VNS_PCC!(solution::Solution, instance::Instance)
-    #TODO JFontaine needs to take a look
     b0 = instance.nb_late_prec_day+1
+    all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
+    for index_car in b0:instance.nb_cars
+        key_HPRC = HPRC_value(solution.sequence[index_car], instance)
+        if !(key_HPRC in keys(all_list_same_HPRC))
+            all_list_same_HPRC[key_HPRC] = Array{Int, 1}()
+        end
+        push!(all_list_same_HPRC[key_HPRC], index_car)
+    end
+
     improved = true
     sequence = copy(solution.sequence)
+    list = Array{Int, 1}()
     while improved
-        solution_cost = cost(solution, instance, 3)
-        phi = WEIGHTS_OBJECTIVE_FUNCTION[2] * solution_cost[2] + WEIGHTS_OBJECTIVE_FUNCTION[3] * solution_cost[3]
-        for i in b0:instance.nb_cars
+        improved = false
+        for index_car_a in b0:instance.nb_cars
             best_delta = 0
             list = Array{Int, 1}()
-            for j in (i+1):instance.nb_cars # exchange (i, j) is the same as exchange (j, i)
-                if same_HPRC(solution, i, j, instance)
+            hprc_value = HPRC_value(solution.sequence[index_car_a], instance)
+            for index_car_b in all_list_same_HPRC[hprc_value]
+                if index_car_a < index_car_b # exchange (i, j) is the same as exchange (j, i)
                     delta = cost_move_exchange(solution, i, j, instance, 2)[2]
                     sequence[i], sequence[j] = sequence[j], sequence[i]
                     if delta < best_delta && is_sequence_valid(sequence, instance.nb_cars, instance)
@@ -320,11 +405,8 @@ function localsearch_VNS_PCC!(solution::Solution, instance::Instance)
                 k = rand(list)
                 move_exchange!(solution, i, k, instance)
                 sequence[i], sequence[k] = sequence[k], sequence[i]
+                improved = true
             end
-        end
-        solution_cost = cost(solution, instance, 3)
-        if phi == WEIGHTS_OBJECTIVE_FUNCTION[2] * solution_cost[2] + WEIGHTS_OBJECTIVE_FUNCTION[3] * solution_cost[3]
-            improved = false
         end
     end
     return solution
@@ -342,7 +424,7 @@ function VNS_PCC(solution::Solution, instance::Instance, start_time::UInt)
     cost_HPRC_solution = cost(solution, instance, 1)[1]
     while TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         while (k <= VNS_PCC_MINMAX[p+1][2]) && (TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
-            solution_perturbation = perturbations[p](solution, k, instance)
+            solution_perturbation = perturbations[p+1](solution, k, instance)
             if cost_HPRC_solution < cost(solution_perturbation, instance, 1)[1]
                 solution_perturbation = deepcopy(solution)
             end
@@ -362,7 +444,7 @@ function VNS_PCC(solution::Solution, instance::Instance, start_time::UInt)
         end
         intensification_VNS_PCC!(solution, instance)
         p = 1 - p
-        VNS_PCC_MINMAX[p+1][1]
+        k = VNS_PCC_MINMAX[p+1][1]
     end
     return solution
 end

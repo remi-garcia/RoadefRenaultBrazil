@@ -224,7 +224,7 @@ function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, ins
             matrix_deltas = cost_move_insertion(solution, index_car, instance, 2)
             array_deltas = [(weighted_sum(matrix_deltas[i, :], 2), i) for i in b0:instance.nb_cars]
             min = findmin(array_deltas)[1][1]
-            if min < 0 && false
+            if min < 0
                 list = map(x -> x[2], filter(x -> x[1] == min, array_deltas))
                 if !isempty(list)
                     index_insert = rand(list)

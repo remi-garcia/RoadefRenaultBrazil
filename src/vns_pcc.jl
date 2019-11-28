@@ -287,9 +287,9 @@ end
 Optimizes the weighted sum of three objectives using `move_exchange!`.
 """
 function localSearch_intensification_VNS_PCC_exchange!(solution::Solution, instance::Instance)
-    # TODO: copy of VNS_LPRC
     # useful variable
     b0 = instance.nb_late_prec_day+1
+    n = instance.nb_cars
 
     list = Array{Int, 1}()
     improved = true
@@ -297,27 +297,31 @@ function localSearch_intensification_VNS_PCC_exchange!(solution::Solution, insta
         improved = false
         critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
         for index_car_a in critical_cars_set
-            best_delta = -1 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
+            best_delta = 0
             empty!(list)
-            for index_car_b in b0:instance.nb_cars
+            for index_car_b in (index_car_a+1):instance.nb_cars
                 if (index_car_a != index_car_b)
-                    delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 3), 3)
-                    if delta < best_delta
-                        list = [index_car_b]
-                        best_delta = delta
-                    elseif delta == best_delta
-                        push!(list, index_car_b)
+                    sequence[index_car_a], sequence[index_car_b] = sequence[index_car_b], sequence[index_car_a]
+                    if is_sequence_valid(sequence, instance.nb_cars, instance)
+                        delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 3), 3)
+                        if delta < best_delta
+                            list = [index_car_b]
+                            best_delta = delta
+                        elseif delta == best_delta
+                            push!(list, index_car_b)
+                        end
                     end
+                    sequence[index_car_a], sequence[index_car_b] = sequence[index_car_b], sequence[index_car_a]
                 end
             end
             if !isempty(list)
                 index_car_b = rand(list)
                 move_exchange!(solution, index_car_a, index_car_b, instance)
+                sequence[index_car_a], sequence[index_car_b] = sequence[index_car_b], sequence[index_car_a]
                 improved = true
             end
         end
     end
-
     return solution
 end
 

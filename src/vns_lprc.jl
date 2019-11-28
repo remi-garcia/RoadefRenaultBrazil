@@ -128,7 +128,6 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
     # useful variable
     b0 = instance.nb_late_prec_day+1
     all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
-    b0 = instance.nb_late_prec_day+1
     for index_car in b0:instance.nb_cars
         key_HPRC = HPRC_value(solution.sequence[index_car], instance)
         if !(key_HPRC in keys(all_list_same_HPRC))

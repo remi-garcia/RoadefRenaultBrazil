@@ -100,7 +100,7 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     ligne =1
     indice = 0
     nb_RC = nb_HPRC + nb_LPRC
-    f = open(instdir)
+    f = open(path*VEHICLES_FILE_NAME)
     line = readline(f)
     for line in eachline(f)
         nb_cars += 1
@@ -108,7 +108,7 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     close(f)
     RC_flag = Array{Bool, 2}(undef, nb_cars, nb_RC) # nb_RC = nb_LPRC + nb_HPRC
     nb_late_prec_day = 0
-    f = open(instdir)
+    f = open(path*VEHICLES_FILE_NAME)
     line = readline(f)
     for line in eachline(f)
         pointeurLine = rsplit(line,";")

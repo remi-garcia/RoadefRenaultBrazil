@@ -108,6 +108,7 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
         nb_cars += 1
     end
     close(f)
+    #
     RC_flag = Array{Bool, 2}(undef, nb_cars, nb_RC) # nb_RC = nb_LPRC + nb_HPRC
     nb_cars = 0
     nb_late_prec_day = 0
@@ -118,7 +119,7 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
         date = split(pointeurLine[1]," ")
         if date[3] != day
             day = date[3]
-            nb_late_prec_day = nb_cars
+            nb_late_prec_day = ligne - 1
         end
         for colonne in 5:length(pointeurLine)
             if !isempty(pointeurLine[colonne])

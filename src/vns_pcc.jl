@@ -413,11 +413,8 @@ function localsearch_VNS_PCC!(solution::Solution, instance::Instance)
                 end
             end
             if !isempty(list)
-                println("delta", best_delta, list)
                 index_car_b = rand(list)
-                println("cost av: ", cost(solution, instance, 3))
                 move_exchange!(solution, index_car_a, index_car_b, instance)
-                println("cost ap: ", cost(solution, instance, 3))
                 sequence[index_car_a], sequence[index_car_b] = sequence[index_car_b], sequence[index_car_a]
                 improved = true
             end
@@ -438,13 +435,11 @@ function VNS_PCC(solution::Solution, instance::Instance, start_time::UInt)
     cost_HPRC_solution = cost(solution, instance, 1)[1]
     while TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         while (k <= VNS_PCC_MINMAX[p+1][2]) && (TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
-            println("perturbations ", p+1)
-            @time solution_perturbation = perturbations[p+1](solution, k, instance)
+            solution_perturbation = perturbations[p+1](solution, k, instance)
             if cost_HPRC_solution < cost(solution_perturbation, instance, 1)[1]
                 solution_perturbation = deepcopy(solution)
             end
-            println("local search ", p+1)
-            @time localsearch_VNS_PCC!(solution_perturbation, instance)
+            localsearch_VNS_PCC!(solution_perturbation, instance)
             cost_solution_perturbation = weighted_sum(solution_perturbation, instance, 3)
             if cost_solution_perturbation < cost_solution
                 k = VNS_PCC_MINMAX[p+1][1]
@@ -458,8 +453,7 @@ function VNS_PCC(solution::Solution, instance::Instance, start_time::UInt)
                 cost_solution = weighted_sum(solution, instance, 3)
             end
         end
-        println("instensification ", p+1)
-        @time intensification_VNS_PCC!(solution, instance)
+        intensification_VNS_PCC!(solution, instance)
         p = 1 - p
         k = VNS_PCC_MINMAX[p+1][1]
     end

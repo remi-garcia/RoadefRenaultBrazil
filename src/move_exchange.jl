@@ -176,7 +176,7 @@ function cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
                 end
             end
 
-            if (index_car_a+1) == index_car_b
+            if (car_pos_a+1) == car_pos_b
                 cost_on_objective[3] += 2
             end
         end

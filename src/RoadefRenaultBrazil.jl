@@ -12,5 +12,6 @@ include("greedy.jl")
 include("ils_hprc.jl")
 include("vns_lprc.jl")
 include("vns_pcc.jl")
+include("MO_points.jl")
 
 end # module

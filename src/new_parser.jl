@@ -41,21 +41,23 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
 
     #Lecture  OPTIMISATION_FILE_NAME
     HPRC_rank = 0
-    LPRC_rank = 0
+    LPRC_rank = -1
     PCB_rank = 0
     f = open(path * OPTIMISATION_FILE_NAME)
     line = readline(f)
     for line in eachline(f)
-        pointeurLine = rsplit(line , ";")
-        object_name = rsplit(pointeurLine[2] , "_")
-        if object_name[1] == "high"
-            HPRC_rank = parse(Int , pointeurLine[1])
-        end
-        if object_name[1] == "low"
-            LPRC_rank = parse(Int , pointeurLine[1])
-        end
-        if object_name[1] == "paint"
-            PCB_rank = parse(Int,pointeurLine[1])
+        if length(line) != 0
+            pointeurLine = rsplit(line , ";")
+            object_name = rsplit(pointeurLine[2] , "_")
+            if object_name[1] == "high"
+                HPRC_rank = parse(Int , pointeurLine[1])
+            end
+            if object_name[1] == "low"
+                LPRC_rank = parse(Int , pointeurLine[1])
+            end
+            if object_name[1] == "paint"
+                PCB_rank = parse(Int,pointeurLine[1])
+            end
         end
     end
     close(f)
@@ -107,6 +109,7 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     end
     close(f)
     RC_flag = Array{Bool, 2}(undef, nb_cars, nb_RC) # nb_RC = nb_LPRC + nb_HPRC
+    nb_cars = 0
     nb_late_prec_day = 0
     f = open(path*VEHICLES_FILE_NAME)
     line = readline(f)
@@ -117,8 +120,10 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
             day = date[3]
             nb_late_prec_day = nb_cars
         end
-       for colonne in 5:length(pointeurLine)-1
-            RC_flag[ligne , colonne - 4] = parse(Int,pointeurLine[colonne])
+        for colonne in 5:length(pointeurLine)
+            if !isempty(pointeurLine[colonne])
+                RC_flag[ligne , colonne - 4] = parse(Int,pointeurLine[colonne])
+            end
         end
         nb_cars += 1
         push!(color_code ,parse(Int,pointeurLine[4]))

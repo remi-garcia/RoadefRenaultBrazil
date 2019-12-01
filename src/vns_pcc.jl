@@ -293,6 +293,7 @@ function localSearch_intensification_VNS_PCC_exchange!(solution::Solution, insta
 
     list = Array{Int, 1}()
     improved = true
+    sequence = copy(solution.sequence)
     while improved
         improved = false
         critical_cars_set = critical_cars_VNS_LPRC(solution, instance)

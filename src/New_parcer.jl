@@ -106,6 +106,7 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
         nb_cars += 1
     end
     close(f)
+    #
     RC_flag = Array{Bool, 2}(undef, nb_cars, nb_RC) # nb_RC = nb_LPRC + nb_HPRC
     nb_late_prec_day = 0
     f = open(path*VEHICLES_FILE_NAME)

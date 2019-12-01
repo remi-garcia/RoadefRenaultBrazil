@@ -130,7 +130,7 @@ end
 Delete the item at `index_rem` and insert at `index_insert` in the sequence.
 """
 function sequence_insert!(sequence::Array{Int, 1}, index_rem::Int, index_insert::Int)
-    temp = sequence[index_car]
+    temp = sequence[index_rem]
     if index_rem < index_insert
         for k in index_rem:(index_insert-1)
             sequence[k] = sequence[k+1]

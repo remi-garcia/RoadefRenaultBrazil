@@ -11,7 +11,7 @@ include("move_insertion.jl")
 include("move_exchange.jl")
 
 """
-    greedy_add!(solution::Solution, instance::Instance, k::Int)
+    greedy_add!(solution::Solution, instance::Instance, k::Int, objectives::Int)
 
 Reinserts last car in the sequence of `solution`.
 """

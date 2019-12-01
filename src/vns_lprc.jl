@@ -98,29 +98,30 @@ function local_search_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool,
     end
 
     improved = true
-    list = Array{Int, 1}()
     while improved
         improved = false
         critical_cars = find_critical_cars(solution, instance, 2)
         for index_car_a in critical_cars
-            best_delta = -1 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
-            empty!(list)
+            best_delta = 0
+            best_positions = Array{Int, 1}()
             hprc_value = HPRC_value(solution.sequence[index_car_a], instance)
             for index_car_b in b0:instance.nb_cars
                 if !perturbation_exchange || (index_car_a != index_car_b && index_car_b in all_list_same_HPRC[hprc_value])
                     delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 2))
                     if delta < best_delta
-                        list = [index_car_b]
+                        best_positions = Array{Int, 1}([index_car_b])
                         best_delta = delta
                     elseif delta == best_delta
-                        push!(list, index_car_b)
+                        push!(best_positions, index_car_b)
                     end
                 end
             end
-            if !isempty(list)
-                index_car_b = rand(list)
+            if !isempty(best_positions)
+                index_car_b = rand(best_positions)
                 move_exchange!(solution, index_car_a, index_car_b, instance)
-                improved = true
+                if best_delta < 0
+                    improved = true
+                end
             end
         end
     end
@@ -255,17 +256,17 @@ function is_strictly_better_VNS_LPRC(solution_1::Solution, solution_2::Solution,
 end
 
 """
-    VNS_LPRC(solution::Solution, instance::Instance, start_time::UInt)
+    VNS_LPRC(solution_init::Solution, instance::Instance, start_time::UInt)
 
 Optimizes the weighted sum of first and second objectives.
 """
-function VNS_LPRC(solution::Solution, instance::Instance, start_time::UInt)
+function VNS_LPRC(solution_init::Solution, instance::Instance, start_time::UInt)
     # p = 0 implies insertion move and p = 1 implies exchange move as stated
     # in section 6.1. Note that section 6.5 states the opposite.
     _bitarray = BitArray{1}([false, true, false])
 
     # variables of the algorithm
-    solution_best = deepcopy(solution)
+    solution_best = deepcopy(solution_init)
     k_min = (VNS_LPRC_MIN_INSERT, VNS_LPRC_MIN_EXCHANGE)
     k_max = (VNS_LPRC_MAX_INSERT, VNS_LPRC_MAX_EXCHANGE)
     p = 0
@@ -273,23 +274,22 @@ function VNS_LPRC(solution::Solution, instance::Instance, start_time::UInt)
     nb_intens_not_better = 0
     while (nb_intens_not_better < VNS_LPRC_MAX_NON_IMPROVEMENT
           && (96/100) * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
-          && cost(solution, instance, _bitarray) != 0)
+          && cost(solution_best, instance, _bitarray) != 0)
         while (k <= k_max[p+1]
               && (96/100) * TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
-            neighbor = perturbation_VNS_LPRC(solution, p, k, instance)
+            neighbor = perturbation_VNS_LPRC(solution_best, p, k, instance)
             local_search_VNS_LPRC!(neighbor, p == 1, instance)
-            if is_strictly_better_VNS_LPRC(neighbor, solution, instance)
-                solution = deepcopy(neighbor)
+            if is_strictly_better_VNS_LPRC(neighbor, solution_best, instance)
                 k = k_min[p+1]
                 nb_intens_not_better = 0
             else
                 k = k + 1
             end
-            if is_better_VNS_LPRC(solution, solution_best, instance)
-                solution_best = deepcopy(solution)
+            if is_better_VNS_LPRC(neighbor, solution_best, instance)
+                solution_best = deepcopy(neighbor)
             end
         end
-        intensification_VNS_LPRC!(solution, instance)
+        intensification_VNS_LPRC!(solution_best, instance)
         nb_intens_not_better += 1
 
         p = 1 - p

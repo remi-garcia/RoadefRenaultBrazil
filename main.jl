@@ -69,7 +69,7 @@ function main()
             println("LP \t", costs[1,2] ,"\t", costs[2,2] ,"\t", costs[3,2] ,"\t", costs[4,2])
             println("PCC \t", costs[1,3] ,"\t", costs[2,3] ,"\t", costs[3,3] ,"\t", costs[4,3])
             println()
-            end
+            end #@time
             println()
             println()
         end

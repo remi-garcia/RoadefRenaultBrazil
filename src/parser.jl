@@ -36,23 +36,126 @@ struct Instance
 end
 
 """
-    old_parser(instance_name::String, instance_type::String, path_folder::String=string(@__DIR__)*"/../data/Instances_")
+    parser(instance_name::String, instance_type::String, path_folder::String=string(@__DIR__)*"/../data/Instances_")
+
+Returns return the instance of type instance_type parsed form the files in path_folder.
+"""
+function parser(instance_name::String, instance_type::String, path_folder::String=string(@__DIR__)*"/../data/Instances_")
+    path = path_folder * instance_type * "/" * instance_name * "/"
+
+    #Lecture  OPTIMISATION_FILE_NAME
+    HPRC_rank = 0
+    LPRC_rank = -1
+    PCB_rank = 0
+    f = open(path * OPTIMISATION_FILE_NAME)
+    line = readline(f)
+    for line in eachline(f)
+        if length(line) != 0
+            values = split(line , ";")
+            rank = values[1]
+            object_name = values[2]
+            if object_name[1] == 'h'
+                HPRC_rank = parse(Int, rank)
+            end
+            if object_name[1] == 'l'
+                LPRC_rank = parse(Int, rank)
+            end
+            if object_name[1] == 'p'
+                PCB_rank = parse(Int, rank)
+            end
+        end
+    end
+    close(f)
+
+    #Lecture PAINT_FILE_NAME
+    nb_paint_limitation = 0
+    f = open(path * PAINT_FILE_NAME)
+    line = readline(f)
+    for line in eachline(f)
+         values = split(line, ";")
+         nb_paint_limitation = parse(Int, values[1])
+    end
+    close(f)
+
+    #Lecture RATIO_FILE_NAME
+    nb_HPRC = 0
+    nb_LPRC = 0
+    RC_p = Array{Int,1}()
+    RC_q = Array{Int,1}()
+    f = open(path * RATIO_FILE_NAME)
+    line = readline(f)
+    for line in eachline(f)
+        values = split(line, ";")
+        ratio = split(values[1], "/")
+        push!(RC_p, parse(Int, ratio[1]))
+        push!(RC_q, parse(Int, ratio[2]))
+        if values[2] == "1"
+            nb_HPRC += 1
+        elseif values[2] == "0"
+            nb_LPRC += 1
+        end
+    end
+    close(f)
+
+    #Lecture VEHICLES_FILE_NAME
+    day = 0
+    indice = 0
+    nb_RC = nb_HPRC + nb_LPRC
+    color_code = Array{Int, 1}()
+    RC_flag = Array{Bool, 2}(undef, 0, nb_RC)
+    nb_cars = 0
+    nb_late_prec_day = 0
+    f = open(path*VEHICLES_FILE_NAME)
+    line = readline(f)
+    for line in eachline(f)
+        if length(line) != 0
+            values = split(line, ";")
+            if nb_late_prec_day == 0
+                date = split(values[1], " ")
+                if date[3] != day
+                    day = date[3]
+                    nb_late_prec_day = nb_cars
+                end
+            end
+            nb_cars += 1
+            this_RC_flag = falses(nb_RC)
+            for rc in 5:length(values)
+                this_RC_flag[rc - 4] = (values[rc] == "1")
+            end
+            RC_flag = [RC_flag; this_RC_flag']
+            push!(color_code, parse(Int, values[4]))
+        end
+    end
+    close(f)
+
+    return Instance(
+            HPRC_rank, LPRC_rank, PCB_rank,                            # objectives file
+            nb_paint_limitation,                                       # paint file
+            RC_p, RC_q, nb_HPRC, nb_LPRC,                               # ratio file
+            RC_flag, color_code, nb_late_prec_day, nb_cars               # vehicles file
+        )
+end
+
+
+##### Old parser with dependencies:
+#="""
+    parser(instance_name::String, instance_type::String, path_folder::String=string(@__DIR__)*"/../data/Instances_")
 
 Returns return the instance of type instance_type parsed form the files in path_folder. Uses CSV and DataFrames
 """
-function old_parser(instance_name::String, instance_type::String, path_folder::String=string(@__DIR__)*"/../data/Instances_")
+function parser(instance_name::String, instance_type::String, path_folder::String=string(@__DIR__)*"/../data/Instances_")
     path = path_folder * instance_type * "/" * instance_name * "/"
     # table of data
-    df_optimisation = CSV.File(path * OPTIMISATION_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
-    df_paint = CSV.File(path * PAINT_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
-    df_ratio = CSV.File(path * RATIO_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
-    df_vehicles = CSV.File(path * VEHICLES_FILE_NAME, delim=';',silencewarnings=true) |> DataFrame
+    df_optimisation = CSV.File(path * OPTIMISATION_FILE_NAME, delim=';', silencewarnings=true) |> DataFrame
+    df_paint = CSV.File(path * PAINT_FILE_NAME, delim=';', silencewarnings=true) |> DataFrame
+    df_ratio = CSV.File(path * RATIO_FILE_NAME, delim=';', silencewarnings=true) |> DataFrame
+    df_vehicles = CSV.File(path * VEHICLES_FILE_NAME, delim=';', silencewarnings=true) |> DataFrame
 
     # There is a fictive last column
-    df_optimisation = df_optimisation[:,1:min(2,end)]
-    df_paint = df_paint[:, 1:min(1,end)]
-    df_ratio = df_ratio[:, 1:min(3,end)]
-    df_vehicles = df_vehicles[:, 1:min((4+size(df_ratio)[1]),end)]
+    df_optimisation = df_optimisation[:,1:min(2, end)]
+    df_paint = df_paint[:, 1:min(1, end)]
+    df_ratio = df_ratio[:, 1:min(3, end)]
+    df_vehicles = df_vehicles[:, 1:min((4+size(df_ratio)[1]), end)]
 
     # Avoid lines with missing value that are not usable.
     df_optimisation = df_optimisation[completecases(df_optimisation), :]
@@ -110,111 +213,4 @@ function old_parser(instance_name::String, instance_type::String, path_folder::S
             RC_flag, color_code, nb_late_prec_day, length(color_code)  # vehicles file
         )
 end
-
-"""
-    parser(instance_name::String, instance_type::String, path_folder::String=string(@__DIR__)*"/../data/Instances_")
-
-Returns return the instance of type instance_type parsed form the files in path_folder.
-"""
-function parser(instance_name::String, instance_type::String, path_folder::String=string(@__DIR__)*"/../data/Instances_")
-    path = path_folder * instance_type * "/" * instance_name * "/"
-
-    #Lecture  OPTIMISATION_FILE_NAME
-    HPRC_rank = 0
-    LPRC_rank = -1
-    PCB_rank = 0
-    f = open(path * OPTIMISATION_FILE_NAME)
-    line = readline(f)
-    for line in eachline(f)
-        if length(line) != 0
-            pointeurLine = rsplit(line , ";")
-            object_name = rsplit(pointeurLine[2] , "_")
-            if object_name[1] == "high"
-                HPRC_rank = parse(Int , pointeurLine[1])
-            end
-            if object_name[1] == "low"
-                LPRC_rank = parse(Int , pointeurLine[1])
-            end
-            if object_name[1] == "paint"
-                PCB_rank = parse(Int,pointeurLine[1])
-            end
-        end
-    end
-    close(f)
-
-    #Lecture PAINT_FILE_NAME
-    nb_paint_limitation = 0
-    f = open(path * PAINT_FILE_NAME)
-    line = readline(f)
-    for line in eachline(f)
-         pointeurLine = split(line,";")
-         nb_paint_limitation = parse(Int, pointeurLine[1])
-    end
-    close(f)
-
-    #Lecture RATIO_FILE_NAME
-    indice_nb_HPRC = 0
-    indice_nb_LPRC = 0
-    RC_p = Array{Int,1}()
-    RC_q = Array{Int,1}()
-    f = open(path * RATIO_FILE_NAME)
-    line = readline(f)
-    for line in eachline(f)
-        pointeurLine = rsplit(line,";")
-        ratio = split(pointeurLine[1],"/")
-        push!(RC_p,parse(Int,ratio[1]))
-        push!(RC_q,parse(Int,ratio[2]))
-        if pointeurLine[2] == "1"
-            indice_nb_HPRC += 1
-        end
-        if pointeurLine[2] == "0"
-            indice_nb_LPRC += 1
-        end
-    end
-    close(f)
-    nb_HPRC = indice_nb_HPRC
-    nb_LPRC = indice_nb_LPRC
-
-    #Lecture VEHICLES_FILE_NAME
-    color_code = Array{Int,1}()
-    nb_cars = 0
-    day = 0
-    ligne =1
-    indice = 0
-    nb_RC = nb_HPRC + nb_LPRC
-    f = open(path*VEHICLES_FILE_NAME)
-    line = readline(f)
-    for line in eachline(f)
-        nb_cars += 1
-    end
-    close(f)
-
-    RC_flag = Array{Bool, 2}(undef, nb_cars, nb_RC) # nb_RC = nb_LPRC + nb_HPRC
-    nb_cars = 0
-    nb_late_prec_day = 0
-    f = open(path*VEHICLES_FILE_NAME)
-    line = readline(f)
-    for line in eachline(f)
-        pointeurLine = rsplit(line,";")
-        date = split(pointeurLine[1]," ")
-        if date[3] != day
-            day = date[3]
-            nb_late_prec_day = nb_cars
-        end
-        for colonne in 5:length(pointeurLine)
-            if !isempty(pointeurLine[colonne])
-                RC_flag[ligne , colonne - 4] = parse(Int,pointeurLine[colonne])
-            end
-        end
-        nb_cars += 1
-        push!(color_code ,parse(Int,pointeurLine[4]))
-        ligne += 1
-    end
-    close(f)
-    return Instance(
-            HPRC_rank, LPRC_rank, PCB_rank,                            # objectives file
-            nb_paint_limitation,                                       # paint file
-            RC_p, RC_q, nb_HPRC, nb_LPRC,                               # ratio file
-            RC_flag, color_code, nb_late_prec_day,nb_cars               # vehicles file
-        )
-end
+=#

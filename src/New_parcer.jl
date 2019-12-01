@@ -116,7 +116,7 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
         date = split(pointeurLine[1]," ")
         if date[3] != day
             day = date[3]
-            nb_late_prec_day = nb_cars
+            nb_late_prec_day = ligne - 1
         end
        for colonne in 5:length(pointeurLine)-1
             RC_flag[ligne , colonne - 4] = parse(Int,pointeurLine[colonne])

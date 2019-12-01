@@ -182,7 +182,7 @@ function greedy(instance::Instance)
         # Choose the car that induces the smallest number of new violations of LPRC
         # when inserted at the end of the current partial sequence.
         if length(candidates) > 1
-            candidates = criterion_nb_violations(solution, position, V, instance, instance.nb_HPRC+1,instance.nb_HPRC+instance.nb_LPRC)
+            candidates = criterion_nb_violations(solution, position, candidates, instance, instance.nb_HPRC+1,instance.nb_HPRC+instance.nb_LPRC)
         end
 
         c = rand(candidates)     # We have a valid candidate

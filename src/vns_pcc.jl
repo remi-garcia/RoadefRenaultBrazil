@@ -201,14 +201,14 @@ function perturbation_VNS_PCC_exchange(solution_init::Solution, k::Int, instance
     HPRC_cars_groups = Dict{Int, Array{Int, 1}}()
     b0 = instance.nb_late_prec_day+1
     for car_pos in (b0+1):instance.nb_cars
-        car_HPRC_value = HPRC_value(solution.sequence[car_pos])
+        car_HPRC_value = HPRC_value(solution.sequence[car_pos], instance)
         if !haskey(HPRC_cars_groups, car_HPRC_value)
             HPRC_cars_groups[car_HPRC_value] = [car_pos]
         else
             push!(HPRC_cars_groups[car_HPRC_value], car_pos)
         end
     end
-    filter!(x -> length(x.second) >= 2, all_list_same_HPRC)
+    filter!(x -> length(x.second) >= 2, HPRC_cars_groups)
 
     sequence = solution.sequence
     for _ in 1:k
@@ -297,7 +297,7 @@ function localSearch_intensification_VNS_PCC_exchange!(solution::Solution, insta
         improved = false
         critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
         for index_car_a in critical_cars_set
-            best_delta = 0
+            best_delta = -1
             empty!(list)
             for index_car_b in (index_car_a+1):instance.nb_cars
                 if (index_car_a != index_car_b)
@@ -396,7 +396,7 @@ function localsearch_VNS_PCC!(solution::Solution, instance::Instance)
     while improved
         improved = false
         for index_car_a in b0:instance.nb_cars
-            best_delta = 0
+            best_delta = -1
             list = Array{Int, 1}()
             hprc_value = HPRC_value(solution.sequence[index_car_a], instance)
             for index_car_b in all_list_same_HPRC[hprc_value]
@@ -413,8 +413,11 @@ function localsearch_VNS_PCC!(solution::Solution, instance::Instance)
                 end
             end
             if !isempty(list)
+                println("delta", best_delta, list)
                 index_car_b = rand(list)
+                println("cost av: ", cost(solution, instance, 3))
                 move_exchange!(solution, index_car_a, index_car_b, instance)
+                println("cost ap: ", cost(solution, instance, 3))
                 sequence[index_car_a], sequence[index_car_b] = sequence[index_car_b], sequence[index_car_a]
                 improved = true
             end
@@ -435,11 +438,13 @@ function VNS_PCC(solution::Solution, instance::Instance, start_time::UInt)
     cost_HPRC_solution = cost(solution, instance, 1)[1]
     while TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         while (k <= VNS_PCC_MINMAX[p+1][2]) && (TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
-            solution_perturbation = perturbations[p+1](solution, k, instance)
+            println("perturbations ", p+1)
+            @time solution_perturbation = perturbations[p+1](solution, k, instance)
             if cost_HPRC_solution < cost(solution_perturbation, instance, 1)[1]
                 solution_perturbation = deepcopy(solution)
             end
-            localsearch_VNS_PCC!(solution_perturbation, instance)
+            println("local search ", p+1)
+            @time localsearch_VNS_PCC!(solution_perturbation, instance)
             cost_solution_perturbation = weighted_sum(solution_perturbation, instance, 3)
             if cost_solution_perturbation < cost_solution
                 k = VNS_PCC_MINMAX[p+1][1]
@@ -453,7 +458,8 @@ function VNS_PCC(solution::Solution, instance::Instance, start_time::UInt)
                 cost_solution = weighted_sum(solution, instance, 3)
             end
         end
-        intensification_VNS_PCC!(solution, instance)
+        println("instensification ", p+1)
+        @time intensification_VNS_PCC!(solution, instance)
         p = 1 - p
         k = VNS_PCC_MINMAX[p+1][1]
     end

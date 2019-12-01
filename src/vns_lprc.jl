@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 # File: vns_lprc.jl
-# Description: This files contains all function that are used in VNS_LPRC.
+# Description: This files contains all functions that are used in VNS_LPRC.
 # Date: October 31, 2019
 # Author: Jonathan Fontaine, Killian Fretaud, Rémi Garcia,
 #         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
@@ -19,7 +19,7 @@ function perturbation_VNS_LPRC_insertion!(solution::Solution, k::Int,
                                           instance::Instance)
     remove!(solution, instance, k, critical_cars)
     for i in 1:k
-        greedy_add_VNS_LPRC!(solution, instance, k-i, 2)
+        greedy_add!(solution, instance, k-i, 2)
     end
     return solution
 end

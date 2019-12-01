@@ -78,13 +78,13 @@ function perturbation_VNS_LPRC(solution_init::Solution, p::Int, k::Int, instance
 end
 
 """
-    localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, instance::Instance)
+    local_search_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, instance::Instance)
 
 Optimizes the weighted sum of first and second objectives. When
 `perturbation_exchange` is `true` this function does not degrade the first
 objective.
 """
-function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, instance::Instance)
+function local_search_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, instance::Instance)
     # useful variable
     b0 = instance.nb_late_prec_day+1
     all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
@@ -129,37 +129,38 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
 end
 
 """
-    localSearch_intensification_VNS_LPRC_exchange!(solution::Solution, instance::Instance)
+    local_search_intensification_VNS_LPRC_exchange!(solution::Solution, instance::Instance)
 
 Optimizes the weighted sum of first and second objectives using `move_exchange!`.
 """
-function localSearch_intensification_VNS_LPRC_exchange!(solution::Solution, instance::Instance)
+function local_search_intensification_VNS_LPRC_exchange!(solution::Solution, instance::Instance)
     # useful variable
     b0 = instance.nb_late_prec_day+1
 
-    list = Array{Int, 1}()
     improved = true
     while improved
         improved = false
         critical_cars = find_critical_cars(solution, instance, 2)
         for index_car_a in critical_cars
-            best_delta = -1 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
-            empty!(list)
+            best_delta = 0
+            best_positions = Array{Int, 1}()
             for index_car_b in b0:instance.nb_cars
                 if (index_car_a != index_car_b)
                     delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 2))
                     if delta < best_delta
-                        list = [index_car_b]
+                        best_positions = Array{Int, 1}([index_car_b])
                         best_delta = delta
                     elseif delta == best_delta
-                        push!(list, index_car_b)
+                        push!(best_positions, index_car_b)
                     end
                 end
             end
-            if !isempty(list)
-                index_car_b = rand(list)
+            if !isempty(best_positions)
+                index_car_b = rand(best_positions)
                 move_exchange!(solution, index_car_a, index_car_b, instance)
-                improved = true
+                if best_delta < 0
+                    improved = true
+                end
             end
         end
     end
@@ -168,11 +169,11 @@ function localSearch_intensification_VNS_LPRC_exchange!(solution::Solution, inst
 end
 
 """
-    localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, instance::Instance)
+    local_search_intensification_VNS_LPRC_insertion!(solution::Solution, instance::Instance)
 
 Optimizes the weighted sum of first and second objectives using `move_insertion!`.
 """
-function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, instance::Instance)
+function local_search_intensification_VNS_LPRC_insertion!(solution::Solution, instance::Instance)
     # useful variable
     b0 = instance.nb_late_prec_day+1
 
@@ -181,13 +182,13 @@ function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, ins
         improved = false
         critical_cars = find_critical_cars(solution, instance, 2)
         for index_car in critical_cars
-            best_delta = -1 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
-            best_positions = Vector{Int}()
+            best_delta = 0
+            best_positions = Array{Int, 1}()
             matrix_deltas = cost_move_insertion(solution, index_car, instance, 2)
             for position in b0:instance.nb_cars
                 delta = weighted_sum(matrix_deltas[position, :])
                 if delta < best_delta
-                    best_positions = Vector{Int}([position])
+                    best_positions = Array{Int, 1}([position])
                     best_delta = delta
                 elseif delta == best_delta
                     push!(best_positions, position)
@@ -197,7 +198,9 @@ function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, ins
             if !isempty(best_positions)
                 index_insert = rand(best_positions)
                 move_insertion!(solution, index_car, index_insert, instance)
-                improved = true
+                if best_delta < 0
+                    improved = true
+                end
             end
         end
     end
@@ -210,8 +213,8 @@ end
 Calls both intensification.
 """
 function intensification_VNS_LPRC!(solution::Solution, instance::Instance)
-    localSearch_intensification_VNS_LPRC_insertion!(solution, instance)
-    localSearch_intensification_VNS_LPRC_exchange!(solution, instance)
+    local_search_intensification_VNS_LPRC_insertion!(solution, instance)
+    local_search_intensification_VNS_LPRC_exchange!(solution, instance)
     return solution
 end
 
@@ -252,18 +255,17 @@ function is_strictly_better_VNS_LPRC(solution_1::Solution, solution_2::Solution,
 end
 
 """
-    VNS_LPRC(solution_init::Solution, instance::Instance, start_time::UInt)
+    VNS_LPRC(solution::Solution, instance::Instance, start_time::UInt)
 
 Optimizes the weighted sum of first and second objectives.
 """
-function VNS_LPRC(solution_init::Solution, instance::Instance, start_time::UInt)
+function VNS_LPRC(solution::Solution, instance::Instance, start_time::UInt)
     # p = 0 implies insertion move and p = 1 implies exchange move as stated
     # in section 6.1. Note that section 6.5 states the opposite.
     _bitarray = BitArray{1}([false, true, false])
 
     # variables of the algorithm
-    solution = deepcopy(solution_init)
-    solution_best = deepcopy(solution_init)
+    solution_best = deepcopy(solution)
     k_min = (VNS_LPRC_MIN_INSERT, VNS_LPRC_MIN_EXCHANGE)
     k_max = (VNS_LPRC_MAX_INSERT, VNS_LPRC_MAX_EXCHANGE)
     p = 0
@@ -275,7 +277,7 @@ function VNS_LPRC(solution_init::Solution, instance::Instance, start_time::UInt)
         while (k <= k_max[p+1]
               && (96/100) * TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
             neighbor = perturbation_VNS_LPRC(solution, p, k, instance)
-            localSearch_VNS_LPRC!(neighbor, p == 1, instance)
+            local_search_VNS_LPRC!(neighbor, p == 1, instance)
             if is_strictly_better_VNS_LPRC(neighbor, solution, instance)
                 solution = deepcopy(neighbor)
                 k = k_min[p+1]

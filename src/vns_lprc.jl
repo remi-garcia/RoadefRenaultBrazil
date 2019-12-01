@@ -7,26 +7,21 @@
 #-------------------------------------------------------------------------------
 
 """
-    critical_cars_VNS_LPRC(solution::Solution, instance::Instance)
+    perturbation_VNS_LPRC_insertion!(solution::Solution, k::Int,
+                                     critical_cars::Array{Int, 1},
+                                     instance::Instance)
 
-Returns the set cars involved in at least one HPRC or LPRC violation.
+Deletes `k` random critical cars from the sequence. Inserts back those cars
+according to a greedy criterion.
 """
-function critical_cars_VNS_LPRC(solution::Solution, instance::Instance)
-    critical_car = Set{Int}()
-    b0 = instance.nb_late_prec_day+1
-    for index_car in b0:instance.nb_cars
-        for option in 1:(instance.nb_HPRC+instance.nb_LPRC)
-            if (solution.M1[option, index_car] > instance.RC_p[option])
-                index_car_lim = index_car + min(instance.RC_p[option], instance.nb_cars-index_car)
-                for index_car_add in index_car:index_car_lim
-                    if instance.RC_flag[solution.sequence[index_car_add], option]
-                        push!(critical_car, index_car_add)
-                    end
-                end
-            end
-        end
+function perturbation_VNS_LPRC_insertion!(solution::Solution, k::Int,
+                                          critical_cars::Array{Int, 1},
+                                          instance::Instance)
+    remove!(solution, instance, k, critical_cars)
+    for i in 1:k
+        greedy_add_VNS_LPRC!(solution, instance, k-i, 2)
     end
-    return critical_car
+    return solution
 end
 
 """
@@ -65,43 +60,6 @@ function perturbation_VNS_LPRC_exchange!(solution::Solution, k::Int, instance::I
 end
 
 """
-    perturbation_VNS_LPRC_insertion!(solution::Solution, k::Int, instance::Instance)
-
-Deletes `k` randomly picked cars from the sequence. Inserts back those cars
-according to a greedy criterion.
-"""
-function perturbation_VNS_LPRC_insertion!(solution::Solution, k::Int, instance::Instance)
-    b0 = instance.nb_late_prec_day+1
-
-    array_insertion = Array{Int, 1}()
-    push!(array_insertion, rand(b0:instance.nb_cars))
-
-    for iterator in 2:k
-        index_car = rand(b0:instance.nb_cars)
-        while index_car in array_insertion
-            index_car = rand(b0:instance.nb_cars)
-        end
-        push!(array_insertion, index_car)
-    end
-
-    # Put every index at the end
-    sort!(array_insertion, rev=true) # sort is important to avoid to compute offset.
-    for index_car in array_insertion
-        move_insertion!(solution, index_car, instance.nb_cars, instance)
-    end
-
-    # Best insert
-    for index_car in (instance.nb_cars-k+1):instance.nb_cars
-        matrix_deltas = cost_move_insertion(solution, index_car, instance, 2)
-        array_deltas = [(weighted_sum(matrix_deltas[i, :], 2), i) for i in b0:instance.nb_cars]
-        index_insert_best = findmin(array_deltas)[1][2]
-        move_insertion!(solution, index_car, index_insert_best, instance)
-    end
-
-    return solution
-end
-
-"""
     perturbation_VNS_LPRC(solution::Solution, p::Int, k::Int, instance::Instance)
 
 Calls both perturbations and return a new solution. This function does not
@@ -112,7 +70,9 @@ function perturbation_VNS_LPRC(solution_init::Solution, p::Int, k::Int, instance
     if p == 1
         perturbation_VNS_LPRC_exchange!(solution, k, instance)
     else
-        perturbation_VNS_LPRC_insertion!(solution, k, instance)
+        critical_cars = find_critical_cars(solution, instance, 2)
+        k = min(k, length(critical_cars))
+        perturbation_VNS_LPRC_insertion!(solution, k, critical_cars, instance)
     end
     return solution
 end
@@ -141,14 +101,14 @@ function localSearch_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, 
     list = Array{Int, 1}()
     while improved
         improved = false
-        critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
-        for index_car_a in critical_cars_set
+        critical_cars = find_critical_cars(solution, instance, 2)
+        for index_car_a in critical_cars
             best_delta = -1 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
             empty!(list)
             hprc_value = HPRC_value(solution.sequence[index_car_a], instance)
             for index_car_b in b0:instance.nb_cars
                 if !perturbation_exchange || (index_car_a != index_car_b && index_car_b in all_list_same_HPRC[hprc_value])
-                    delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 2), 2)
+                    delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 2))
                     if delta < best_delta
                         list = [index_car_b]
                         best_delta = delta
@@ -181,13 +141,13 @@ function localSearch_intensification_VNS_LPRC_exchange!(solution::Solution, inst
     improved = true
     while improved
         improved = false
-        critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
-        for index_car_a in critical_cars_set
+        critical_cars = find_critical_cars(solution, instance, 2)
+        for index_car_a in critical_cars
             best_delta = -1 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
             empty!(list)
             for index_car_b in b0:instance.nb_cars
                 if (index_car_a != index_car_b)
-                    delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 2), 2)
+                    delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 2))
                     if delta < best_delta
                         list = [index_car_b]
                         best_delta = delta
@@ -219,19 +179,25 @@ function localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, ins
     improved = true
     while improved
         improved = false
-        critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
-        for index_car in critical_cars_set
+        critical_cars = find_critical_cars(solution, instance, 2)
+        for index_car in critical_cars
             best_delta = -1 # < 0 to avoid to select delta = 0 if there is no improvment (avoid cycle)
+            best_positions = Vector{Int}()
             matrix_deltas = cost_move_insertion(solution, index_car, instance, 2)
-            array_deltas = [(weighted_sum(matrix_deltas[i, :], 2), i) for i in b0:instance.nb_cars]
-            min = findmin(array_deltas)[1][1]
-            if min < 0
-                list = map(x -> x[2], filter(x -> x[1] == min, array_deltas))
-                if !isempty(list)
-                    index_insert = rand(list)
-                    move_insertion!(solution, index_car, index_insert, instance)
-                    improved = true
+            for position in b0:instance.nb_cars
+                delta = weighted_sum(matrix_deltas[position, :])
+                if delta < best_delta
+                    best_positions = Vector{Int}([position])
+                    best_delta = delta
+                elseif delta == best_delta
+                    push!(best_positions, position)
                 end
+            end
+
+            if !isempty(best_positions)
+                index_insert = rand(best_positions)
+                move_insertion!(solution, index_car, index_insert, instance)
+                improved = true
             end
         end
     end
@@ -261,7 +227,7 @@ function is_better_VNS_LPRC(solution_1::Solution, solution_2::Solution, instance
     solution_1_cost = cost(solution_1, instance, 2)
     solution_2_cost = cost(solution_2, instance, 2)
 
-    cost_better = weighted_sum(solution_1_cost, 2) <= weighted_sum(solution_2_cost, 2)
+    cost_better = weighted_sum(solution_1_cost) <= weighted_sum(solution_2_cost)
     HPRC_not_worse = solution_1_cost[1] <= solution_2_cost[1]
 
     return cost_better && HPRC_not_worse
@@ -279,7 +245,7 @@ function is_strictly_better_VNS_LPRC(solution_1::Solution, solution_2::Solution,
     solution_1_cost = cost(solution_1, instance, 2)
     solution_2_cost = cost(solution_2, instance, 2)
 
-    cost_better = weighted_sum(solution_1_cost, 2) < weighted_sum(solution_2_cost, 2)
+    cost_better = weighted_sum(solution_1_cost) < weighted_sum(solution_2_cost)
     HPRC_not_worse = solution_1_cost[1] <= solution_2_cost[1]
 
     return cost_better && HPRC_not_worse

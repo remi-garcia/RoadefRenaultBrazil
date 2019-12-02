@@ -123,7 +123,7 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
                 for rc in 5:length(values)
                     RC_flag[nb_cars, rc - 4] = (values[rc] == "1")
                 end
-                push!(color_code, parse(Int, values[4]))
+                color_code[nb_cars] = parse(Int, values[4])
             end
         end
     end
@@ -139,12 +139,12 @@ end
 
 
 ##### Old parser with dependencies:
-#="""
-    parser(instance_name::String, instance_type::String, path_folder::String=string(@__DIR__)*"/../data/Instances_")
+"""
+    parser_old(instance_name::String, instance_type::String, path_folder::String=string(@__DIR__)*"/../data/Instances_")
 
 Returns return the instance of type instance_type parsed form the files in path_folder. Uses CSV and DataFrames
 """
-function parser(instance_name::String, instance_type::String, path_folder::String=string(@__DIR__)*"/../data/Instances_")
+function parser_old(instance_name::String, instance_type::String, path_folder::String=string(@__DIR__)*"/../data/Instances_")
     path = path_folder * instance_type * "/" * instance_name * "/"
     # table of data
     df_optimisation = CSV.File(path * OPTIMISATION_FILE_NAME, delim=';', silencewarnings=true) |> DataFrame
@@ -214,4 +214,3 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
             RC_flag, color_code, nb_late_prec_day, length(color_code)  # vehicles file
         )
 end
-=#

@@ -139,7 +139,7 @@ end
 
 
 ##### Old parser with dependencies:
-"""
+#="""
     parser_old(instance_name::String, instance_type::String, path_folder::String=string(@__DIR__)*"/../data/Instances_")
 
 Returns return the instance of type instance_type parsed form the files in path_folder. Uses CSV and DataFrames
@@ -214,3 +214,4 @@ function parser_old(instance_name::String, instance_type::String, path_folder::S
             RC_flag, color_code, nb_late_prec_day, length(color_code)  # vehicles file
         )
 end
+=#

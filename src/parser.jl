@@ -15,7 +15,7 @@ const RATIO_FILE_NAME = "ratios.txt"
 const VEHICLES_FILE_NAME = "vehicles.txt"
 
 # An Instance structure that is used to format data as we want.
-struct Instance
+mutable struct Instance
     # objectif function
     HPRC_rank::Int
     LPRC_rank::Int # If there is no LPRC, LPRC_rank = -1
@@ -113,7 +113,7 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
         color_code = zeros(Int, nb_cars_total)
         for line in lines[2:end]
             if line != ""
-                values = split(line, ";")
+                values = split(line, ";", keepempty = false)
                 if nb_late_prec_day == 0
                     date = split(values[1], " ")
                     if date[3] != day

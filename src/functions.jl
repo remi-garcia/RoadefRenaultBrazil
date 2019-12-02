@@ -19,110 +19,18 @@ function greedy_add!(solution::Solution, instance::Instance, k::Int, objectives:
     @assert objectives <= 3
     @assert objectives >= 1
     b0 = instance.nb_late_prec_day + 1
-    # TODO:
-    # Cost move insertion do more work than necessary.
-    # It will compute delta for instance.nb_cars-k to instance.nb_cars
-    # Such deltas will be false. But it is easier to compute it this way
-    costs = cost_move_insertion(solution, instance.nb_cars, instance, objectives)
+    costs = cost_move_insertion(solution, instance.nb_cars, instance, objectives, instance.nb_cars-k)
     delta = weighted_sum(costs[b0, :])
-    # Last delta is a whole new addition at the end of the sequence
-    last_delta = zeros(Int, 3)
-    car = solution.sequence[instance.nb_cars]
-    if objectives >= 1
-        for option in 1:instance.nb_HPRC
-            if instance.RC_flag[car, option]
-                last_sequence_untouched = (instance.nb_cars-k) - instance.RC_q[option]
-                if last_sequence_untouched >= 1
-                    last_delta[1] += solution.M3[option, (instance.nb_cars-k)-1] - solution.M3[option, last_sequence_untouched]
-                elseif instance.nb_cars-k >= 1
-                    last_delta[1] += solution.M3[option, (instance.nb_cars-k)-1]
-                end
-            end
-        end
-    end
-    if objectives >= 2
-        for option in (instance.nb_HPRC+1):(instance.nb_HPRC+instance.nb_LPRC)
-            if instance.RC_flag[car, option]
-                last_sequence_untouched = (instance.nb_cars-k) - instance.RC_q[option]
-                if last_sequence_untouched >= 1
-                    last_delta[2] += solution.M3[option, (instance.nb_cars-k)-1] - solution.M3[option, last_sequence_untouched]
-                elseif instance.nb_cars-k >= 1
-                    last_delta[2] += solution.M3[option, (instance.nb_cars-k)-1]
-                end
-            end
-        end
-    end
-    if objectives >= 3
-        for option in (instance.nb_HPRC+1):(instance.nb_HPRC+instance.nb_LPRC)
-            if ((instance.nb_cars-k)-1 >= 1
-            && instance.color_code[solution.sequence[car]] != instance.color_code[solution.sequence[instance.nb_cars-k]])
-                last_delta[3] += 1
-            end
-        end
-    end
-    best_delta = weighted_sum(last_delta)
-    best_position = instance.nb_cars-k
-
-    # Other delta must be checked
-    for position in b0:((instance.nb_cars-k)-1)
+    best_delta = delta
+    best_position = b0
+    for position in (b0+1):(instance.nb_cars-k)
         delta = weighted_sum(costs[position, :])
         if delta < best_delta
             best_delta = delta
             best_position = position
         end
     end
-
-    # We have a best place
-    for j in (best_position+1):instance.nb_cars
-        solution.sequence[j] = solution.sequence[j-1]
-    end
-    solution.sequence[best_position] = car
-
-    # For all options
-    for option in 1:instance.nb_HPRC+instance.nb_LPRC
-        first_modified_sequence = max(best_position - instance.RC_q[option] + 1, 1)
-
-        # Shift right late sequences for M1
-        for late_sequence in best_position+1:instance.nb_cars
-            solution.M1[option, late_sequence-1] = solution.M1[option, late_sequence]
-        end
-
-        # M1 may increase
-        if instance.RC_flag[car, option]
-            for modified_sequence in first_modified_sequence:best_position
-                solution.M1[option, modified_sequence] += 1
-            end
-        end
-
-        # M1 may decrease
-        for modified_sequence in first_modified_sequence:best_position
-            new_position_unreached = modified_sequence + instance.RC_q[option]
-            if new_position_unreached < instance.nb_cars-k
-                if instance.RC_flag[solution.sequence[new_position_unreached], option]
-                    solution.M1[option, modified_sequence] -= 1
-                end
-            end
-        end
-
-        # Next sequences are shifted and change w.r.t variation
-        for modified_sequence in first_modified_sequence:instance.nb_cars-k
-            # M2 and M3 may change
-            if modified_sequence == 1
-                solution.M2[option, modified_sequence] = 0
-                solution.M3[option, modified_sequence] = 0
-            else
-                solution.M2[option, modified_sequence] = solution.M2[option, modified_sequence-1]
-                solution.M3[option, modified_sequence] = solution.M3[option, modified_sequence-1]
-            end
-            if solution.M1[option, modified_sequence] >= instance.RC_p[option]
-                solution.M3[option, modified_sequence] += 1
-                # M2 is >
-                if solution.M1[option, modified_sequence] > instance.RC_p[option]
-                    solution.M2[option, modified_sequence] += 1
-                end
-            end
-        end
-    end
+    move_insertion!(solution, instance.nb_cars, best_position, instance)
 
     return solution
 end
@@ -177,68 +85,14 @@ Removes `k` critical cars of the sequence of `solution_init`.
 """
 function remove!(solution::Solution, instance::Instance,
                  k::Int, crit::Array{Int, 1})
-    indices = sort(randperm(length(crit))[1:k])
-    crit_sort = sort(crit, rev = true)
-    for i in 1:k
-        position = crit_sort[indices[i]]
-        car = solution.sequence[position]
-        for j in position:(instance.nb_cars-1)
-            solution.sequence[j] = solution.sequence[j+1]
-        end
-        solution.sequence[instance.nb_cars] = car
+     indices = sort(randperm(length(crit))[1:k])
+     crit_sort = sort(crit, rev = true)
+     for i in 1:k
+         position = crit_sort[indices[i]]
+         move_insertion!(solution, position, instance.nb_cars, instance)
+     end
 
-        # For all options
-        for option in 1:instance.nb_HPRC+instance.nb_LPRC
-            first_modified_sequence = max(position - instance.RC_q[option] + 1, 1)
-
-            # M1 may decrease
-            if instance.RC_flag[car, option]
-                for modified_sequence in first_modified_sequence:position
-                    solution.M1[option, modified_sequence] -= 1
-                end
-            end
-
-            # M1 may increase
-            for modified_sequence in first_modified_sequence:(position-1)
-                new_position_reached = modified_sequence + instance.RC_q[option]
-                if new_position_reached < instance.nb_cars-i
-                    if instance.RC_flag[solution.sequence[new_position_reached], option]
-                        solution.M1[option, modified_sequence] += 1
-                    end
-                end
-            end
-
-            # Shift left late sequences for M1
-            for late_sequence in position:instance.nb_cars-1
-                solution.M1[option, late_sequence] = solution.M1[option, late_sequence+1]
-            end
-
-            # Next sequences are shifted and change w.r.t variation
-            for modified_sequence in first_modified_sequence:instance.nb_cars-i
-                # M2 and M3 may change
-                if modified_sequence == 1
-                    solution.M2[option, modified_sequence] = 0
-                    solution.M3[option, modified_sequence] = 0
-                else
-                    solution.M2[option, modified_sequence] = solution.M2[option, modified_sequence-1]
-                    solution.M3[option, modified_sequence] = solution.M3[option, modified_sequence-1]
-                end
-                if solution.M1[option, modified_sequence] >= instance.RC_p[option]
-                    solution.M3[option, modified_sequence] += 1
-                    # M2 is >
-                    if solution.M1[option, modified_sequence] > instance.RC_p[option]
-                        solution.M2[option, modified_sequence] += 1
-                    end
-                end
-            end
-
-            # nb_cars - (i+1) is a deleted column
-            solution.M2[option, instance.nb_cars-i+1] = 0
-            solution.M3[option, instance.nb_cars-i+1] = 0
-        end
-    end
-
-    return solution
+     return solution
 end
 
 """

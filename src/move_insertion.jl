@@ -51,8 +51,12 @@ with respect to objectives `objectives`. A negative cost means that
 the move is interesting with respect to treated objectives.
 """
 function cost_move_insertion(solution::Solution, position::Int,
-                             instance::Instance, objectives::BitArray{1})
+                             instance::Instance, objectives::BitArray{1},
+                             nb_cars::Int)
     @assert length(objectives) == 3
+
+    nb_cars_tmp = instance.nb_cars
+    instance.nb_cars = nb_cars
 
     cost_on_objective = zeros(Int, instance.nb_cars, 3)
     b0 = instance.nb_late_prec_day+1
@@ -102,20 +106,20 @@ function cost_move_insertion(solution::Solution, position::Int,
         )
 
         # for all other valid positions
-        for index in (b0+1):(instance.nb_cars)
+        for index in (b0+1):instance.nb_cars
             # Delta 1 is compute as for b0
             delta1_for_first[index] = compute_delta1(solution, instance,
                                                      M1, sequence, index, position,
                                                      1, instance.nb_HPRC)
         end
-        for index in (b0+1):(instance.nb_cars)
+        for index in (b0+1):instance.nb_cars
             delta2_for_first = compute_delta2(solution, instance,
                                               M1, sequence, index, position,
                                               1, instance.nb_HPRC,
                                               delta2_for_first)
         end
         # The cost is variation of deletion + delta1 (new sequence) + delta2 (modified sequences)
-        for i in b0:(instance.nb_cars)
+        for i in b0:instance.nb_cars
             cost_on_objective[i, 1] = delta1_for_first[i] + delta2_for_first[i] + violations_caused_on_first
         end
     end
@@ -138,7 +142,7 @@ function cost_move_insertion(solution::Solution, position::Int,
                 M1, sequence, index, position,
                 instance.nb_HPRC+1, instance.nb_HPRC+instance.nb_LPRC)
         end
-        for index in (b0+1):(instance.nb_cars)
+        for index in (b0+1):instance.nb_cars
             delta2_for_second = compute_delta2(
                 solution, instance,
                 M1, sequence, index, position,
@@ -147,7 +151,7 @@ function cost_move_insertion(solution::Solution, position::Int,
         end
 
         # The cost is variation of deletion + delta1 (new sequence) + delta2 (modified sequences)
-        for i in b0:(instance.nb_cars)
+        for i in b0:instance.nb_cars
             cost_on_objective[i, 2] = delta1_for_second[i] + delta2_for_second[i] + violations_caused_on_second
         end
     end
@@ -194,6 +198,8 @@ function cost_move_insertion(solution::Solution, position::Int,
         end
     end
 
+    instance.nb_cars = nb_cars_tmp
+
     return cost_on_objective
 end
 
@@ -206,7 +212,11 @@ with respect to objectives 1 to `objective`. A negative cost means that the move
 is interesting with respect to treated objective.
 """
 cost_move_insertion(solution::Solution, position::Int, instance::Instance, objective::Int) =
-    cost_move_insertion(solution, position, instance, [trues(objective) ; falses(3-objective)])
+    cost_move_insertion(solution, position, instance, [trues(objective) ; falses(3-objective)], instance.nb_cars)
+cost_move_insertion(solution::Solution, position::Int, instance::Instance, objectives::BitArray{1}) =
+    cost_move_insertion(solution, position, instance, objectives, instance.nb_cars)
+cost_move_insertion(solution::Solution, position::Int, instance::Instance, objective::Int, nb_cars::Int) =
+    cost_move_insertion(solution, position, instance, [trues(objective) ; falses(3-objective)], nb_cars)
 
 
         #-------------------------------------------------------#

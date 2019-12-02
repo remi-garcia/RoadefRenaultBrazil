@@ -1,7 +1,5 @@
 module RoadefRenaultBrazil
 
-using CSV
-using DataFrames
 using Random
 
 include("parser.jl")

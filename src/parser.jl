@@ -15,7 +15,7 @@ const RATIO_FILE_NAME = "ratios.txt"
 const VEHICLES_FILE_NAME = "vehicles.txt"
 
 # An Instance structure that is used to format data as we want.
-mutable struct Instance
+struct Instance
     # objectif function
     HPRC_rank::Int
     LPRC_rank::Int # If there is no LPRC, LPRC_rank = -1

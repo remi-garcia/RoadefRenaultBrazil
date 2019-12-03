@@ -41,7 +41,7 @@ function repair!(solution::Solution, instance::Instance)
     # First strategy
     RC_cars_groups = Dict{Int, Array{Int, 1}}()
     b0 = instance.nb_late_prec_day+1
-    for car_pos in (b0+1):instance.nb_cars
+    for car_pos in b0:instance.nb_cars
         car_RC_value = RC_value(solution.sequence[car_pos], instance)
         if !haskey(RC_cars_groups, car_RC_value)
             RC_cars_groups[car_RC_value] = [car_pos]
@@ -103,7 +103,7 @@ function repair!(solution::Solution, instance::Instance)
 
     HPRC_cars_groups = Dict{Int, Array{Int, 1}}()
     b0 = instance.nb_late_prec_day+1
-    for car_pos in (b0+1):instance.nb_cars
+    for car_pos in b0:instance.nb_cars
         car_HPRC_value = HPRC_value(solution.sequence[car_pos], instance)
         if !haskey(HPRC_cars_groups, car_HPRC_value)
             HPRC_cars_groups[car_HPRC_value] = [car_pos]
@@ -167,7 +167,7 @@ function repair!(solution::Solution, instance::Instance)
     first_violation = find_first_violation(solution, instance)
     while first_violation != -1
         # Compute the best_insertion index
-        solution_value = sum_cost(solution, instance)
+        solution_value = weighted_sum(solution, instance)
         cost_insertion = zeros(instance.nb_cars)
         for i in 1:instance.nb_cars
             if i <= instance.nb_late_prec_day || instance.color_code[i] == instance.color_code[first_violation]# Pour empêcher d'insérer dans les nb_late_prec_day
@@ -175,7 +175,7 @@ function repair!(solution::Solution, instance::Instance)
             else
                 solution_copy = deepcopy(solution)
                 move_insertion!(solution, first_violation, i, instance)
-                cost_insertion[i] = sum_cost(solution_copy, instance) - solution_value
+                cost_insertion[i] = weighted_sum(solution_copy, instance) - solution_value
             end
         end
         best_insertion = argmin(cost_insertion)[1]
@@ -196,7 +196,7 @@ function perturbation_VNS_PCC_exchange(solution_init::Solution, k::Int, instance
     solution = deepcopy(solution_init)
     HPRC_cars_groups = Dict{Int, Array{Int, 1}}()
     b0 = instance.nb_late_prec_day+1
-    for car_pos in (b0+1):instance.nb_cars
+    for car_pos in b0:instance.nb_cars
         car_HPRC_value = HPRC_value(solution.sequence[car_pos], instance)
         if !haskey(HPRC_cars_groups, car_HPRC_value)
             HPRC_cars_groups[car_HPRC_value] = [car_pos]

@@ -278,11 +278,11 @@ function perturbation_VNS_PCC_insertion(solution_init::Solution, k::Int, instanc
 end
 
 """
-    localSearch_intensification_VNS_PCC_exchange!(solution::Solution, instance::Instance)
+    local_search_intensification_VNS_PCC_exchange!(solution::Solution, instance::Instance)
 
 Optimizes the weighted sum of three objectives using `move_exchange!`.
 """
-function localSearch_intensification_VNS_PCC_exchange!(solution::Solution, instance::Instance)
+function local_search_intensification_VNS_PCC_exchange!(solution::Solution, instance::Instance)
     # useful variable
     b0 = instance.nb_late_prec_day+1
     n = instance.nb_cars
@@ -324,11 +324,11 @@ end
 
 
 """
-    localSearch_intensification_VNS_LPRC_insertion!(solution::Solution, instance::Instance)
+    local_search_intensification_VNS_LPRC_insertion!(solution::Solution, instance::Instance)
 
 Optimizes the weighted sum of three objectives using `move_insertion!`.
 """
-function localSearch_intensification_VNS_PCC_insertion!(solution::Solution, instance::Instance)
+function local_search_intensification_VNS_PCC_insertion!(solution::Solution, instance::Instance)
     # useful variable
     b0 = instance.nb_late_prec_day+1
     n = instance.nb_cars
@@ -368,15 +368,15 @@ end
 Calls both intensification.
 """
 function intensification_VNS_PCC!(solution::Solution, instance::Instance)
-    localSearch_intensification_VNS_PCC_insertion!(solution, instance)
-    localSearch_intensification_VNS_PCC_exchange!(solution, instance)
+    local_search_intensification_VNS_PCC_insertion!(solution, instance)
+    local_search_intensification_VNS_PCC_exchange!(solution, instance)
     return solution
 end
 
 """
 
 """
-function localsearch_VNS_PCC!(solution::Solution, instance::Instance)
+function local_search_VNS_PCC!(solution::Solution, instance::Instance)
     b0 = instance.nb_late_prec_day+1
     all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
     for index_car in b0:instance.nb_cars
@@ -436,7 +436,7 @@ function VNS_PCC(solution::Solution, instance::Instance, start_time::UInt)
             if cost_HPRC_solution < cost(solution_perturbation, instance, 1)[1]
                 solution_perturbation = deepcopy(solution)
             end
-            localsearch_VNS_PCC!(solution_perturbation, instance)
+            local_search_VNS_PCC!(solution_perturbation, instance)
             cost_solution_perturbation = weighted_sum(solution_perturbation, instance)
             if cost_solution_perturbation < cost_solution
                 k = VNS_PCC_MINMAX[p+1][1]

@@ -213,21 +213,20 @@ function is_sequence_valid(sequence::Array{Int, 1}, n::Int, instance::Instance)
 end
 
 """
-    sequence_insert!(sequence::Array{Int, 1}, index_rem::Int, index_insert::Int)
+    sequence_insert!(sequence::Array{Int, 1}, index_remove::Int, index_insert::Int)
 
-Delete the item at `index_rem` and insert at `index_insert` in the sequence.
+Delete the item at `index_remove` and insert at `index_insert` in the sequence.
 """
-function sequence_insert!(sequence::Array{Int, 1}, index_rem::Int, index_insert::Int)
-    temp = sequence[index_rem]
-    if index_rem < index_insert
-        for k in index_rem:(index_insert-1)
+function sequence_insert!(sequence::Array{Int, 1}, index_remove::Int, index_insert::Int)
+    temp = sequence[index_remove]
+    if index_remove < index_insert
+        for k in index_remove:(index_insert-1)
             sequence[k] = sequence[k+1]
         end
-        sequence[index_insert] = temp
     else
-        for k in index_rem:-1:(index_insert+1)
+        for k in index_remove:-1:(index_insert+1)
             sequence[k] = sequence[k-1]
         end
-        sequence[index_insert] = temp
     end
+    sequence[index_insert] = temp
 end

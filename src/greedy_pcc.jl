@@ -18,11 +18,18 @@ function greedy_pcc(instance::Instance)
     b0 = instance.nb_late_prec_day+1
     V = collect((b0):(instance.nb_cars))
 
-    nb_color = maximum(instance.color_code)
+    all_color = Set(instance.color_code)
+    cost_on_objective = 0
+    for i in 2:b0-1
+        if instance.color_code[solution.sequence[i]] != instance.color_code[solution.sequence[i-1]]
+            cost_on_objective += 1
+        end
+    end
+
     # Build an array that contains all index of cars of the same color.
     V_color = Array{Array{Int, 1}, 1}()
-    for color in 1:nb_color
-        push!(V_color, findall(ind -> instance.color_code[ind] == color, V))
+    for color in all_color
+        push!(V_color, filter(ind -> instance.color_code[ind] == color, V))
     end
 
     # Sort by the biggest to the lowest number of car in each color,
@@ -32,6 +39,16 @@ function greedy_pcc(instance::Instance)
     index_seq = b0
     ended = false
     color=1
+    if instance.color_code[V_color[color][1]] == instance.color_code[b0-1]
+        col = instance.color_code[b0-1]
+        count = 1
+        while instance.color_code[b0-1-count] == col
+            count += 1
+        end
+        if count + length(V_color[color]) > instance.nb_paint_limitation
+            color += 1
+        end
+    end
     while ! ended
         color_count = 1
         while color_count <= instance.nb_paint_limitation && ! isempty(V_color[color])

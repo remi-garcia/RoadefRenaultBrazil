@@ -41,7 +41,7 @@ end
 
 """
 function init_solution(instance::Instance)
-    n = length(instance.color_code)
+    n = instance.nb_cars
     m = instance.nb_HPRC + instance.nb_LPRC # number of ratio
     solution = Solution(n, m)
 

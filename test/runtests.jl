@@ -24,7 +24,7 @@ const RRB = RoadefRenaultBrazil
         solution_test = deepcopy(solution)
         RRB.move_exchange!(solution_test, 1, instance.nb_cars, instance)
         solution_test_test = deepcopy(solution_test)
-        RRB.update_matrices!(solution_test_test, instance.nb_cars, instance)
+        RRB.update_matrices!(solution_test_test, instance)
         # This shouldn't have changed anything
         @test solution_test.sequence == solution_test_test.sequence
         @test solution_test.M1 == solution_test_test.M1
@@ -35,7 +35,7 @@ const RRB = RoadefRenaultBrazil
         pos = round(Int, instance.nb_cars / 2, RoundUp)
         RRB.move_exchange!(solution_test, pos-1, pos, instance)
         solution_test_test = deepcopy(solution_test)
-        RRB.update_matrices!(solution_test_test, instance.nb_cars, instance)
+        RRB.update_matrices!(solution_test_test, instance)
         @test solution_test.sequence == solution_test_test.sequence
         @test solution_test.M1 == solution_test_test.M1
         @test solution_test.M2 == solution_test_test.M2

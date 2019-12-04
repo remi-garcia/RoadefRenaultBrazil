@@ -24,7 +24,7 @@ function greedy_add!(solution::Solution, instance::Instance, objectives::Int)
     delta = weighted_sum(costs[b0, :])
     best_delta = delta
     best_position = b0
-    for position in (b0+1):(solution.length)
+    for position in (b0+1):solution.length
         delta = weighted_sum(costs[position, :])
         if delta < best_delta
             best_delta = delta
@@ -88,15 +88,15 @@ Removes `k` critical cars of the sequence of `solution_init`.
 """
 function remove!(solution::Solution, instance::Instance,
                  k::Int, crit::Array{Int, 1})
-     indices = sort(randperm(length(crit))[1:k])
-     crit_sort = sort(crit, rev = true)
-     for i in 1:k
-         position = crit_sort[indices[i]]
-         move_insertion!(solution, position, instance.nb_cars, instance)
-         solution.length -= 1
-     end
+    indices = sort(randperm(length(crit))[1:k])
+    crit_sort = sort(crit, rev = true)
+    for i in 1:k
+        position = crit_sort[indices[i]]
+        move_insertion!(solution, position, instance.nb_cars, instance)
+        solution.length -= 1
+    end
 
-     return solution
+    return solution
 end
 
 """

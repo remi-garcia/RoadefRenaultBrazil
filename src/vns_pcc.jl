@@ -7,13 +7,12 @@
 #-------------------------------------------------------------------------------
 
 """
-    perturbation_VNS_PCC_exchange(solution_init::Solution, k::Int, instance::Instance)
+    perturbation_VNS_PCC_exchange(solution::Solution, k::Int, instance::Instance)
 
 Returns a new solution obtain by `k` random exchanges between cars. Exchanged
 cars must have the same HPRC constraints.
 """
-function perturbation_VNS_PCC_exchange(solution_init::Solution, k::Int, instance::Instance)
-    solution = deepcopy(solution_init)
+function perturbation_VNS_PCC_exchange!(solution::Solution, k::Int, instance::Instance)
     HPRC_cars_groups = Dict{Int, Array{Int, 1}}()
     b0 = instance.nb_late_prec_day+1
     for car_pos in b0:instance.nb_cars
@@ -47,53 +46,38 @@ function perturbation_VNS_PCC_exchange(solution_init::Solution, k::Int, instance
 end
 
 """
-    perturbation_VNS_PCC_insertion(solution_init::Solution, k::Int, instance::Instance)
+    perturbation_VNS_PCC_insertion(solution::Solution, k::Int,
+                                   critical_cars::Array{Int, 1},
+                                   instance::Instance)
 
 Delete k vehicles from the sequence and add them back in the sequence according
 to a greedy criterion.
 """
-function perturbation_VNS_PCC_insertion(solution_init::Solution, k::Int, instance::Instance)
+function perturbation_VNS_PCC_insertion!(solution::Solution, k::Int,
+                                         critical_cars::Array{Int, 1},
+                                         instance::Instance)
+    remove!(solution, instance, k, critical_cars)
+    for i in 1:k
+        greedy_add!(solution, instance, instance.nb_cars, 2, true)
+    end
+    return solution
+end
+
+"""
+    perturbation_VNS_PCC(solution_init::Solution, p::Int, k::Int, instance::Instance)
+
+Calls both perturbations and return a new solution. This function does not
+modify the solution given in parameters.
+"""
+function perturbation_VNS_PCC(solution_init::Solution, p::Int, k::Int, instance::Instance)
     solution = deepcopy(solution_init)
-    b0 = instance.nb_late_prec_day+1
-    array_insertion = zeros(Int, k)
-
-    for car_pos in 1:k
-        array_insertion[car_pos] = rand(b0:instance.nb_cars)
-        while array_insertion[car_pos] in array_insertion[1:(car_pos-1)]
-            array_insertion[car_pos] = rand(b0:instance.nb_cars)
-        end
+    if p == 1
+        perturbation_VNS_PCC_exchange!(solution, k, instance)
+    else
+        critical_cars = find_critical_cars(solution, instance, 2)
+        k = min(k, length(critical_cars))
+        perturbation_VNS_PCC_insertion!(solution, k, critical_cars, instance)
     end
-
-    # Put every index at the end
-    sort!(array_insertion, rev=true) # sort is important to avoid to compute offset.
-    for car_pos in array_insertion
-        move_insertion!(solution, car_pos, instance.nb_cars, instance)
-    end
-
-    # Best insert
-    counter = 1
-    for car_pos in (instance.nb_cars-k+1):instance.nb_cars
-        matrix_deltas = cost_move_insertion(solution, car_pos, instance, 3)
-        best_insertion = array_insertion[counter]
-        best_delta = sum([WEIGHTS_OBJECTIVE_FUNCTION[i] * matrix_deltas[array_insertion[counter], i] for i in 1:3])
-        sequence = solution.sequence[1:(instance.nb_cars-k+counter)]
-        sequence[instance.nb_cars-k+1] = solution.sequence[car_pos]
-        for position in (instance.nb_cars-k+1):-1:1
-            if matrix_deltas[position, 1] <= 0 && is_sequence_valid(sequence, instance.nb_cars-k+counter, instance)
-                delta = sum([WEIGHTS_OBJECTIVE_FUNCTION[i] * matrix_deltas[position, i] for i in 1:3])
-                if delta < best_delta
-                    best_delta = delta
-                    best_insertion = position
-                end
-            end
-            if position > 1
-                sequence[position], sequence[position-1] = sequence[position-1], sequence[position]
-            end
-        end
-        move_insertion!(solution, car_pos, best_insertion, instance)
-        counter += 1
-    end
-
     return solution
 end
 
@@ -102,43 +86,45 @@ end
 
 Optimizes the weighted sum of three objectives using `move_exchange!`.
 """
-function local_search_intensification_VNS_PCC_exchange!(solution::Solution, instance::Instance)
+function local_search_intensification_VNS_PCC_exchange!(solution::Solution, instance::Instance, start_time::UInt)
     # useful variable
     b0 = instance.nb_late_prec_day+1
     n = instance.nb_cars
 
-    list = Array{Int, 1}()
     improved = true
     sequence = copy(solution.sequence)
-    while improved
+    while improved && TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         improved = false
-        critical_cars_set = critical_cars_VNS_LPRC(solution, instance)
-        for index_car_a in critical_cars_set
-            best_delta = -1
-            empty!(list)
-            for index_car_b in (index_car_a+1):instance.nb_cars
-                if (index_car_a != index_car_b)
+        critical_cars = find_critical_cars(solution, instance, 2)
+        for index_car_a in critical_cars
+            best_delta = 0
+            best_positions = Array{Int, 1}()
+            for index_car_b in b0:instance.nb_cars
+                if index_car_a != index_car_b
                     sequence[index_car_a], sequence[index_car_b] = sequence[index_car_b], sequence[index_car_a]
                     if is_sequence_valid(sequence, instance.nb_cars, instance)
-                        delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 3), 3)
+                        delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 3))
                         if delta < best_delta
-                            list = [index_car_b]
+                            best_positions = Array{Int, 1}([index_car_b])
                             best_delta = delta
                         elseif delta == best_delta
-                            push!(list, index_car_b)
+                            push!(best_positions, index_car_b)
                         end
                     end
                     sequence[index_car_a], sequence[index_car_b] = sequence[index_car_b], sequence[index_car_a]
                 end
             end
-            if !isempty(list)
-                index_car_b = rand(list)
+            if !isempty(best_positions)
+                index_car_b = rand(best_positions)
                 move_exchange!(solution, index_car_a, index_car_b, instance)
                 sequence[index_car_a], sequence[index_car_b] = sequence[index_car_b], sequence[index_car_a]
-                improved = true
+                if best_delta < 0
+                    improved = true
+                end
             end
         end
     end
+
     return solution
 end
 
@@ -148,37 +134,39 @@ end
 
 Optimizes the weighted sum of three objectives using `move_insertion!`.
 """
-function local_search_intensification_VNS_PCC_insertion!(solution::Solution, instance::Instance)
+function local_search_intensification_VNS_PCC_insertion!(solution::Solution, instance::Instance, start_time::UInt)
     # useful variable
     b0 = instance.nb_late_prec_day+1
-    n = instance.nb_cars
 
     improved = true
     sequence = copy(solution.sequence)
-    while improved
+    while improved && TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         improved = false
-        for index_car in b0:n
+        for index_car in b0:instance.nb_cars
             best_delta = 0
+            best_positions = Array{Int, 1}()
             matrix_deltas = cost_move_insertion(solution, index_car, instance, 3)
-            array_deltas = [(weighted_sum(matrix_deltas[i, :], 3), i) for i in b0:n]
-            best_move = (-1, -1)
-            for tuple in array_deltas
-                if tuple[1] < best_delta
-                    sequence_insert!(sequence, index_car, tuple[2])
-                    if is_sequence_valid(sequence, instance.nb_cars, instance)
-                        best_delta = tuple[1]
-                        best_move = (index_car, tuple[2])
-                    end
-                    sequence_insert!(sequence, tuple[2], index_car)
+            penalize_costs!(matrix_deltas, index_car, solution, instance)
+            for position in b0:instance.nb_cars
+                delta = weighted_sum(matrix_deltas[position, :])
+                if delta < best_delta
+                    best_positions = Array{Int, 1}([position])
+                    best_delta = delta
+                elseif delta == best_delta
+                    push!(best_positions, position)
                 end
             end
-            if best_move[1] != -1
-                sequence_insert!(sequence, best_move[1], best_move[2])
-                move_insertion!(solution, best_move[1], best_move[2], instance)
-                improved = true
+
+            if !isempty(best_positions)
+                index_insert = rand(best_positions)
+                move_insertion!(solution, index_car, index_insert, instance)
+                if best_delta < 0
+                    improved = true
+                end
             end
         end
     end
+
     return solution
 end
 
@@ -187,16 +175,16 @@ end
 
 Calls both intensification.
 """
-function intensification_VNS_PCC!(solution::Solution, instance::Instance)
-    local_search_intensification_VNS_PCC_insertion!(solution, instance)
-    local_search_intensification_VNS_PCC_exchange!(solution, instance)
+function intensification_VNS_PCC!(solution::Solution, instance::Instance, start_time::UInt)
+    local_search_intensification_VNS_PCC_insertion!(solution, instance, start_time)
+    local_search_intensification_VNS_PCC_exchange!(solution, instance, start_time)
     return solution
 end
 
 """
 
 """
-function local_search_VNS_PCC!(solution::Solution, instance::Instance)
+function local_search_VNS_PCC!(solution::Solution, instance::Instance, start_time::UInt)
     b0 = instance.nb_late_prec_day+1
     all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
     for index_car in b0:instance.nb_cars
@@ -209,31 +197,32 @@ function local_search_VNS_PCC!(solution::Solution, instance::Instance)
 
     improved = true
     sequence = copy(solution.sequence)
-    list = Array{Int, 1}()
-    while improved
+    while improved && TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         improved = false
         for index_car_a in b0:instance.nb_cars
-            best_delta = -1
-            list = Array{Int, 1}()
+            best_delta = 0
+            best_positions = Array{Int, 1}()
             hprc_value = HPRC_value(solution.sequence[index_car_a], instance)
             for index_car_b in all_list_same_HPRC[hprc_value]
                 if index_car_a < index_car_b # exchange (i, j) is the same as exchange (j, i)
-                    delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 3), 3)
+                    delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 3))
                     sequence[index_car_a], sequence[index_car_b] = sequence[index_car_b], sequence[index_car_a]
                     if delta < best_delta && is_sequence_valid(sequence, instance.nb_cars, instance)
-                        list = [index_car_b]
+                        best_positions = Array{Int, 1}([index_car_b])
                         best_delta = delta
                     elseif delta == best_delta
-                        push!(list, index_car_b)
+                        push!(best_positions, index_car_b)
                     end
                     sequence[index_car_a], sequence[index_car_b] = sequence[index_car_b], sequence[index_car_a]
                 end
             end
-            if !isempty(list)
-                index_car_b = rand(list)
+            if !isempty(best_positions)
+                index_car_b = rand(best_positions)
                 move_exchange!(solution, index_car_a, index_car_b, instance)
                 sequence[index_car_a], sequence[index_car_b] = sequence[index_car_b], sequence[index_car_a]
-                improved = true
+                if best_delta < 0
+                    improved = true
+                end
             end
         end
     end
@@ -243,20 +232,19 @@ end
 """
 
 """
-function VNS_PCC(solution::Solution, instance::Instance, start_time::UInt)
-    repair!(solution, instance)
-    perturbations = Array{Function, 1}([perturbation_VNS_PCC_insertion, perturbation_VNS_PCC_exchange])
+function VNS_PCC(solution_init::Solution, instance::Instance, start_time::UInt)
+    solution = deepcopy(solution_init)
     p = 1
     k = VNS_PCC_MINMAX[p+1][1]
     cost_solution = weighted_sum(solution, instance)
     cost_HPRC_solution = cost(solution, instance, 1)[1]
     while TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         while (k <= VNS_PCC_MINMAX[p+1][2]) && (TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
-            solution_perturbation = perturbations[p+1](solution, k, instance)
+            solution_perturbation = perturbation_VNS_PCC(solution, p, k, instance)
             if cost_HPRC_solution < cost(solution_perturbation, instance, 1)[1]
                 solution_perturbation = deepcopy(solution)
             end
-            local_search_VNS_PCC!(solution_perturbation, instance)
+            local_search_VNS_PCC!(solution_perturbation, instance, start_time)
             cost_solution_perturbation = weighted_sum(solution_perturbation, instance)
             if cost_solution_perturbation < cost_solution
                 k = VNS_PCC_MINMAX[p+1][1]
@@ -269,9 +257,10 @@ function VNS_PCC(solution::Solution, instance::Instance, start_time::UInt)
                 cost_solution = weighted_sum(solution, instance)
             end
         end
-        intensification_VNS_PCC!(solution, instance)
+        intensification_VNS_PCC!(solution, instance, start_time)
         p = 1 - p
         k = VNS_PCC_MINMAX[p+1][1]
     end
+
     return solution
 end

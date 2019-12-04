@@ -102,7 +102,7 @@ function greedy(instance::Instance)
             end
         end
 
-        # Compute the set of indexes causing minimal-violation
+        # Compute the set of indices causing minimal-violation
         candidates = filter_on_min_criterion(V, nb_new_violation)
 
         # Two candidates or more - First tie break

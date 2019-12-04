@@ -70,11 +70,10 @@ function greedy(instance::Instance)
     rv = sum(instance.RC_flag,dims=1)
 
     # For the nb_late_prec_day first cars, update M1, M2, M3
-    update_matrices!(solution, instance.nb_late_prec_day, instance)
+    update_matrices!(solution, instance)
 
     # Initialization for first tie-break criterion
     # Compute for each option the number of cars who need it in Pi
-    length_pi = instance.nb_late_prec_day
     rpi = zeros(Int,instance.nb_HPRC)
     for i in 1:instance.nb_late_prec_day
         for j in 1:instance.nb_HPRC
@@ -116,7 +115,7 @@ function greedy(instance::Instance)
             for i in 1:length(candidates)
                 for j in 1:instance.nb_HPRC
                     cond1 = !instance.RC_flag[candidates[i],j]
-                    cond2 = (rv[j]-rpi[j])/len > (rpi[j])/length_pi
+                    cond2 = (rv[j]-rpi[j])/len > (rpi[j])/solution.length
                     tie_break[i] += Int(xor( cond1 , cond2 ))
                 end
             end
@@ -168,8 +167,8 @@ function greedy(instance::Instance)
 
         c = rand(candidates)     # We have a valid candidate
         solution.sequence[position] = c
+        solution.length += 1
         len = len - 1
-        length_pi = length_pi + 1
         filter!(x->x≠c, V)    # The car is not in the list anymore
 
         # The utilization rates components are dynamically updated.

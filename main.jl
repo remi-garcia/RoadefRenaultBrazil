@@ -40,7 +40,7 @@ function main()
             instance = RRB.parser(instance_name, instance_type)
             println("Loaded...")
 
-            costs = zeros(Int,4,3)
+            costs = zeros(Int,5,3)
 
             # Greedy
             solution = RRB.greedy(instance)
@@ -57,18 +57,22 @@ function main()
             println("Solution improved with VNS_LPRC")
             costs[3,:] = RRB.cost(solution, instance, 3)
 
+            # Repair
+            #RRB.repair!(solution, instance)
+            #println("Solution repaired")
+            costs[4,:] = RRB.cost(solution, instance, 3)
+
             # VNS-PCC
             #solution = RRB.VNS_PCC(solution, instance, start_time)
             #println("Solution improved with VNS_PCC")
-            RRB.repair!(solution, instance)
-            println("Solution repaired")
-            costs[4,:] = RRB.cost(solution, instance, 3)
+            costs[5,:] = RRB.cost(solution, instance, 3)
 
-            println("\tGr. \tILS \tVNS_lp\tVNS_pc")
-            println("HP \t", costs[1,1] ,"\t", costs[2,1] ,"\t", costs[3,1] ,"\t", costs[4,1])
-            println("LP \t", costs[1,2] ,"\t", costs[2,2] ,"\t", costs[3,2] ,"\t", costs[4,2])
-            println("PCC \t", costs[1,3] ,"\t", costs[2,3] ,"\t", costs[3,3] ,"\t", costs[4,3])
+            println("\tGr. \tILS \tVNS_lp\trepair\tVNS_pc")
+            println("HP \t", costs[1,1] ,"\t", costs[2,1] ,"\t", costs[3,1] ,"\t", costs[4,1], "\t", costs[5,1])
+            println("LP \t", costs[1,2] ,"\t", costs[2,2] ,"\t", costs[3,2] ,"\t", costs[4,2], "\t", costs[5,2])
+            println("PCC \t", costs[1,3] ,"\t", costs[2,3] ,"\t", costs[3,3] ,"\t", costs[4,3], "\t", costs[5,3])
             println()
+
             end #@time
             println()
             println()

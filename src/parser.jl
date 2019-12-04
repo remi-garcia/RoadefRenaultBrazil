@@ -50,12 +50,14 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     open(path * OPTIMISATION_FILE_NAME) do f
         lines = readlines(f)
         for i in 2:length(lines)
-            if lines[i][3] == 'h'
-                HPRC_rank = i-1
-            elseif lines[i][3] == 'l'
-                LPRC_rank = i-1
-            elseif lines[i][3] == 'p'
-                PCB_rank = i-1
+            if lines[i] != ""
+                if lines[i][3] == 'h'
+                    HPRC_rank = i-1
+                elseif lines[i][3] == 'l'
+                    LPRC_rank = i-1
+                elseif lines[i][3] == 'p'
+                    PCB_rank = i-1
+                end
             end
         end
     end
@@ -111,7 +113,7 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
         color_code = zeros(Int, nb_cars_total)
         for line in lines[2:end]
             if line != ""
-                values = split(line, ";")
+                values = split(line, ";", keepempty = false)
                 if nb_late_prec_day == 0
                     date = split(values[1], " ")
                     if date[3] != day

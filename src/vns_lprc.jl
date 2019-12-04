@@ -19,7 +19,7 @@ function perturbation_VNS_LPRC_insertion!(solution::Solution, k::Int,
                                           instance::Instance)
     remove!(solution, instance, k, critical_cars)
     for i in 1:k
-        greedy_add!(solution, instance, k-i, 2)
+        greedy_add!(solution, instance, 2)
     end
     return solution
 end

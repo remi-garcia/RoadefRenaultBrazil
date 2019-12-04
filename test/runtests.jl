@@ -24,7 +24,7 @@ const RRB = RoadefRenaultBrazil
         solution_test = deepcopy(solution)
         RRB.move_exchange!(solution_test, 1, instance.nb_cars, instance)
         solution_test_test = deepcopy(solution_test)
-        RRB.update_matrices!(solution_test_test, instance.nb_cars, instance)
+        RRB.update_matrices!(solution_test_test, instance)
         # This shouldn't have changed anything
         @test solution_test.sequence == solution_test_test.sequence
         @test solution_test.M1 == solution_test_test.M1
@@ -35,7 +35,7 @@ const RRB = RoadefRenaultBrazil
         pos = round(Int, instance.nb_cars / 2, RoundUp)
         RRB.move_exchange!(solution_test, pos-1, pos, instance)
         solution_test_test = deepcopy(solution_test)
-        RRB.update_matrices!(solution_test_test, instance.nb_cars, instance)
+        RRB.update_matrices!(solution_test_test, instance)
         @test solution_test.sequence == solution_test_test.sequence
         @test solution_test.M1 == solution_test_test.M1
         @test solution_test.M2 == solution_test_test.M2
@@ -96,7 +96,7 @@ end;
             RRB.move_insertion!(solution_test, rand(1:instance.nb_cars), rand(1:instance.nb_cars), instance)
         end
         solution_test_test = deepcopy(solution_test)
-        RRB.update_matrices!(solution_test_test, instance.nb_cars, instance)
+        RRB.update_matrices!(solution_test_test, instance)
         @test solution_test.sequence == solution_test_test.sequence
         @test solution_test.M1 == solution_test_test.M1
         @test solution_test.M2 == solution_test_test.M2
@@ -105,7 +105,7 @@ end;
         solution_test = deepcopy(solution)
         RRB.move_insertion!(solution_test, rand(1:instance.nb_cars), instance.nb_cars, instance)
         solution_test_test = deepcopy(solution_test)
-        RRB.update_matrices!(solution_test_test, instance.nb_cars, instance)
+        RRB.update_matrices!(solution_test_test, instance)
         @test solution_test.sequence == solution_test_test.sequence
         @test solution_test.M1 == solution_test_test.M1
         @test solution_test.M2 == solution_test_test.M2
@@ -114,7 +114,7 @@ end;
         solution_test = deepcopy(solution)
         RRB.move_insertion!(solution_test, rand(1:instance.nb_cars), 1, instance)
         solution_test_test = deepcopy(solution_test)
-        RRB.update_matrices!(solution_test_test, instance.nb_cars, instance)
+        RRB.update_matrices!(solution_test_test, instance)
         @test solution_test.sequence == solution_test_test.sequence
         @test solution_test.M1 == solution_test_test.M1
         @test solution_test.M2 == solution_test_test.M2
@@ -128,7 +128,7 @@ end;
             costs = RRB.cost(solution, instance, 3)
             for j in 1:3
                 solution_test = deepcopy(solution)
-                insertion_position = rand(instance.nb_late_prec_day+1:instance.nb_cars)
+                insertion_position = rand((instance.nb_late_prec_day+1):instance.nb_cars)
                 RRB.move_insertion!(solution_test, position, insertion_position, instance)
                 costs_bis = RRB.cost(solution_test, instance, 3)
                 @test vector_cost[insertion_position,:] == (costs_bis .- costs)
@@ -144,7 +144,7 @@ end;
     solution = RRB.greedy(instance)
     @testset "update_matrices!" begin
         solution_test = deepcopy(solution)
-        RRB.update_matrices!(solution_test, instance.nb_cars, instance)
+        RRB.update_matrices!(solution_test, instance)
         @test solution.sequence == solution_test.sequence
         @test solution.M1 == solution_test.M1
         @test solution.M2 == solution_test.M2

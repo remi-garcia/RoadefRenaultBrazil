@@ -72,7 +72,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
                 deltaM2 = solution.M2[option, last_modified_sequence_a] - deltaM2
                 deltaM3 = solution.M3[option, last_modified_sequence_a] - deltaM3
 
-                for car_pos in last_modified_sequence_a+1:first_modified_sequence_b-1
+                for car_pos in (last_modified_sequence_a+1):(first_modified_sequence_b-1)
 
                     solution.M2[option, car_pos] += deltaM2
                     solution.M3[option, car_pos] += deltaM3
@@ -100,7 +100,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
             deltaM2 = solution.M2[option, car_pos_b] - deltaM2
             deltaM3 = solution.M3[option, car_pos_b] - deltaM3
 
-            for car_pos in car_pos_b+1:instance.nb_cars
+            for car_pos in (car_pos_b+1):solution.length
                 solution.M2[option, car_pos] += deltaM2
                 solution.M3[option, car_pos] += deltaM3
             end
@@ -167,7 +167,7 @@ function cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
             if instance.color_code[car_a] != instance.color_code[solution.sequence[car_pos_b-1]]
                 cost_on_objective[3] += 1
             end
-            if car_pos_b < instance.nb_cars
+            if car_pos_b < solution.length
                 if instance.color_code[car_b] != instance.color_code[solution.sequence[car_pos_b+1]]
                     cost_on_objective[3] -= 1
                 end

@@ -96,7 +96,7 @@ end;
             RRB.move_insertion!(solution_test, rand(1:instance.nb_cars), rand(1:instance.nb_cars), instance)
         end
         solution_test_test = deepcopy(solution_test)
-        RRB.update_matrices!(solution_test_test, instance.nb_cars, instance)
+        RRB.update_matrices!(solution_test_test, instance)
         @test solution_test.sequence == solution_test_test.sequence
         @test solution_test.M1 == solution_test_test.M1
         @test solution_test.M2 == solution_test_test.M2
@@ -105,7 +105,7 @@ end;
         solution_test = deepcopy(solution)
         RRB.move_insertion!(solution_test, rand(1:instance.nb_cars), instance.nb_cars, instance)
         solution_test_test = deepcopy(solution_test)
-        RRB.update_matrices!(solution_test_test, instance.nb_cars, instance)
+        RRB.update_matrices!(solution_test_test, instance)
         @test solution_test.sequence == solution_test_test.sequence
         @test solution_test.M1 == solution_test_test.M1
         @test solution_test.M2 == solution_test_test.M2
@@ -114,7 +114,7 @@ end;
         solution_test = deepcopy(solution)
         RRB.move_insertion!(solution_test, rand(1:instance.nb_cars), 1, instance)
         solution_test_test = deepcopy(solution_test)
-        RRB.update_matrices!(solution_test_test, instance.nb_cars, instance)
+        RRB.update_matrices!(solution_test_test, instance)
         @test solution_test.sequence == solution_test_test.sequence
         @test solution_test.M1 == solution_test_test.M1
         @test solution_test.M2 == solution_test_test.M2
@@ -144,7 +144,7 @@ end;
     solution = RRB.greedy(instance)
     @testset "update_matrices!" begin
         solution_test = deepcopy(solution)
-        RRB.update_matrices!(solution_test, instance.nb_cars, instance)
+        RRB.update_matrices!(solution_test, instance)
         @test solution.sequence == solution_test.sequence
         @test solution.M1 == solution_test.M1
         @test solution.M2 == solution_test.M2

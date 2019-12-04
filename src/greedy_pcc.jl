@@ -38,17 +38,7 @@ function greedy_pcc(instance::Instance)
 
     index_seq = b0
     ended = false
-    color=1
-    if instance.color_code[V_color[color][1]] == instance.color_code[b0-1]
-        col = instance.color_code[b0-1]
-        count = 1
-        while instance.color_code[b0-1-count] == col
-            count += 1
-        end
-        if count + length(V_color[color]) > instance.nb_paint_limitation
-            color += 1
-        end
-    end
+    color = instance.color_code[b0-1]
     while ! ended
         color_count = 1
         while color_count <= instance.nb_paint_limitation && ! isempty(V_color[color])

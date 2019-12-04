@@ -444,7 +444,6 @@ function VNS_PCC(solution::Solution, instance::Instance, start_time::UInt)
                 k += 1
             end
             if cost_solution_perturbation <= cost_solution
-                println("Best find!")
                 solution = deepcopy(solution_perturbation)
                 cost_HPRC_solution = cost(solution, instance, 1)[1]
                 cost_solution = weighted_sum(solution, instance)

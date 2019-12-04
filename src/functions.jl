@@ -32,8 +32,8 @@ function greedy_add!(solution::Solution, instance::Instance, objectives::Int)
         end
     end
     #TODO: Same here
-    move_insertion!(solution, instance.nb_cars, best_position, instance)
     solution.length += 1
+    move_insertion!(solution, instance.nb_cars, best_position, instance)
 
     return solution
 end

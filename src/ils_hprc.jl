@@ -22,7 +22,7 @@ function perturbation_ils_hprc(solution_init::Solution, instance::Instance,
     k = min(k, length(critical_cars))
     remove!(solution, instance, k, critical_cars)
     for i in 1:k
-        greedy_add!(solution, instance, k-i, 1)
+        greedy_add!(solution, instance, 1)
     end
     return solution
 end

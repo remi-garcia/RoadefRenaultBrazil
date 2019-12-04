@@ -20,7 +20,7 @@ function TEST_move_exchange!(solution::Solution, car_pos_a::Int, car_pos_b::Int,
         return solution
     end
     solution.sequence[car_pos_a], solution.sequence[car_pos_b] = solution.sequence[car_pos_b], solution.sequence[car_pos_a]
-    update_matrices!(solution, instance.nb_cars, instance)
+    update_matrices!(solution, instance)
 
     return solution
 end
@@ -59,7 +59,7 @@ function TEST_move_insertion!(solution::Solution, old_index::Int, new_index::Int
         end
         solution.sequence[new_index] = car_inserted
     end
-    update_matrices!(solution, instance.nb_cars, instance)
+    update_matrices!(solution, instance)
 
     return solution
 end

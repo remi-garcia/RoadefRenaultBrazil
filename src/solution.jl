@@ -25,11 +25,14 @@ mutable struct Solution
         # M3_ij is the number of subsequences in which the number of
         # cars that require oj is greater than or equal to p(oj)
 
+    length::Int
+
     Solution(nC::Int,nO::Int) = new(
         zeros(Int,nC),#collect(1:nC),
         zeros(Int,nO,nC),
         zeros(Int,nO,nC),
-        zeros(Int,nO,nC)
+        zeros(Int,nO,nC),
+        0
     )
 end
 
@@ -38,13 +41,14 @@ end
 
 """
 function init_solution(instance::Instance)
-    n = length(instance.color_code)
+    n = instance.nb_cars
     m = instance.nb_HPRC + instance.nb_LPRC # number of ratio
     solution = Solution(n, m)
 
     for i in 1:instance.nb_late_prec_day
         solution.sequence[i] = i
     end
+    solution.length = instance.nb_late_prec_day
     return solution
 end
 
@@ -52,12 +56,13 @@ init_solution(nom_fichier::String, type_fichier::String) =
     init_solution(parser(nom_fichier, type_fichier))
 
 """
-    update_matrices!(solution::Solution, nb::Int, instance::Instance)
+    update_matrices!(solution::Solution, instance::Instance)
 
-Updates `solution.M1`, `solution.M2` and `solution.M3` for known cars at positions 1 to `nb`.
+Updates `solution.M1`, `solution.M2` and `solution.M3` for known cars at positions 1 to `solution.length`.
 """
-function update_matrices!(solution::Solution, nb::Int, instance::Instance)
+function update_matrices!(solution::Solution, instance::Instance)
     nb_RC = instance.nb_HPRC + instance.nb_LPRC
+    nb = solution.length
 
     # Last column has just one car
     for option in 1:nb_RC

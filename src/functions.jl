@@ -15,22 +15,25 @@ include("move_exchange.jl")
 
 Reinserts last car in the sequence of `solution`.
 """
-function greedy_add!(solution::Solution, instance::Instance, k::Int, objectives::Int)
+function greedy_add!(solution::Solution, instance::Instance, objectives::Int)
     @assert objectives <= 3
     @assert objectives >= 1
     b0 = instance.nb_late_prec_day + 1
-    costs = cost_move_insertion(solution, instance.nb_cars, instance, objectives, instance.nb_cars-k)
+    #TODO: instance.nb_cars to solution.n + 1 ?
+    costs = cost_move_insertion(solution, instance.nb_cars, instance, objectives)
     delta = weighted_sum(costs[b0, :])
     best_delta = delta
     best_position = b0
-    for position in (b0+1):(instance.nb_cars-k)
+    for position in (b0+1):(solution.length)
         delta = weighted_sum(costs[position, :])
         if delta < best_delta
             best_delta = delta
             best_position = position
         end
     end
+    #TODO: Same here
     move_insertion!(solution, instance.nb_cars, best_position, instance)
+    solution.length += 1
 
     return solution
 end
@@ -59,10 +62,10 @@ function find_critical_cars(solution::Solution, instance::Instance,
 
     critical_cars = Set{Int}()
     b0 = instance.nb_late_prec_day + 1
-    for index_car in b0:instance.nb_cars
+    for index_car in b0:solution.length
         for option in first_option:last_option
             if solution.M1[option, index_car] > instance.RC_p[option]
-                index_car_lim = index_car + min(instance.RC_p[option], instance.nb_cars-index_car)
+                index_car_lim = index_car + min(instance.RC_p[option], solution.length-index_car)
                 for index_car_add in index_car:index_car_lim
                     if instance.RC_flag[solution.sequence[index_car_add], option]
                         push!(critical_cars, index_car_add)
@@ -90,6 +93,7 @@ function remove!(solution::Solution, instance::Instance,
      for i in 1:k
          position = crit_sort[indices[i]]
          move_insertion!(solution, position, instance.nb_cars, instance)
+         solution.length -= 1
      end
 
      return solution
@@ -103,10 +107,11 @@ Returns the (partial) set of objective values (without weights) of `solution`.
 function cost(solution::Solution, instance::Instance, objectives::BitArray{1})
     @assert length(objectives) == 3
     @assert true in objectives
+    @assert solution.length == instance.nb_cars
     cost_on_objective = zeros(Int, 3)
 
     if objectives[1]
-        for car in 1:instance.nb_cars
+        for car in 1:solution.length
             for option in 1:instance.nb_HPRC
                 cost_on_objective[1] += max(0 , solution.M1[option, car] - instance.RC_p[option])
             end
@@ -114,7 +119,7 @@ function cost(solution::Solution, instance::Instance, objectives::BitArray{1})
     end
 
     if objectives[2]
-        for car in 1:instance.nb_cars
+        for car in 1:solution.length
             for option in (instance.nb_HPRC+1):(instance.nb_HPRC+instance.nb_LPRC)
                 cost_on_objective[2] += max(0 , solution.M1[option, car] - instance.RC_p[option])
             end
@@ -122,7 +127,7 @@ function cost(solution::Solution, instance::Instance, objectives::BitArray{1})
     end
 
     if objectives[3]
-        for i in 2:instance.nb_cars
+        for i in 2:solution.length
             if instance.color_code[solution.sequence[i]] != instance.color_code[solution.sequence[i-1]]
                 cost_on_objective[3] += 1
             end
@@ -196,6 +201,7 @@ end
 """
 
 """
+#TODO: why n ?
 function is_sequence_valid(sequence::Array{Int, 1}, n::Int, instance::Instance)
     counter = 1
     for car_pos in 2:n

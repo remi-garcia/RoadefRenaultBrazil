@@ -10,7 +10,6 @@
 """
     move_insertion!(solution::Solution, old_index::Int,
                     new_index::Int, instance::Instance)
-
 Replaces car at `old_index` at `new_index` and updates the solution's matrices.
 """
 function move_insertion!(solution::Solution, old_index::Int,
@@ -37,7 +36,7 @@ function move_insertion!(solution::Solution, old_index::Int,
     end
 
     # TODO: COMPLEXITY NON-OPTIMAL
-    update_matrices!(solution, instance.nb_cars, instance)
+    update_matrices!(solution, instance)
 
     return solution
 end
@@ -45,26 +44,21 @@ end
 """
     cost_move_insertion(solution::Solution, car_pos_a::Int,
                         instance::Instance, objectives::BitArray{1})
-
 Returns the cost of the insertion of the car `car_pos_a` for all valid positions
 with respect to objectives `objectives`. A negative cost means that
 the move is interesting with respect to treated objectives.
 """
 function cost_move_insertion(solution::Solution, position::Int,
-                             instance::Instance, objectives::BitArray{1},
-                             nb_cars::Int)
+                             instance::Instance, objectives::BitArray{1})
     @assert length(objectives) == 3
 
-    nb_cars_tmp = instance.nb_cars
-    instance.nb_cars = nb_cars
-
-    cost_on_objective = zeros(Int, instance.nb_cars, 3)
+    cost_on_objective = zeros(Int, solution.length, 3)
     b0 = instance.nb_late_prec_day+1
 
-    delta1_for_first = zeros(Int, instance.nb_cars)
-    delta1_for_second = zeros(Int, instance.nb_cars)
-    delta2_for_first = zeros(Int, instance.nb_cars)
-    delta2_for_second = zeros(Int, instance.nb_cars)
+    delta1_for_first = zeros(Int, solution.length)
+    delta1_for_second = zeros(Int, solution.length)
+    delta2_for_first = zeros(Int, solution.length)
+    delta2_for_second = zeros(Int, solution.length)
 
         #---------------------------------------------------------- Initialization of M1
 
@@ -106,20 +100,20 @@ function cost_move_insertion(solution::Solution, position::Int,
         )
 
         # for all other valid positions
-        for index in (b0+1):instance.nb_cars
+        for index in (b0+1):(solution.length)
             # Delta 1 is compute as for b0
             delta1_for_first[index] = compute_delta1(solution, instance,
                                                      M1, sequence, index, position,
                                                      1, instance.nb_HPRC)
         end
-        for index in (b0+1):instance.nb_cars
+        for index in (b0+1):(solution.length)
             delta2_for_first = compute_delta2(solution, instance,
                                               M1, sequence, index, position,
                                               1, instance.nb_HPRC,
                                               delta2_for_first)
         end
         # The cost is variation of deletion + delta1 (new sequence) + delta2 (modified sequences)
-        for i in b0:instance.nb_cars
+        for i in b0:(solution.length)
             cost_on_objective[i, 1] = delta1_for_first[i] + delta2_for_first[i] + violations_caused_on_first
         end
     end
@@ -135,14 +129,14 @@ function cost_move_insertion(solution::Solution, position::Int,
             solution, instance,
             M1, sequence, b0, position,
             instance.nb_HPRC+1, instance.nb_HPRC+instance.nb_LPRC)
-        for index in (b0+1):instance.nb_cars
+        for index in (b0+1):solution.length
             # Delta 1 is compute as for b0
             delta1_for_second[index] = compute_delta1(
                 solution, instance,
                 M1, sequence, index, position,
                 instance.nb_HPRC+1, instance.nb_HPRC+instance.nb_LPRC)
         end
-        for index in (b0+1):instance.nb_cars
+        for index in (b0+1):(solution.length)
             delta2_for_second = compute_delta2(
                 solution, instance,
                 M1, sequence, index, position,
@@ -151,14 +145,14 @@ function cost_move_insertion(solution::Solution, position::Int,
         end
 
         # The cost is variation of deletion + delta1 (new sequence) + delta2 (modified sequences)
-        for i in b0:instance.nb_cars
+        for i in b0:(solution.length)
             cost_on_objective[i, 2] = delta1_for_second[i] + delta2_for_second[i] + violations_caused_on_second
         end
     end
 
     # Cost on PCC
     if objectives[3]
-        for index in b0:instance.nb_cars
+        for index in b0:solution.length
             car = solution.sequence[position]
 
             # Due to deletion
@@ -167,20 +161,20 @@ function cost_move_insertion(solution::Solution, position::Int,
                     cost_on_objective[index, 3] -= 1
                 end
 
-                if position < instance.nb_cars
+                if position < solution.length
                     if instance.color_code[solution.sequence[position-1]] != instance.color_code[solution.sequence[position+1]]
                         cost_on_objective[index, 3] += 1
                     end
                 end
             end
-            if position < instance.nb_cars
+            if position < solution.length
                 if instance.color_code[car] != instance.color_code[solution.sequence[position+1]]
                     cost_on_objective[index, 3] -= 1
                 end
             end
 
             # Due to insertion
-            if index > 1 && index < instance.nb_cars
+            if index > 1 && index < solution.length
                 if instance.color_code[sequence[index-1]] != instance.color_code[sequence[index]]
                     cost_on_objective[index, 3] -= 1
                 end
@@ -190,7 +184,7 @@ function cost_move_insertion(solution::Solution, position::Int,
                     cost_on_objective[index, 3] += 1
                 end
             end
-            if index < instance.nb_cars
+            if index < solution.length
                 if instance.color_code[sequence[index]] != instance.color_code[car]
                     cost_on_objective[index, 3] += 1
                 end
@@ -198,25 +192,18 @@ function cost_move_insertion(solution::Solution, position::Int,
         end
     end
 
-    instance.nb_cars = nb_cars_tmp
-
     return cost_on_objective
 end
 
 """
     cost_move_insertion(solution::Solution, car_pos_a::Int,
                         instance::Instance, objective::Int)
-
 Returns the cost of the insertion of the car `car_pos_a` for all valid positions
 with respect to objectives 1 to `objective`. A negative cost means that the move
 is interesting with respect to treated objective.
 """
 cost_move_insertion(solution::Solution, position::Int, instance::Instance, objective::Int) =
-    cost_move_insertion(solution, position, instance, [trues(objective) ; falses(3-objective)], instance.nb_cars)
-cost_move_insertion(solution::Solution, position::Int, instance::Instance, objectives::BitArray{1}) =
-    cost_move_insertion(solution, position, instance, objectives, instance.nb_cars)
-cost_move_insertion(solution::Solution, position::Int, instance::Instance, objective::Int, nb_cars::Int) =
-    cost_move_insertion(solution, position, instance, [trues(objective) ; falses(3-objective)], nb_cars)
+    cost_move_insertion(solution, position, instance, [trues(objective) ; falses(3-objective)])
 
 
         #-------------------------------------------------------#
@@ -230,7 +217,6 @@ cost_move_insertion(solution::Solution, position::Int, instance::Instance, objec
     update_lines_remove!(solution::Solution, instance::Instance,
                          M1::Array{Int,2}, car_pos_a::Int,
                          first_line::Int, last_line::Int)
-
 For factorization
 """
 function update_lines_remove!(solution::Solution, instance::Instance,
@@ -260,7 +246,7 @@ function update_lines_remove!(solution::Solution, instance::Instance,
             end
             # one more violation if new car reached has the option
             new_index_reached = index + instance.RC_q[option]
-            if new_index_reached <= instance.nb_cars #TODO: is it not < ? Don't think so
+            if new_index_reached <= solution.length #TODO: is it not < ? Don't think so
                 if instance.RC_flag[solution.sequence[new_index_reached], option]
                     if M1[option, index] >= instance.RC_p[option]
                         violations_caused += 1
@@ -293,7 +279,6 @@ end
     compute_delta2_for_b0(solution::Solution, instance::Instance,
                           M1::Array{Int,2}, sequence::Array{Int,1},
                           car_pos_a::Int, first_line::Int, last_line::Int)
-
 For factorization
 """
 function compute_delta2_for_b0(solution::Solution, instance::Instance,
@@ -317,7 +302,7 @@ function compute_delta2_for_b0(solution::Solution, instance::Instance,
             new_unreached_index = modified_sequence + instance.RC_q[option] - 1
 
             # car force another one to quit the sequence
-            if new_unreached_index <= instance.nb_cars-1 # must be a valid index
+            if new_unreached_index <= solution.length-1 # must be a valid index
                 C_out = sequence[new_unreached_index]
                 # C_in has different option than C_out -> variation in violations number
                 if xor(instance.RC_flag[C_in, option], instance.RC_flag[C_out, option])
@@ -344,7 +329,6 @@ end
     compute_delta1(solution::Solution, instance::Instance,
                    M1::Array{Int,2}, sequence::Array{Int,1}, cursor::Int,
                    car_pos_a::Int, first_line::Int, last_line::Int)
-
 For factorization
 """
 function compute_delta1(solution::Solution, instance::Instance,
@@ -363,7 +347,7 @@ function compute_delta1(solution::Solution, instance::Instance,
             variation += 1
         end
         # ... and first_unreached_index (if it exists) is not
-        if first_unreached_index <= (instance.nb_cars-1)
+        if first_unreached_index <= (solution.length-1)
             if instance.RC_flag[sequence[first_unreached_index], option]
                 variation -= 1
             end
@@ -381,7 +365,6 @@ end
                    M1::Array{Int,2}, sequence::Array{Int,1}, index::Int,
                    car_pos_a::Int, first_line::Int, last_line::Int,
                    delta2_for_objective)
-
 For factorization
 """
 function compute_delta2(solution::Solution, instance::Instance,
@@ -389,12 +372,12 @@ function compute_delta2(solution::Solution, instance::Instance,
                         car_pos_a::Int, first_line::Int, last_line::Int,
                         delta2_for_objective)
     #TODO: How to handle this case?
-    if index == instance.nb_cars
+    if index == solution.length
         C_insert = solution.sequence[car_pos_a]
         for option in first_line:last_line
             sequence_unreaching_it = index - instance.RC_q[option]
             if sequence_unreaching_it > 0
-                for i in sequence_unreaching_it+1:instance.nb_cars
+                for i in sequence_unreaching_it+1:solution.length
                     if (M1[option, i] >= instance.RC_p[option] && instance.RC_flag[C_insert, option])
                         delta2_for_objective[index] += 1
                     end
@@ -410,7 +393,7 @@ function compute_delta2(solution::Solution, instance::Instance,
             # What is called in the article: delta_{b-q(o_j)}
             # there is one sequence too far from us now
             sequence_unreaching_it = index - instance.RC_q[option]
-            if sequence_unreaching_it > 0 && index < instance.nb_cars
+            if sequence_unreaching_it > 0 && index < solution.length
                 C_in = sequence[index-1] # It was previously push out (shifted to index in the last calcul of d2)
                 if xor(instance.RC_flag[C_insert, option], instance.RC_flag[C_in, option])
                     # The last sequence is now more violated than before ?
@@ -431,7 +414,7 @@ function compute_delta2(solution::Solution, instance::Instance,
             # What is called in the article: delta_{b-1}
             new_modified_sequence = index - 1
             first_unreached_index = index + instance.RC_q[option] - 2
-            if new_modified_sequence > 0 && first_unreached_index <= (instance.nb_cars-1)
+            if new_modified_sequence > 0 && first_unreached_index <= (solution.length-1)
                 C_out = sequence[first_unreached_index]
                 if xor(instance.RC_flag[C_out, option], instance.RC_flag[C_insert, option])
                     # The new sequence is now more violated than before

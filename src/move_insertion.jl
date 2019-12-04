@@ -43,6 +43,112 @@ function move_insertion!(solution::Solution, old_index::Int,
 end
 
 """
+    move_insertion!(solution::Solution, old_index::Int, new_index::Int, instance::Instance)
+
+Replaces car at `old_index` at `new_index` and updates the solution's matrices.
+"""
+function move_insertion_tmp!(solution::Solution, old_index::Int, new_index::Int, instance::Instance)
+
+    #Update sequence
+    # car = solution.sequence[old_index]
+    # deleteat!(solution.sequence, old_index)
+    # insert!(solution.sequence, new_index, car)
+
+    #Update sequence (better complexity ?)
+    car_inserted = solution.sequence[old_index]
+    if old_index < new_index
+        for car_moved_pos in old_index:(new_index-1)
+            solution.sequence[car_moved_pos] = solution.sequence[car_moved_pos+1]
+        end
+        solution.sequence[new_index] = car_inserted
+    end
+    if old_index > new_index
+        for car_moved_pos in old_index:-1:(new_index+1)
+            solution.sequence[car_moved_pos] = solution.sequence[car_moved_pos-1]
+        end
+        solution.sequence[new_index] = car_inserted
+    end
+
+    # TODO: COMPLEXITY NON-OPTIMAL
+    update_matrices_insert!(solution, old_index, new_index, car_inserted, instance)
+
+    return solution
+end
+
+
+"""
+    update_matrices_insert!()
+"""
+function update_matrices_insert!(solution::Solution,old_index::Int, new_index::Int, car::Int, instance::Instance)
+    nb_RC = instance.nb_HPRC + instance.nb_LPRC
+
+    if old_index < new_index
+        # Remove part
+        new_car_in_seq = solution.sequence[old_index]
+
+        for option in 1:nb_RC
+            # Shifting left between old+1 and new
+            for car_moved_pos in old_index:(new_index-1)
+                solution.M1[car_moved_pos] = solution.M1[car_moved_pos+1]
+            end
+            if xor(instance.RC_flag[new_car_in_seq, option], instance.RC_flag[car, option])
+                for index in old_index - instance.RC_q[option] +1:old_index-1
+                    solution.M1[option,index] = solution.M1[option,index] + instance.RC_flag[new_car_in_seq, option] - instance.RC_flag[car, option]
+                end
+            end
+        end
+
+        # Inserting part
+        old_car_in_seq = solution.sequence[new_index+1]
+        for option in 1:nb_RC
+            if xor(instance.RC_flag[old_car_in_seq, option], instance.RC_flag[car, option])
+                #updating old car insequence
+                for index in new_index - instance.RC_q[option] +1:new_index-1
+                    solution.M1[option,index] = solution.M1[option,index] + instance.RC_flag[car, option] - instance.RC_flag[old_car_in_seq, option]
+                end
+                solution.M1[option,new_index] = solution.M1[option,new_index] + instance.RC_flag[car, option] - instance.RC_flag[solution.sequence[new_index-1]]
+            end
+        end
+    end
+
+    if old_index > new_index
+        if old_index < length(solution.sequence)
+            # Remove part
+            new_car_in_seq = solution.sequence[old_index+1]
+
+            # Shifting rigth between new and old-1
+            for car_moved_pos in old_index:-1:(new_index+1)
+                solution.M1[car_moved_pos] = solution.M1[car_moved_pos-1]
+            end
+            for option in 1:nb_RC
+                if xor(instance.RC_flag[new_car_in_seq, option], instance.RC_flag[car, option])
+                    for index in old_index - instance.RC_q[option] +2:old_index
+                        solution.M1[option,index] = solution.M1[option,index] + instance.RC_flag[new_car_in_seq, option] - instance.RC_flag[car, option]
+                    end
+                end
+            end
+
+            # Inserting part
+            old_car_in_seq = solution.sequence[new_index+1]
+            for option in 1:nb_RC
+                if xor(instance.RC_flag[old_car_in_seq, option], instance.RC_flag[car, option])
+                    #updating old car insequence
+                    for index in new_index - instance.RC_q[option] +1:new_index-1
+                        solution.M1[option,index] = solution.M1[option,index] + instance.RC_flag[car, option] - instance.RC_flag[old_car_in_seq, option]
+                    end
+                    solution.M1[option,new_index] = solution.M1[option,new_index] + instance.RC_flag[car, option] - instance.RC_flag[solution.sequence[new_index+1]]
+                end
+            end
+
+        end
+
+    end
+    return solution
+end
+
+
+
+"""
     cost_move_insertion(solution::Solution, car_pos_a::Int,
                         instance::Instance, objectives::BitArray{1})
 

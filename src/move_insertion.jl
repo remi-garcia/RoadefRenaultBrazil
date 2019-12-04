@@ -377,7 +377,7 @@ function compute_delta2(solution::Solution, instance::Instance,
         for option in first_line:last_line
             sequence_unreaching_it = index - instance.RC_q[option]
             if sequence_unreaching_it > 0
-                for i in sequence_unreaching_it+1:solution.length
+                for i in (sequence_unreaching_it+1):solution.length
                     if (M1[option, i] >= instance.RC_p[option] && instance.RC_flag[C_insert, option])
                         delta2_for_objective[index] += 1
                     end

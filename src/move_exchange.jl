@@ -72,7 +72,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
                 deltaM2 = solution.M2[option, last_modified_sequence_a] - deltaM2
                 deltaM3 = solution.M3[option, last_modified_sequence_a] - deltaM3
 
-                for car_pos in last_modified_sequence_a+1:first_modified_sequence_b-1
+                for car_pos in (last_modified_sequence_a+1):(first_modified_sequence_b-1)
 
                     solution.M2[option, car_pos] += deltaM2
                     solution.M3[option, car_pos] += deltaM3
@@ -100,7 +100,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
             deltaM2 = solution.M2[option, car_pos_b] - deltaM2
             deltaM3 = solution.M3[option, car_pos_b] - deltaM3
 
-            for car_pos in car_pos_b+1:solution.length
+            for car_pos in (car_pos_b+1):solution.length
                 solution.M2[option, car_pos] += deltaM2
                 solution.M3[option, car_pos] += deltaM3
             end

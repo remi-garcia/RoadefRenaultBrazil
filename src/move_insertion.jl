@@ -100,20 +100,20 @@ function cost_move_insertion(solution::Solution, position::Int,
         )
 
         # for all other valid positions
-        for index in (b0+1):(solution.length)
+        for index in (b0+1):solution.length
             # Delta 1 is compute as for b0
             delta1_for_first[index] = compute_delta1(solution, instance,
                                                      M1, sequence, index, position,
                                                      1, instance.nb_HPRC)
         end
-        for index in (b0+1):(solution.length)
+        for index in (b0+1):solution.length
             delta2_for_first = compute_delta2(solution, instance,
                                               M1, sequence, index, position,
                                               1, instance.nb_HPRC,
                                               delta2_for_first)
         end
         # The cost is variation of deletion + delta1 (new sequence) + delta2 (modified sequences)
-        for i in b0:(solution.length)
+        for i in b0:solution.length
             cost_on_objective[i, 1] = delta1_for_first[i] + delta2_for_first[i] + violations_caused_on_first
         end
     end
@@ -136,7 +136,7 @@ function cost_move_insertion(solution::Solution, position::Int,
                 M1, sequence, index, position,
                 instance.nb_HPRC+1, instance.nb_HPRC+instance.nb_LPRC)
         end
-        for index in (b0+1):(solution.length)
+        for index in (b0+1):solution.length
             delta2_for_second = compute_delta2(
                 solution, instance,
                 M1, sequence, index, position,
@@ -145,7 +145,7 @@ function cost_move_insertion(solution::Solution, position::Int,
         end
 
         # The cost is variation of deletion + delta1 (new sequence) + delta2 (modified sequences)
-        for i in b0:(solution.length)
+        for i in b0:solution.length
             cost_on_objective[i, 2] = delta1_for_second[i] + delta2_for_second[i] + violations_caused_on_second
         end
     end

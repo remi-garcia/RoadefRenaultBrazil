@@ -58,8 +58,9 @@ function perturbation_VNS_PCC_insertion!(solution::Solution, k::Int,
                                          instance::Instance)
     remove!(solution, instance, k, critical_cars)
     for i in 1:k
-        greedy_add!(solution, instance, instance.nb_cars, 2, true)
+        greedy_add!(solution, instance, instance.nb_cars, 3, true)
     end
+    @assert instance.nb_cars == solution.length
     return solution
 end
 
@@ -78,7 +79,7 @@ function perturbation_VNS_PCC(solution_init::Solution, p::Int, k::Int, instance:
         k = min(k, length(critical_cars))
         perturbation_VNS_PCC_insertion!(solution, k, critical_cars, instance)
     end
-
+    #update_matrices!(solution, instance)
     return solution
 end
 
@@ -137,8 +138,6 @@ Optimizes the weighted sum of three objectives using `move_insertion!`.
 """
 function local_search_intensification_VNS_PCC_insertion!(solution::Solution, instance::Instance, start_time::UInt)
     # useful variable
-    update_matrices!(solution, instance)
-    solution.length = instance.nb_cars
     b0 = instance.nb_late_prec_day+1
 
     improved = true
@@ -148,14 +147,16 @@ function local_search_intensification_VNS_PCC_insertion!(solution::Solution, ins
             best_delta = 0
             best_positions = Array{Int, 1}()
             matrix_deltas = cost_move_insertion(solution, index_car, instance, 3)
-            #penalize_costs!(matrix_deltas, index_car, solution, instance)
+            penalize_costs!(matrix_deltas, index_car, solution, instance)
             for position in b0:instance.nb_cars
-                delta = weighted_sum(matrix_deltas[position, :])
-                if delta < best_delta
-                    best_positions = Array{Int, 1}([position])
-                    best_delta = delta
-                elseif delta == best_delta
-                    push!(best_positions, position)
+                if position != index_car
+                    delta = weighted_sum(matrix_deltas[position, :])
+                    if delta < best_delta
+                        best_positions = Array{Int, 1}([position])
+                        best_delta = delta
+                    elseif delta == best_delta
+                        push!(best_positions, position)
+                    end
                 end
             end
 
@@ -178,34 +179,8 @@ end
 Calls both intensification.
 """
 function intensification_VNS_PCC!(solution::Solution, instance::Instance, start_time::UInt)
-    costs_solution_debug = cost(solution, instance, 3)
-    cost_solution_debug = weighted_sum(costs_solution_debug)
     local_search_intensification_VNS_PCC_insertion!(solution, instance, start_time)
-    costs_solution = cost(solution, instance, 3)
-    cost_solution = weighted_sum(costs_solution)
-    println(costs_solution_debug)
-    println(cost_solution_debug)
-    println(costs_solution)
-    println(cost_solution)
-
-    println()
-    println()
-
-    costs_solution_debug = cost(solution, instance, 3)
-    cost_solution_debug = weighted_sum(costs_solution_debug)
     local_search_intensification_VNS_PCC_exchange!(solution, instance, start_time)
-    costs_solution = cost(solution, instance, 3)
-    cost_solution = weighted_sum(costs_solution)
-    println(costs_solution_debug)
-    println(cost_solution_debug)
-    println(costs_solution)
-    println(cost_solution)
-
-    println()
-    println()
-    println()
-    println()
-
     return solution
 end
 

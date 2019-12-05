@@ -87,6 +87,25 @@ function greedy_add!(solution::Solution, instance::Instance, position_car::Int,
 end
 
 """
+    remove!(solution_init::Solution, instance::Instance,
+            k::Int, crit::Array{Int, 1})
+
+Removes `k` critical cars of the sequence of `solution_init`.
+"""
+function remove!(solution::Solution, instance::Instance,
+                 k::Int, crit::Array{Int, 1})
+    indices = sort(randperm(length(crit))[1:k])
+    crit_sort = sort(crit, rev = true)
+    for i in 1:k
+        position = crit_sort[indices[i]]
+        solution.length -= 1
+        move_insertion!(solution, position, instance.nb_cars, instance)
+    end
+
+    return solution
+end
+
+"""
     find_critical_cars(solution::Solution, instance::Instance,
                        objectives::BitArray{1})
 
@@ -127,25 +146,6 @@ end
 
 find_critical_cars(solution::Solution, instance::Instance, objectives::Int) =
     find_critical_cars(solution::Solution, instance::Instance, [trues(objectives) ; falses(2-objectives)])
-
-"""
-    remove!(solution_init::Solution, instance::Instance,
-            k::Int, crit::Array{Int, 1})
-
-Removes `k` critical cars of the sequence of `solution_init`.
-"""
-function remove!(solution::Solution, instance::Instance,
-                 k::Int, crit::Array{Int, 1})
-    indices = sort(randperm(length(crit))[1:k])
-    crit_sort = sort(crit, rev = true)
-    for i in 1:k
-        position = crit_sort[indices[i]]
-        move_insertion!(solution, position, instance.nb_cars, instance)
-    end
-    solution.length -= k
-
-    return solution
-end
 
 """
     cost(solution::Solution, instance::Instance, objectives::BitArray{1})

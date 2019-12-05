@@ -63,9 +63,7 @@ function greedy_add!(solution::Solution, instance::Instance, position_car::Int,
     b0 = instance.nb_late_prec_day + 1
     costs = cost_move_insertion(solution, position_car, instance, objectives)
     if valid_sequence
-        solution.length += 1
         penalize_costs!(costs, position_car, solution, instance)
-        solution.length -= 1
     end
     delta = weighted_sum(costs[b0, :])
     best_delta = delta

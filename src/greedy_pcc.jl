@@ -41,18 +41,9 @@ function greedy_pcc(instance::Instance)
     # Sequence car by batch of paint.
     index_seq = b0
     ended = false
-    color = instance.color_code[solution.sequence[index_seq-1]]
-    # First color_count isn't 1
-    color_count = 1
-    while b0-color_count-1 >= 1 && instance.color_code[b0-color_count-1] == color
-        color_count += 1
-    end
-    index_color = color_to_index[color]
-    if index_color == 0  # The is color appear only the prec day
-        index_color = 1
-    end
+    index_color = 1
     while !ended
-        size = min(instance.nb_paint_limitation - color_count , length(V_color[index_color]))
+        size = min(instance.nb_paint_limitation , length(V_color[index_color]))
         cars = next_batch_insertion(solution, index_seq, V_color[index_color], size, instance)
         for car in cars
             solution.sequence[index_seq] = car
@@ -67,7 +58,6 @@ function greedy_pcc(instance::Instance)
         else
             ended = true
         end
-        color_count = 0
     end
 
     # In some limit case (where there is a lot of cars in the same color or the batch limit is too low)

@@ -131,12 +131,14 @@ end
 
 
 """
-    local_search_intensification_VNS_LPRC_insertion!(solution::Solution, instance::Instance)
+    local_search_intensification_VNS_PCC_insertion!(solution::Solution, instance::Instance)
 
 Optimizes the weighted sum of three objectives using `move_insertion!`.
 """
 function local_search_intensification_VNS_PCC_insertion!(solution::Solution, instance::Instance, start_time::UInt)
     # useful variable
+    update_matrices!(solution, instance)
+    solution.length = instance.nb_cars
     b0 = instance.nb_late_prec_day+1
 
     improved = true
@@ -146,7 +148,7 @@ function local_search_intensification_VNS_PCC_insertion!(solution::Solution, ins
             best_delta = 0
             best_positions = Array{Int, 1}()
             matrix_deltas = cost_move_insertion(solution, index_car, instance, 3)
-            penalize_costs!(matrix_deltas, index_car, solution, instance)
+            #penalize_costs!(matrix_deltas, index_car, solution, instance)
             for position in b0:instance.nb_cars
                 delta = weighted_sum(matrix_deltas[position, :])
                 if delta < best_delta
@@ -176,8 +178,34 @@ end
 Calls both intensification.
 """
 function intensification_VNS_PCC!(solution::Solution, instance::Instance, start_time::UInt)
+    costs_solution_debug = cost(solution, instance, 3)
+    cost_solution_debug = weighted_sum(costs_solution_debug)
     local_search_intensification_VNS_PCC_insertion!(solution, instance, start_time)
+    costs_solution = cost(solution, instance, 3)
+    cost_solution = weighted_sum(costs_solution)
+    println(costs_solution_debug)
+    println(cost_solution_debug)
+    println(costs_solution)
+    println(cost_solution)
+
+    println()
+    println()
+
+    costs_solution_debug = cost(solution, instance, 3)
+    cost_solution_debug = weighted_sum(costs_solution_debug)
     local_search_intensification_VNS_PCC_exchange!(solution, instance, start_time)
+    costs_solution = cost(solution, instance, 3)
+    cost_solution = weighted_sum(costs_solution)
+    println(costs_solution_debug)
+    println(cost_solution_debug)
+    println(costs_solution)
+    println(cost_solution)
+
+    println()
+    println()
+    println()
+    println()
+
     return solution
 end
 
@@ -239,8 +267,9 @@ function VNS_PCC(solution_init::Solution, instance::Instance, start_time::UInt)
     solution = deepcopy(solution_init)
     p = 1
     k = VNS_PCC_MINMAX[p+1][1]
-    cost_solution = weighted_sum(solution, instance)
-    cost_HPRC_solution = cost(solution, instance, 1)[1]
+    costs_solution = cost(solution, instance, 3)
+    cost_solution = weighted_sum(costs_solution)
+    cost_HPRC_solution = costs_solution[1]
     while TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         while (k <= VNS_PCC_MINMAX[p+1][2]) && (TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
             solution_perturbation = perturbation_VNS_PCC(solution, p, k, instance)
@@ -256,11 +285,15 @@ function VNS_PCC(solution_init::Solution, instance::Instance, start_time::UInt)
             end
             if cost_solution_perturbation <= cost_solution
                 solution = deepcopy(solution_perturbation)
-                cost_HPRC_solution = cost(solution, instance, 1)[1]
-                cost_solution = weighted_sum(solution, instance)
+                costs_solution = cost(solution, instance, 3)
+                cost_solution = copy(cost_solution_perturbation)
+                cost_HPRC_solution = costs_solution[1]
             end
         end
         intensification_VNS_PCC!(solution, instance, start_time)
+        costs_solution = cost(solution, instance, 3)
+        cost_solution = weighted_sum(costs_solution)
+        cost_HPRC_solution = costs_solution[1]
         p = 1 - p
         k = VNS_PCC_MINMAX[p+1][1]
     end

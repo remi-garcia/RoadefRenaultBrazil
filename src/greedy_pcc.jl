@@ -31,29 +31,39 @@ function greedy_pcc(instance::Instance)
     # Sort by the biggest to the lowest number of car in each color,
     # to avoid some limit case (not all).
     sort!(V_color, by=list_color -> length(list_color), rev=true)
+    color_to_index = zeros(Int, length(all_color))
+    for color in all_color
+        if !isempty(V_color[color])
+            color_to_index[instance.color_code[V_color[color][1]]] = color
+        end
+    end
 
     # Sequence car by batch of paint.
     index_seq = b0
     ended = false
-    color = instance.color_code[b0-1]
+    color = instance.color_code[solution.sequence[index_seq-1]]
     # First color_count isn't 1
     color_count = 1
     while b0-color_count-1 >= 1 && instance.color_code[b0-color_count-1] == color
         color_count += 1
     end
+    index_color = color_to_index[color]
+    if index_color == 0  # The is color appear only the prec day
+        index_color = 1
+    end
     while !ended
-        size = min(instance.nb_paint_limitation - color_count , length(V_color[color]))
-        cars = next_batch_insertion(solution, index_seq, V_color[color], size, instance)
+        size = min(instance.nb_paint_limitation - color_count , length(V_color[index_color]))
+        cars = next_batch_insertion(solution, index_seq, V_color[index_color], size, instance)
         for car in cars
             solution.sequence[index_seq] = car
             index_seq += 1
         end
-        setdiff!(V_color[color], cars)
+        setdiff!(V_color[index_color], cars)
 
         # find color not done
-        next_colors = findall(list_col -> ! isempty(list_col) && list_col != V_color[color] , V_color)
+        next_colors = findall(list_col -> ! isempty(list_col) && list_col != V_color[index_color] , V_color)
         if ! isempty(next_colors)
-            color = next_colors[1]
+            index_color = next_colors[1]
         else
             ended = true
         end
@@ -65,21 +75,33 @@ function greedy_pcc(instance::Instance)
 
     color_not_ended = findall(list_col -> ! isempty(list_col), V_color)
     if !isempty(color_not_ended)
-        color = color_not_ended[1]
-        n_cars_left = length(V_color[color])
+        index_color = color_not_ended[1]
+        color = instance.color_code[V_color[index_color][1]]
+        n_cars_left = length(V_color[index_color])
         nb_insert_batch = ceil(Int, n_cars_left / instance.nb_paint_limitation)
         for _ in 1:nb_insert_batch
-            nb_insert = min(instance.nb_paint_limitation, length(V_color[color]))
+            nb_insert = min(instance.nb_paint_limitation, length(V_color[index_color]))
             # Find a position such that car_left should be a different color
             # than car_right and both of them should be different to color
             index_car_left = b0
             index_car_right = index_car_left+1
-            while !(instance.color_code[solution.sequence[index_car_left]]
+            stop = false
+            while !stop && !(instance.color_code[solution.sequence[index_car_left]]
                     != instance.color_code[solution.sequence[index_car_right]]
                     && instance.color_code[solution.sequence[index_car_left]] != color
                     && instance.color_code[solution.sequence[index_car_right]] != color )
                 index_car_left += 1
                 index_car_right = index_car_left +1
+                stop = solution.sequence[index_car_right] == 0 # no place to insert
+            end
+            if stop # insert between the same color
+                index_car_left = b0
+                index_car_right = index_car_left+1
+                while !(instance.color_code[solution.sequence[index_car_left]] != color
+                        && instance.color_code[solution.sequence[index_car_right]] != color )
+                    index_car_left += 1
+                    index_car_right = index_car_left +1
+                end
             end
             # Shift values
             for index_copy in index_seq:-1:index_car_right
@@ -87,9 +109,9 @@ function greedy_pcc(instance::Instance)
             end
             # Insert
             for i in 1:nb_insert
-                car = next_insertion(solution, index_seq, V_color[color], instance)
+                car = next_insertion(solution, index_car_right+i-1, V_color[index_color], instance)
                 solution.sequence[index_car_right+i-1] = car
-                setdiff!(V_color[color], car)
+                setdiff!(V_color[index_color], car)
             end
             index_seq += nb_insert
         end

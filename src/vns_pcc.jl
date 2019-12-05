@@ -79,7 +79,7 @@ function perturbation_VNS_PCC(solution_init::Solution, p::Int, k::Int, instance:
         k = min(k, length(critical_cars))
         perturbation_VNS_PCC_insertion!(solution, k, critical_cars, instance)
     end
-    #update_matrices!(solution, instance)
+
     return solution
 end
 

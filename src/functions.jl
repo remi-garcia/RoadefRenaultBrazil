@@ -35,13 +35,17 @@ end
 function penalize_costs!(costs::Array{Int, 2}, init_position::Int,
                          solution::Solution, instance::Instance)
     sequence = copy(solution.sequence)
-    sequence_insert!(sequence, init_position, 1)
+    b0 = instance.nb_late_prec_day+1
+    sequence_insert!(sequence, init_position, b0)
+    if !is_sequence_valid(sequence, solution.length, instance)
+        costs[b0, :] .= instance.nb_cars
+    end
 
-    for position in 1:(solution.length-1)
-        if !is_sequence_valid(sequence, solution.length, instance)
-            costs[position, :] .= instance.nb_cars
-        end
+    for position in b0:(solution.length-1)
         sequence[position], sequence[position+1] = sequence[position+1], sequence[position]
+        if !is_sequence_valid(sequence, solution.length, instance)
+            costs[position+1, :] .= instance.nb_cars
+        end
     end
 
     return costs
@@ -75,7 +79,7 @@ function greedy_add!(solution::Solution, instance::Instance, position_car::Int,
     end
     #Limit case:
     # No position allows a valid sequence
-    if valid_sequence && best_delta == typemax(Int)
+    if valid_sequence && best_delta == instance.nb_cars
         return greedy_add!(solution, instance, position_car-1, objectives, valid_sequence)
     end
     solution.length += 1
@@ -256,7 +260,7 @@ function is_sequence_valid(sequence::Array{Int, 1}, n::Int, instance::Instance)
         else
             counter = 1
         end
-        if counter > instance.nb_paint_limitation && counter >= instance.nb_late_prec_day+1
+        if counter > instance.nb_paint_limitation && car_pos >= instance.nb_late_prec_day+1
             return false
         end
     end

@@ -78,6 +78,7 @@ function perturbation_VNS_PCC(solution_init::Solution, p::Int, k::Int, instance:
         k = min(k, length(critical_cars))
         perturbation_VNS_PCC_insertion!(solution, k, critical_cars, instance)
     end
+
     return solution
 end
 
@@ -139,7 +140,6 @@ function local_search_intensification_VNS_PCC_insertion!(solution::Solution, ins
     b0 = instance.nb_late_prec_day+1
 
     improved = true
-    sequence = copy(solution.sequence)
     while improved && TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         improved = false
         for index_car in b0:instance.nb_cars
@@ -171,7 +171,7 @@ function local_search_intensification_VNS_PCC_insertion!(solution::Solution, ins
 end
 
 """
-    intensification_VNS_LPRC!(solution::Solution, instance::Instance)
+    intensification_VNS_PCC!(solution::Solution, instance::Instance)
 
 Calls both intensification.
 """
@@ -204,14 +204,16 @@ function local_search_VNS_PCC!(solution::Solution, instance::Instance, start_tim
             best_positions = Array{Int, 1}()
             hprc_value = HPRC_value(solution.sequence[index_car_a], instance)
             for index_car_b in all_list_same_HPRC[hprc_value]
-                if index_car_a < index_car_b # exchange (i, j) is the same as exchange (j, i)
-                    delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 3))
+                if index_car_a != index_car_b
                     sequence[index_car_a], sequence[index_car_b] = sequence[index_car_b], sequence[index_car_a]
-                    if delta < best_delta && is_sequence_valid(sequence, instance.nb_cars, instance)
-                        best_positions = Array{Int, 1}([index_car_b])
-                        best_delta = delta
-                    elseif delta == best_delta
-                        push!(best_positions, index_car_b)
+                    if is_sequence_valid(sequence, instance.nb_cars, instance)
+                        delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 3))
+                        if delta < best_delta
+                            best_positions = Array{Int, 1}([index_car_b])
+                            best_delta = delta
+                        elseif delta == best_delta
+                            push!(best_positions, index_car_b)
+                        end
                     end
                     sequence[index_car_a], sequence[index_car_b] = sequence[index_car_b], sequence[index_car_a]
                 end
@@ -226,6 +228,7 @@ function local_search_VNS_PCC!(solution::Solution, instance::Instance, start_tim
             end
         end
     end
+
     return solution
 end
 

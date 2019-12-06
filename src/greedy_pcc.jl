@@ -44,12 +44,8 @@ function greedy_pcc(instance::Instance)
     index_color = 1
     while !ended
         size = min(instance.nb_paint_limitation , length(V_color[index_color]))
-        cars = next_batch_insertion(solution, index_seq, V_color[index_color], size, instance)
-        for car in cars
-            solution.sequence[index_seq] = car
-            index_seq += 1
-        end
-        setdiff!(V_color[index_color], cars)
+        next_batch_insertion!(solution, index_seq, V_color[index_color], size, instance)
+        index_seq += size
 
         # find color not done
         next_colors = findall(list_col -> ! isempty(list_col) && list_col != V_color[index_color] , V_color)
@@ -97,12 +93,7 @@ function greedy_pcc(instance::Instance)
             for index_copy in index_seq:-1:index_car_right
                 solution.sequence[index_copy + nb_insert-1] = solution.sequence[index_copy-1]
             end
-            # Insert
-            for i in 1:nb_insert
-                car = next_insertion(solution, index_car_right+i-1, V_color[index_color], instance)
-                solution.sequence[index_car_right+i-1] = car
-                setdiff!(V_color[index_color], car)
-            end
+            next_batch_insertion!(solution, index_car_right, V_color[index_color], nb_insert, instance)
             index_seq += nb_insert
         end
     end
@@ -112,27 +103,58 @@ function greedy_pcc(instance::Instance)
 end
 
 """
-    next_insertion(solution::Solution, index::Int, available_cars::Array{Int, 1}, instance::Instance)
-
-Return the next insertion at position index.
-"""
-function next_insertion(solution::Solution, index::Int, available_cars::Array{Int, 1}, instance::Instance)
-    # TODO find a better insertion
-    return rand(available_cars)
-end
-
-
-"""
     next_batch_insertion(solution::Solution, index::Int, available_cars::Array{Int, 1}, instance::Instance)
 
 Return the next batch to insert in solution according to the HPRC greedy criterion.
 """
-function next_batch_insertion(solution::Solution, index::Int, available_cars::Array{Int, 1}, size::Int, instance::Instance)
+function next_batch_insertion!(solution::Solution, index::Int, available_cars::Array{Int, 1}, size::Int, instance::Instance)
     batch = Array{Int, 1}()
     for i in 1:size
-        car = next_insertion(solution, index, setdiff(available_cars, batch), instance)
-        push!(batch, car)
-    end
+        position = index+i-1
+        len = length(available_cars)
 
-    return batch
+        # Best car to insert HPRC
+        nb_new_violation_HP = zeros(Int, len)
+        for c in 1:len
+            car = available_cars[c]
+            for j in 1:instance.nb_HPRC
+                if instance.RC_flag[car, j]
+                    last_ended_sequence = (position - instance.RC_q[j])
+                    if last_ended_sequence > 0
+                        nb_new_violation_HP[c] += solution.M3[j, position-1] - solution.M3[j, last_ended_sequence]
+                    else
+                        nb_new_violation_HP[c] += solution.M3[j, position-1]
+                    end
+                end
+            end
+        end
+        # `filter_on_min_criterion` is in greedy.jl file
+        candidats_HP = filter_on_min_criterion(available_cars, nb_new_violation_HP)
+
+        len = length(candidats_HP)
+        # Best car to insert LPRC
+        nb_new_violation_LP = zeros(Int, len)
+        for c in 1:len
+            car = candidats_HP[c]
+            for iter in 1:instance.nb_LPRC
+                j = instance.nb_HPRC + iter
+                if instance.RC_flag[car, j]
+                    last_ended_sequence = (position - instance.RC_q[j])
+                    if last_ended_sequence > 0
+                        nb_new_violation_LP[c] += solution.M3[j, position-1] - solution.M3[j, last_ended_sequence]
+                    else
+                        nb_new_violation_LP[c] += solution.M3[j, position-1]
+                    end
+                end
+            end
+        end
+        # `filter_on_min_criterion` is in greedy.jl file
+        candidats_LP = filter_on_min_criterion(candidats_HP, nb_new_violation_LP)
+        car = rand(candidats_LP)
+        solution.sequence[position] = car
+        solution.length += 1
+        setdiff!(available_cars, car)
+        update_matrices_new_car!(solution, position, instance)
+    end
+    return solution
 end

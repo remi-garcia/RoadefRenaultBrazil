@@ -106,6 +106,10 @@ function cost_move_insertion(solution::Solution, position::Int,
                              instance::Instance, objectives::BitArray{1})
     @assert length(objectives) == 3
 
+    # # DEBUG and TODO: Comment / uncomment for debbuging.
+    # #                 Ensure to test every variation.
+    # objectives = trues(3)
+
     cost_on_objective = zeros(Int, solution.length, 3)
     b0 = instance.nb_late_prec_day+1
 
@@ -245,6 +249,18 @@ function cost_move_insertion(solution::Solution, position::Int,
             end
         end
     end
+
+    # #DEBUG and TODO: Comment / uncomment for debbuging.
+    # #                Test the quality of the variation computed.
+    # s1 = deepcopy(solution)
+    # s1.sequence[car_pos_a], s1.sequence[car_pos_b] = s1.sequence[car_pos_b], s1.sequence[car_pos_a]
+    # update_matrices!(s1, instance)
+    #
+    # real_cost = cost(s1, instance, objectives) - cost(solution, instance, objectives)
+    # if real_cost != cost_on_objective
+    #     println("\nIn cost_move_exchange for ", car_pos_a, " and ", car_pos_b)
+    #     println("\tError (real vs computed) : ", real_cost, " - ", cost_on_objective)
+    # end
 
     return cost_on_objective
 end

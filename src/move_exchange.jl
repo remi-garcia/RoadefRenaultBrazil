@@ -18,10 +18,10 @@ Interverts the car `car_pos_a` with the car `car_pos_b` in `solution.sequence`. 
 """
 function move_exchange!(solution::Solution, car_pos_a::Int,
                         car_pos_b::Int, instance::Instance)
-    if car_pos_b < car_pos_a
-        return move_exchange!(solution, car_pos_b, car_pos_a, instance)
-    elseif car_pos_b == car_pos_a
+    if car_pos_b == car_pos_a
         return solution
+    elseif car_pos_b < car_pos_a
+        return move_exchange!(solution, car_pos_b, car_pos_a, instance)
     end
 
     # #DEBUG and TODO: Comment / uncomment for debbuging.
@@ -344,10 +344,10 @@ function cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
     # #                 Ensure to test every variation.
     # objectives = trues(3)
 
-    if car_pos_b < car_pos_a
-        return cost_move_exchange(solution, car_pos_b, car_pos_a, instance, objectives)
-    elseif car_pos_b == car_pos_a
+    if car_pos_b == car_pos_a
         return zeros(Int, 3)
+    elseif car_pos_b < car_pos_a
+        return cost_move_exchange(solution, car_pos_b, car_pos_a, instance, objectives)
     end
 
     cost_on_objective = zeros(Int, 3)

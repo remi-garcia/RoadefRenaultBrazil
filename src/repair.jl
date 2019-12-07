@@ -14,20 +14,13 @@ return -1 if such a car does not exist
 """
 function find_first_violation(solution::Solution, instance::Instance)
     first_violation = -1
-    current_color = batch_color = instance.color_code[solution.sequence[1]]
-    batch_size = 1
-    for i in 2:instance.nb_cars
-        current_color = instance.color_code[solution.sequence[i]]
-        if current_color == batch_color
-            batch_size += 1
-        else
-            batch_size = 1
-            batch_color = current_color
-        end
-        if batch_size > instance.nb_paint_limitation && i > instance.nb_late_prec_day
-            first_violation = i
+    position = 1
+    while position < solution.length
+        if solution.colors[position].width > instance.nb_paint_limitation && position > instance.nb_late_prec_day
+            first_violation = position + instance.nb_paint_limitation
             break
         end
+        position += solution.colors[position].width
     end
     return first_violation
 end
@@ -227,6 +220,10 @@ end
 Apply 2 repair strategies on `solution`.
 """
 function repair!(solution::Solution, instance::Instance)
+    if solution.colors === nothing
+        initialize_batches!(solution, instance)
+    end
+
     first_strategy_repair!(solution, instance)
     second_strategy_repair!(solution, instance)
 

@@ -25,10 +25,133 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
         return solution
     end
 
+    #DEBUG and TODO: Comment / uncomment for debbuging.
+    #                Ensure the quality of the solution.
+    update_matrices!(solution, instance)
+    initialize_batches!(solution, instance)
+
     car_a = solution.sequence[car_pos_a]
     car_b = solution.sequence[car_pos_b]
     solution.sequence[car_pos_a], solution.sequence[car_pos_b] = solution.sequence[car_pos_b], solution.sequence[car_pos_a]
 
+    # COLORS
+    if !(solution.colors === nothing)
+        if instance.color_code[car_a] != instance.color_code[car_b]
+            # cars are neighbors
+            if car_pos_a+1 == car_pos_b
+                # modifications at car_pos_a
+                if (car_pos_a-1 > 0
+                && instance.color_code[car_b] == instance.color_code[solution.sequence[car_pos_a-1]])
+                    solution.colors[car_pos_a-1].width += 1
+                    solution.colors[car_pos_a] = solution.colors[car_pos_a-1]
+                else
+                    solution.colors[car_pos_a].width -= 1
+                    solution.colors[car_pos_a] = Batch(1, car_pos_a)
+                end
+                # modifications at car_pos_b
+                if (car_pos_b+1 <= solution.length
+                && instance.color_code[car_a] == instance.color_code[solution.sequence[car_pos_b+1]])
+                    solution.colors[car_pos_b+1].width += 1
+                    solution.colors[car_pos_b+1].start -= 1
+                    solution.colors[car_pos_b] = solution.colors[car_pos_b+1]
+                else
+                    solution.colors[car_pos_b].width -= 1
+                    solution.colors[car_pos_b].start += 1
+                    solution.colors[car_pos_b] = Batch(1, car_pos_b)
+                end
+            else # cars are not neighbors
+                # CAR_POS_A
+                # if start at car_pos_a -> is last batch of b's color ?
+                if solution.colors[car_pos_a].start == car_pos_a
+                    solution.colors[car_pos_a].width -= 1
+                    solution.colors[car_pos_a].start += 1
+                    if (car_pos_a-1 > 0
+                    && instance.color_code[car_b] == instance.color_code[solution.sequence[car_pos_a-1]])
+                        solution.colors[car_pos_a-1].width += 1
+                        solution.colors[car_pos_a] = solution.colors[car_pos_a-1]
+                    else
+                        solution.colors[car_pos_a] = Batch(1, car_pos_a)
+                    end
+                    # if car_a was a batch of width 1 -> is next batch of b's color ?
+                    if instance.color_code[car_b] == instance.color_code[solution.sequence[car_pos_a+1]]
+                        solution.colors[car_pos_a+1].start = solution.colors[car_pos_a].start
+                        solution.colors[car_pos_a+1].width += solution.colors[car_pos_a].width
+                        for index in (solution.colors[car_pos_a].start):car_pos_a
+                            solution.colors[index] = solution.colors[car_pos_a+1]
+                        end
+
+                    end
+                # elseif end at car_pos_a -> is next batch of b's color ?
+                elseif (solution.colors[car_pos_a].start+solution.colors[car_pos_a].width) == car_pos_a+1
+                    solution.colors[car_pos_a].width -= 1
+                    if instance.color_code[car_b] == instance.color_code[solution.sequence[car_pos_a+1]]
+                        solution.colors[car_pos_a+1].width += 1
+                        solution.colors[car_pos_a+1].start -= 1
+                        solution.colors[car_pos_a] = solution.colors[car_pos_a+1]
+                    else
+                        solution.colors[car_pos_a] = Batch(1, car_pos_a)
+                    end
+                # else batch of car_a will be split into two
+                else
+                    width = car_pos_a - solution.colors[car_pos_a].start
+                    start = solution.colors[car_pos_a].start
+                    batch = Batch(width, start)
+                    for index in start:(car_pos_a-1)
+                        solution.colors[index] = batch
+                    end
+                    solution.colors[car_pos_a].start = car_pos_a + 1
+                    solution.colors[car_pos_a].width -= (width + 1)
+                    solution.colors[car_pos_a] = Batch(1, car_pos_a)
+                end
+
+                # CAR_POS_B
+                # if start at car_pos_b -> is last batch of a's color ?
+                if solution.colors[car_pos_b].start == car_pos_b
+                    solution.colors[car_pos_b].width -= 1
+                    solution.colors[car_pos_b].start += 1
+                    if instance.color_code[car_a] == instance.color_code[solution.sequence[car_pos_b-1]]
+                        solution.colors[car_pos_b-1].width += 1
+                        solution.colors[car_pos_b] = solution.colors[car_pos_b-1]
+                    else
+                        solution.colors[car_pos_b] = Batch(1, car_pos_b)
+                    end
+                    # if car_b was a batch of width 1 -> is next batch of a's color ?
+                    if (car_pos_b+1 <= solution.length
+                    && instance.color_code[car_a] == instance.color_code[solution.sequence[car_pos_b+1]])
+                        solution.colors[car_pos_b+1].start = solution.colors[car_pos_b].start
+                        solution.colors[car_pos_b+1].width += solution.colors[car_pos_b].width
+                        for index in (solution.colors[car_pos_b].start):car_pos_b
+                            solution.colors[index] = solution.colors[car_pos_b+1]
+                        end
+                    end
+                # elseif end at car_pos_b -> is next batch of a's color ?
+                elseif (solution.colors[car_pos_b].start+solution.colors[car_pos_b].width) == car_pos_b+1
+                    solution.colors[car_pos_b].width -= 1
+                    if (car_pos_b+1 <= solution.length
+                    && instance.color_code[car_a] == instance.color_code[solution.sequence[car_pos_b+1]])
+                        solution.colors[car_pos_b+1].width += 1
+                        solution.colors[car_pos_b+1].start -= 1
+                        solution.colors[car_pos_b] = solution.colors[car_pos_b+1]
+                    else
+                        solution.colors[car_pos_b] = Batch(1, car_pos_b)
+                    end
+                # else batch of car_b will be split into two
+                else
+                    width = car_pos_b - solution.colors[car_pos_b].start
+                    start = solution.colors[car_pos_b].start
+                    batch = Batch(width, start)
+                    for index in start:(car_pos_b-1)
+                        solution.colors[index] = batch
+                    end
+                    solution.colors[car_pos_b].start = car_pos_b + 1
+                    solution.colors[car_pos_b].width -= (width + 1)
+                    solution.colors[car_pos_b] = Batch(1, car_pos_b)
+                end
+            end
+        end
+    end
+
+    # OPTIONS
     for option in 1:(instance.nb_HPRC + instance.nb_LPRC)
         if xor(instance.RC_flag[car_a, option], instance.RC_flag[car_b, option])
             first_modified_pos_a = car_pos_a - instance.RC_q[option] + 1
@@ -39,7 +162,6 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
             if instance.RC_flag[car_a, option]
                 plus_minus_one = -1
             end
-
             if first_modified_pos_a < 1
                 first_modified_pos_a = 1
             end
@@ -49,7 +171,6 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
             if last_modified_sequence_a > 0
                 deltaM2 = solution.M2[option, last_modified_sequence_a]
                 deltaM3 = solution.M3[option, last_modified_sequence_a]
-
                 for car_pos in first_modified_pos_a:last_modified_sequence_a
                     solution.M1[option, car_pos] += plus_minus_one
                     if car_pos == 1
@@ -71,7 +192,6 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
 
                 deltaM2 = solution.M2[option, last_modified_sequence_a] - deltaM2
                 deltaM3 = solution.M3[option, last_modified_sequence_a] - deltaM3
-
                 for car_pos in (last_modified_sequence_a+1):(first_modified_sequence_b-1)
 
                     solution.M2[option, car_pos] += deltaM2
@@ -81,7 +201,6 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
 
             deltaM2 = solution.M2[option, car_pos_b]
             deltaM3 = solution.M3[option, car_pos_b]
-
             for car_pos in first_modified_sequence_b:car_pos_b
                 solution.M1[option, car_pos] -= plus_minus_one
                 #TODO: maybe I should not have remove the ``if( == 1)``
@@ -99,13 +218,65 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
 
             deltaM2 = solution.M2[option, car_pos_b] - deltaM2
             deltaM3 = solution.M3[option, car_pos_b] - deltaM3
-
             for car_pos in (car_pos_b+1):solution.length
                 solution.M2[option, car_pos] += deltaM2
                 solution.M3[option, car_pos] += deltaM3
             end
         end
     end
+
+
+    #DEBUG and TODO: Comment / uncomment for debbuging.
+    #                Test the quality of the move.
+    s1 = deepcopy(solution)
+
+    update_matrices!(solution, instance)
+    if !(solution.colors === nothing)
+        initialize_batches!(solution, instance)
+    end
+
+    error1 = false
+    for i in 1:solution.length
+        bool_print = false
+        if s1.colors[i].start != solution.colors[i].start
+            println("\tBad start batch (",i,") - ", s1.colors[i].start," and ",solution.colors[i].start)
+            error1 = true
+            bool_print= true
+        end
+        if s1.colors[i].width != solution.colors[i].width
+            println("\tBad width batch (",i,") - ", s1.colors[i].width," and ",solution.colors[i].width)
+            error1 = true
+            bool_print= true
+        end
+        if bool_print
+            println("\t", instance.color_code[i] ,"-", instance.color_code[car_pos_a]," and ",instance.color_code[car_pos_b])
+        end
+    end
+
+    error2 = false
+    for o in 1:instance.nb_HPRC+instance.nb_LPRC
+        for i in 1:solution.length
+            if s1.M1[o,i] != solution.M1[o,i]
+                error2 = true
+            end
+            if s1.M2[o,i] != solution.M2[o,i]
+                error2 = true
+            end
+            if s1.M3[o,i] != solution.M3[o,i]
+                error2 = true
+            end
+        end
+    end
+    if error1 || error2
+        println("\nIn move_exchange for ", car_pos_a, " and ", car_pos_b)
+        if error1
+            println("\nError batch")
+        end
+        if error2
+            println("\nError matrices")
+        end
+    end
+
     return solution
 end
 

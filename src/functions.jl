@@ -11,16 +11,60 @@ include("move_insertion.jl")
 include("move_exchange.jl")
 
 """
+    sequence_insert!(sequence::Array{Int, 1}, index_remove::Int, index_insert::Int)
+
+Delete the item at `index_remove` and insert at `index_insert` in the sequence.
+"""
+function sequence_insert!(sequence::Array{Int, 1}, index_remove::Int, index_insert::Int)
+    temp = sequence[index_remove]
+    if index_remove < index_insert
+        for k in index_remove:(index_insert-1)
+            sequence[k] = sequence[k+1]
+        end
+    else
+        for k in index_remove:-1:(index_insert+1)
+            sequence[k] = sequence[k-1]
+        end
+    end
+    sequence[index_insert] = temp
+end
+
+"""
+
+"""
+function penalize_costs!(costs::Array{Int, 2}, init_position::Int,
+                         solution::Solution, instance::Instance)
+    sequence = copy(solution.sequence)
+    b0 = instance.nb_late_prec_day+1
+    sequence_insert!(sequence, init_position, b0)
+    if !is_sequence_valid(sequence, solution.length, instance)
+        costs[b0, :] .= instance.nb_cars
+    end
+
+    for position in b0:(solution.length-1)
+        sequence[position], sequence[position+1] = sequence[position+1], sequence[position]
+        if !is_sequence_valid(sequence, solution.length, instance)
+            costs[position+1, :] .= instance.nb_cars
+        end
+    end
+
+    return costs
+end
+
+"""
     greedy_add!(solution::Solution, instance::Instance, k::Int, objectives::Int)
 
 Reinserts last car in the sequence of `solution`.
 """
-function greedy_add!(solution::Solution, instance::Instance, objectives::Int)
+function greedy_add!(solution::Solution, instance::Instance, position_car::Int,
+                     objectives::Int, valid_sequence::Bool = false)
     @assert objectives <= 3
     @assert objectives >= 1
     b0 = instance.nb_late_prec_day + 1
-    #TODO: instance.nb_cars to solution.n + 1 ?
-    costs = cost_move_insertion(solution, instance.nb_cars, instance, objectives)
+    costs = cost_move_insertion(solution, position_car, instance, objectives)
+    if valid_sequence
+        penalize_costs!(costs, position_car, solution, instance)
+    end
     delta = weighted_sum(costs[b0, :])
     best_delta = delta
     best_position = b0
@@ -31,9 +75,32 @@ function greedy_add!(solution::Solution, instance::Instance, objectives::Int)
             best_position = position
         end
     end
-    #TODO: Same here
+    #Limit case:
+    # No position allows a valid sequence
+    if valid_sequence && best_delta == instance.nb_cars
+        return greedy_add!(solution, instance, position_car-1, objectives, valid_sequence)
+    end
     solution.length += 1
-    move_insertion!(solution, instance.nb_cars, best_position, instance)
+    move_insertion!(solution, position_car, best_position, instance)
+
+    return solution
+end
+
+"""
+    remove!(solution_init::Solution, instance::Instance,
+            k::Int, crit::Array{Int, 1})
+
+Removes `k` critical cars of the sequence of `solution_init`.
+"""
+function remove!(solution::Solution, instance::Instance,
+                 k::Int, crit::Array{Int, 1})
+    indices = sort(randperm(length(crit))[1:k])
+    crit_sort = sort(crit, rev = true)
+    for i in 1:k
+        position = crit_sort[indices[i]]
+        solution.length -= 1
+        move_insertion!(solution, position, instance.nb_cars, instance)
+    end
 
     return solution
 end
@@ -79,25 +146,6 @@ end
 
 find_critical_cars(solution::Solution, instance::Instance, objectives::Int) =
     find_critical_cars(solution::Solution, instance::Instance, [trues(objectives) ; falses(2-objectives)])
-
-"""
-    remove!(solution_init::Solution, instance::Instance,
-            k::Int, crit::Array{Int, 1})
-
-Removes `k` critical cars of the sequence of `solution_init`.
-"""
-function remove!(solution::Solution, instance::Instance,
-                 k::Int, crit::Array{Int, 1})
-    indices = sort(randperm(length(crit))[1:k])
-    crit_sort = sort(crit, rev = true)
-    for i in 1:k
-        position = crit_sort[indices[i]]
-        move_insertion!(solution, position, instance.nb_cars, instance)
-        solution.length -= 1
-    end
-
-    return solution
-end
 
 """
     cost(solution::Solution, instance::Instance, objectives::BitArray{1})
@@ -210,7 +258,7 @@ function is_sequence_valid(sequence::Array{Int, 1}, n::Int, instance::Instance)
         else
             counter = 1
         end
-        if counter > instance.nb_paint_limitation && counter >= instance.nb_late_prec_day+1
+        if counter > instance.nb_paint_limitation && car_pos >= instance.nb_late_prec_day+1
             return false
         end
     end

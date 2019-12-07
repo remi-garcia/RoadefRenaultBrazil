@@ -19,7 +19,7 @@ function perturbation_VNS_LPRC_insertion!(solution::Solution, k::Int,
                                           instance::Instance)
     remove!(solution, instance, k, critical_cars)
     for i in 1:k
-        greedy_add!(solution, instance, 2)
+        greedy_add!(solution, instance, instance.nb_cars, 2)
     end
     return solution
 end
@@ -60,7 +60,7 @@ function perturbation_VNS_LPRC_exchange!(solution::Solution, k::Int, instance::I
 end
 
 """
-    perturbation_VNS_LPRC(solution::Solution, p::Int, k::Int, instance::Instance)
+    perturbation_VNS_LPRC(solution_init::Solution, p::Int, k::Int, instance::Instance)
 
 Calls both perturbations and return a new solution. This function does not
 modify the solution given in parameters.
@@ -88,7 +88,6 @@ function local_search_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool,
     # useful variable
     b0 = instance.nb_late_prec_day+1
     all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
-    b0 = instance.nb_late_prec_day+1
     for index_car in b0:instance.nb_cars
         key_HPRC = HPRC_value(solution.sequence[index_car], instance)
         if !(key_HPRC in keys(all_list_same_HPRC))
@@ -146,7 +145,7 @@ function local_search_intensification_VNS_LPRC_exchange!(solution::Solution, ins
             best_delta = 0
             best_positions = Array{Int, 1}()
             for index_car_b in b0:instance.nb_cars
-                if (index_car_a != index_car_b)
+                if index_car_a != index_car_b
                     delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 2))
                     if delta < best_delta
                         best_positions = Array{Int, 1}([index_car_b])
@@ -205,6 +204,7 @@ function local_search_intensification_VNS_LPRC_insertion!(solution::Solution, in
             end
         end
     end
+
     return solution
 end
 

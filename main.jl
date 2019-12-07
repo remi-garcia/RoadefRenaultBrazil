@@ -23,11 +23,11 @@ import RoadefRenaultBrazil
 const RRB = RoadefRenaultBrazil
 
 function main()
-    type = ["A", "B", "X"]
+    type = ["A"]#["A", "B", "X"]
 
     # Instance and initiale solution
     for instance_type in type#["A", "B", "X"]
-        for instance_name in RRB.INSTANCES[instance_type]
+        for instance_name in RRB.INSTANCES[instance_type]#[RRB.INSTANCES[instance_type][1]]
         # names = [RRB.INSTANCES[instance_type][1], RRB.INSTANCES[instance_type][end]]
         # for instance_name in names
             GC.gc()
@@ -47,6 +47,8 @@ function main()
             println("Initial solution created...")
             costs[1,:] = RRB.cost(solution, instance, 3)
 
+            RRB.initialize_batches!(solution, instance)
+
             # ILS-HPRC
             solution = RRB.ILS_HPRC(solution, instance, start_time)
             println("Solution improved with ILS_HPRC")
@@ -57,16 +59,33 @@ function main()
             println("Solution improved with VNS_LPRC")
             costs[3,:] = RRB.cost(solution, instance, 3)
 
-            # Repair
-            RRB.repair!(solution, instance)
-            println("Solution repaired")
-            costs[4,:] = RRB.cost(solution, instance, 3)
+            # print("[", instance.color_code[solution.sequence[1]])
+            # for pos in 2:instance.nb_cars
+            #     print(",", instance.color_code[solution.sequence[pos]])
+            # end
+            # println("]")
+            #
+            # print("[")
+            # pos = 1
+            # while pos <= instance.nb_cars
+            #     print(solution.colors[pos].start,"(",solution.colors[pos].width,") ")
+            #     pos += solution.colors[pos].width
+            # end
+            # println("]")
 
-            # VNS-PCC
-            solution = RRB.VNS_PCC(solution, instance, start_time)
-            println("Solution improved with VNS_PCC")
-            costs[5,:] = RRB.cost(solution, instance, 3)
 
+
+            #
+            # # Repair
+            # #RRB.repair!(solution, instance)
+            # #println("Solution repaired")
+            # costs[4,:] = RRB.cost(solution, instance, 3)
+            #
+            # # VNS-PCC
+            # #solution = RRB.VNS_PCC(solution, instance, start_time)
+            # #println("Solution improved with VNS_PCC")
+            # costs[5,:] = RRB.cost(solution, instance, 3)
+            #
             println("\tGr. \tILS \tVNS_lp\trepair\tVNS_pc")
             println("HP \t", costs[1,1] ,"\t", costs[2,1] ,"\t", costs[3,1] ,"\t", costs[4,1], "\t", costs[5,1])
             println("LP \t", costs[1,2] ,"\t", costs[2,2] ,"\t", costs[3,2] ,"\t", costs[4,2], "\t", costs[5,2])

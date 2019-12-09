@@ -34,20 +34,22 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
     # end
     #
     # error1 = false
-    # for i in 1:solution.length
-    #     bool_print = false
-    #     if s1.colors[i].start != solution.colors[i].start
-    #         println("\tBad start batch (",i,") - ", s1.colors[i].start," and ",solution.colors[i].start)
-    #         error1 = true
-    #         bool_print= true
-    #     end
-    #     if s1.colors[i].width != solution.colors[i].width
-    #         println("\tBad width batch (",i,") - ", s1.colors[i].width," and ",solution.colors[i].width)
-    #         error1 = true
-    #         bool_print= true
-    #     end
-    #     if bool_print
-    #         println("\t", instance.color_code[i] ,"-", instance.color_code[car_pos_a]," and ",instance.color_code[car_pos_b])
+    # if !(solution.colors === nothing)
+    #     for i in 1:solution.length
+    #         bool_print = false
+    #         if s1.colors[i].start != solution.colors[i].start
+    #             #println("\tBad start batch (",i,") - ", s1.colors[i].start," and ",solution.colors[i].start)
+    #             error1 = true
+    #             bool_print= true
+    #         end
+    #         if s1.colors[i].width != solution.colors[i].width
+    #             #println("\tBad width batch (",i,") - ", s1.colors[i].width," and ",solution.colors[i].width)
+    #             error1 = true
+    #             bool_print= true
+    #         end
+    #         if bool_print
+    #             #println("\t", instance.color_code[i] ,"-", instance.color_code[car_pos_a]," and ",instance.color_code[car_pos_b])
+    #         end
     #     end
     # end
     #
@@ -66,13 +68,14 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
     #     end
     # end
     # if error1 || error2
-    #     println("\nIn move_exchange for ", car_pos_a, " and ", car_pos_b)
+    #     print("\t\t\tIn move_exchange for given sol ", car_pos_a, " and ", car_pos_b)
     #     if error1
-    #         println("\nError batch")
+    #         print(" --  Error batch")
     #     end
     #     if error2
-    #         println("\nError matrices")
+    #         print(" -- Error matrices")
     #     end
+    #     println()
     # end
 
     # #DEBUG and TODO: Comment / uncomment for debbuging.
@@ -278,10 +281,10 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
     # #                Test the quality of the move.
     # s1 = deepcopy(solution)
     #
-    # update_matrices!(solution, instance)
-    # if !(solution.colors === nothing)
-    #     initialize_batches!(solution, instance)
-    # end
+    update_matrices!(solution, instance)
+    if !(solution.colors === nothing)
+        initialize_batches!(solution, instance)
+    end
     #
     # error1 = false
     # for i in 1:solution.length

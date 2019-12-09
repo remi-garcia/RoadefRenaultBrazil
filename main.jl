@@ -23,10 +23,11 @@ import RoadefRenaultBrazil
 const RRB = RoadefRenaultBrazil
 
 function main()
-    type = ["X"]#["A", "B", "X"]
+    type = ["A", "B", "X"]#["B"]#
 
     # Instance and initiale solution
     for instance_type in type#["A", "B", "X"]
+        #["035_ch1_EP_ENP_RAF_S22_J3", "035_ch1_EP_RAF_ENP_S22_J3", "035_ch1_RAF_EP_ENP_S22_J3"]
         for instance_name in RRB.INSTANCES[instance_type]#[RRB.INSTANCES[instance_type][1]]
         # names = [RRB.INSTANCES[instance_type][1], RRB.INSTANCES[instance_type][end]]
         # for instance_name in names
@@ -78,8 +79,8 @@ function main()
             costs[4,:] = RRB.cost(solution, instance, 3)
 
             # VNS-PCC
-            #@time solution = RRB.VNS_PCC(solution, instance, start_time)
-            #println("Solution improved with VNS_PCC")
+            @time solution = RRB.VNS_PCC(solution, instance, start_time)
+            println("Solution improved with VNS_PCC")
             costs[5,:] = RRB.cost(solution, instance, 3)
 
             println("\tGr. \tILS \tVNS_lp\trepair\tVNS_pc")

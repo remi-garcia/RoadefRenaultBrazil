@@ -20,6 +20,60 @@ function move_insertion!(solution::Solution, old_index::Int,
     # update_matrices!(solution, instance)
     # initialize_batches!(solution, instance)
 
+    # #DEBUG and TODO: Comment / uncomment for debbuging.
+    # #                Test the quality of the given solution.
+    # s1 = deepcopy(solution)
+    #
+    # update_matrices!(solution, instance)
+    # if !(solution.colors === nothing)
+    #     initialize_batches!(solution, instance)
+    # end
+    #
+    # error1 = false
+    # if !(solution.colors === nothing)
+    #     for i in 1:solution.length
+    #         bool_print = false
+    #         if s1.colors[i].start != solution.colors[i].start
+    #             #println("\tBad start batch (",i,") - ", s1.colors[i].start," and ",solution.colors[i].start)
+    #             error1 = true
+    #             bool_print= true
+    #         end
+    #         if s1.colors[i].width != solution.colors[i].width
+    #             #println("\tBad width batch (",i,") - ", s1.colors[i].width," and ",solution.colors[i].width)
+    #             error1 = true
+    #             bool_print= true
+    #         end
+    #         if bool_print
+    #             #println("\t", instance.color_code[i] ,"-", instance.color_code[car_pos_a]," and ",instance.color_code[car_pos_b])
+    #         end
+    #     end
+    # end
+    #
+    # error2 = false
+    # for o in 1:instance.nb_HPRC+instance.nb_LPRC
+    #     for i in 1:solution.length
+    #         if s1.M1[o,i] != solution.M1[o,i]
+    #             error2 = true
+    #         end
+    #         if s1.M2[o,i] != solution.M2[o,i]
+    #             error2 = true
+    #         end
+    #         if s1.M3[o,i] != solution.M3[o,i]
+    #             error2 = true
+    #         end
+    #     end
+    # end
+    # if error1 || error2
+    #     print("\t\t\tIn move_insertion for given sol ", old_index, " at ", new_index)
+    #     if error1
+    #         print(" --  Error batch")
+    #     end
+    #     if error2
+    #         print(" -- Error matrices")
+    #     end
+    #     println()
+    # end
+
     #Update sequence (better complexity ?)
     car_inserted = solution.sequence[old_index]
     if old_index < new_index

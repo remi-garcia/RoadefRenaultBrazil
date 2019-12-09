@@ -36,6 +36,7 @@ function perturbation_VNS_PCC_exchange!(solution::Solution, k::Int, instance::In
         end
         sequence[car_pos_a], sequence[car_pos_b] = sequence[car_pos_b], sequence[car_pos_a]
         if is_sequence_valid(sequence, instance.nb_cars, instance)
+            sequence[car_pos_a], sequence[car_pos_b] = sequence[car_pos_b], sequence[car_pos_a]
             move_exchange!(solution, car_pos_a, car_pos_b, instance)
         else
             sequence[car_pos_a], sequence[car_pos_b] = sequence[car_pos_b], sequence[car_pos_a]

@@ -105,8 +105,6 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
         end
     end
 
-    #TODO move_exchange is broken
-    update_matrices!(solution, instance)
     return solution
 end
 

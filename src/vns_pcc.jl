@@ -16,7 +16,7 @@ function perturbation_VNS_PCC_exchange!(solution::Solution, k::Int, instance::In
     b0 = instance.nb_late_prec_day+1
     # Array that contain only key defining more than one car
     valid_key_HPRC = Array{Int,1}(undef, 0)
-    for group in instance.HPRC_cars
+    for group in instance.same_HPRC
         if length(group.second) >= 2
             push!(valid_key_HPRC, group.first)
         end
@@ -24,11 +24,11 @@ function perturbation_VNS_PCC_exchange!(solution::Solution, k::Int, instance::In
 
     for _ in 1:k
         HPRC_group = rand(valid_key_HPRC)
-        car_pos_a = rand(instance.HPRC_cars[HPRC_group])
-        car_pos_b = rand(instance.HPRC_cars[HPRC_group])
+        car_pos_a = rand(instance.same_HPRC[HPRC_group])
+        car_pos_b = rand(instance.same_HPRC[HPRC_group])
         # Must have the same options
         while car_pos_a == car_pos_b
-            car_pos_b = rand(instance.HPRC_cars[HPRC_group])
+            car_pos_b = rand(instance.same_HPRC[HPRC_group])
         end
         solution.sequence[car_pos_a], solution.sequence[car_pos_b] = solution.sequence[car_pos_b], solution.sequence[car_pos_a]
         if is_sequence_valid(solution.sequence, instance.nb_cars, instance)
@@ -193,7 +193,7 @@ function local_search_VNS_PCC!(solution::Solution, instance::Instance, start_tim
             best_delta = 0
             best_positions = Array{Int, 1}()
             hprc_value = instance.HPRC_keys[solution.sequence[index_car_a]]
-            for index_car_b in instance.HPRC_cars[hprc_value]
+            for index_car_b in instance.same_HPRC[hprc_value]
                 if index_car_a != index_car_b
                     sequence[index_car_a], sequence[index_car_b] = sequence[index_car_b], sequence[index_car_a]
                     if is_sequence_valid(sequence, instance.nb_cars, instance)

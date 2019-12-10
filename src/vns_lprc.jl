@@ -33,18 +33,18 @@ constraints.
 function perturbation_VNS_LPRC_exchange!(solution::Solution, k::Int, instance::Instance)
     # Array that contain only key defining more than one car
     valid_key_HPRC = Array{Int,1}(undef, 0)
-    # for key in keys(instance.HPRC_cars)
-    #   if length(instance.HPRC_cars[key]) >= 2
+    # for key in keys(instance.same_HPRC)
+    #   if length(instance.same_HPRC[key]) >= 2
     #       push!(valid_key_HPRC, key)
     # OR:
-    for group in instance.HPRC_cars
+    for group in instance.same_HPRC
         if length(group.second) >= 2
             push!(valid_key_HPRC, group.first)
         end
     end
 
     for _ in 1:k
-        same_HPRC_array = instance.HPRC_cars[rand(valid_key_HPRC)]
+        same_HPRC_array = instance.same_HPRC[rand(valid_key_HPRC)]
         index_car_a = rand(same_HPRC_array)
         index_car_b = rand(same_HPRC_array)
         # Cannot be the same
@@ -96,7 +96,7 @@ function local_search_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool,
             best_positions = Array{Int, 1}()
             hprc_value = instance.HPRC_keys[solution.sequence[index_car_a]]
             for index_car_b in b0:instance.nb_cars
-                if !perturbation_exchange || (index_car_a != index_car_b && index_car_b in instance.HPRC_cars[hprc_value])
+                if !perturbation_exchange || (index_car_a != index_car_b && index_car_b in instance.same_HPRC[hprc_value])
                     delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 2))
                     if delta < best_delta
                         best_positions = Array{Int, 1}([index_car_b])

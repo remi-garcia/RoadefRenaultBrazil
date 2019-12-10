@@ -32,9 +32,9 @@ struct Instance
     RC_keys::Array{Int, 1}
     HPRC_keys::Array{Int, 1}
     LPRC_keys::Array{Int, 1}
-    RC_cars::Dict{Int, Array{Int, 1}}
-    HPRC_cars::Dict{Int, Array{Int, 1}}
-    LPRC_cars::Dict{Int, Array{Int, 1}}
+    same_RC::Dict{Int, Array{Int, 1}}
+    same_HPRC::Dict{Int, Array{Int, 1}}
+    same_LPRC::Dict{Int, Array{Int, 1}}
     color_code::Array{Int, 1}
     same_color::Dict{Int, Array{Int, 1}}
     # Number of vehicles that were not build the precedent day.

@@ -199,15 +199,17 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
                 car_RC_value = "0"
                 for rc in 5:length(values)
                     RC_flag[nb_cars, rc - 4] = (values[rc] == "1")
-                    car_RC_value *= values[rc]
+                    car_RC_value = values[rc] * car_RC_value
                 end
                 RC_keys[nb_cars] = parse(Int, car_RC_value, base = 2)
-                HPRC_keys[nb_cars] = parse(Int, SubString(car_RC_value, 1:(nb_HPRC+1)), base = 2)
-                LPRC_keys[nb_cars] = parse(Int, "0"*SubString(car_RC_value, (nb_HPRC+2)), base = 2)
+                HPRC_keys[nb_cars] = parse(Int, SubString(car_RC_value, nb_LPRC+1), base = 2)
+                LPRC_keys[nb_cars] = parse(Int, "0"*SubString(car_RC_value, 1:nb_LPRC), base = 2)
                 color_code[nb_cars] = parse(Int, values[4])
                 if nb_late_prec_day == 0
                     date = split(values[1], " ")
-                    if date[3] != day
+                    if day == 0
+                        day = date[3]
+                    elseif date[3] != day
                         day = date[3]
                         nb_late_prec_day = nb_cars-1
                         same_RC[RC_keys[nb_cars]] = Array{Car_ID, 1}([nb_cars])
@@ -270,6 +272,17 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     #         push!(HPRC_cars[HPRC_key_bis], car)
     #     end
     # end
+    #
+    # println(length(keys(HPRC_cars)))
+    # println(length(keys(same_HPRC)))
+    # println(length(keys(RC_cars)))
+    # println(length(keys(same_RC)))
+    # println(RC_cars)
+    # println(same_RC)
+    #
+    # @assert length(keys(RC_cars)) == length(keys(same_RC))
+    # @assert length(keys(HPRC_cars)) == length(keys(same_HPRC))
+
 
     return Instance(
             HPRC_rank, LPRC_rank, PCB_rank,                            # objectives file

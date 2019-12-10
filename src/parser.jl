@@ -14,6 +14,9 @@ const PAINT_FILE_NAME = "paint_batch_limit.txt"
 const RATIO_FILE_NAME = "ratios.txt"
 const VEHICLES_FILE_NAME = "vehicles.txt"
 
+Car_ID = Int
+Option = Int
+
 # An Instance structure that is used to format data as we want.
 struct Instance
     # objectif function
@@ -29,13 +32,75 @@ struct Instance
     nb_LPRC::Int
     # sequence vehicle data
     RC_flag::Array{Bool, 2}
+    RC_value::Array{Int, 1}
+    HPRC_value::Array{Int, 1}
+    LPRC_value::Array{Int, 1}
+    same_RC::Dict{Int, Array{Car_ID, 1}}
+    same_HPRC::Dict{Int, Array{Car_ID, 1}}
+    same_LPRC::Dict{Int, Array{Car_ID, 1}}
     color_code::Array{Int, 1}
+    same_color::Dict{Int, Array{Car_ID, 1}}
     # Number of vehicles that weren't build the precedet day.
     nb_late_prec_day::Int # Usage 1:nb_late_prec_day give the list of index of those vehicles.
     nb_cars::Int
     # description of cars
     RC_cars::Dict{Int, Array{Int, 1}}
     HPRC_cars::Dict{Int, Array{Int, 1}}
+end
+
+function nb_HPRC(instance::Instance)
+    return instance.nb_HPRC
+end
+function nb_LPRC(instance::Instance)
+    return instance.nb_LPRC
+end
+function nb_RC(instance::Instance)
+    return instance.nb_HPRC+instance.nb_LPRC
+end
+
+function HPRC_value(car::Car_ID, instance::Instance)
+    return instance.HPRC_value[car]
+end
+function LPRC_value(car::Car_ID, instance::Instance)
+    return instance.LPRC_value[car]
+end
+function RC_value(car::Car_ID, instance::Instance)
+    return instance.RC_value[car]
+end
+
+function option_p(option::Option, instance::Instance)
+    return instance.RC_p[option]
+end
+function option_q(option::Option, instance::Instance)
+    return instance.RC_q[option]
+end
+
+function get_color(car::Car_ID, instance::Instance)
+    return instance.color_code[car]
+end
+
+function get_b0(instance::Instance)
+    return instance.nb_late_prec_day
+end
+function get_nb_cars(instance::Instance)
+    return instance.nb_cars
+end
+
+function has_option(car::Car_ID, option::Option, instance::Instance)
+    return instance.RC_flag[car, option]
+end
+
+function get_cars_with_same_RC_value(car::Car_ID, instance::Instance)
+    return instance.same_RC[instance.RC_value[car]]
+end
+function get_cars_with_same_HPRC_value(car::Car_ID, instance::Instance)
+    return instance.same_HPRC[instance.HPRC_value[car]]
+end
+function get_cars_with_same_LPRC_value(car::Car_ID, instance::Instance)
+    return instance.same_LPRC[instance.LPRC_value[car]]
+end
+function get_cars_with_same_color(car::Car_ID, instance::Instance)
+    return instance.same_color[instance.color_code[car]]
 end
 
 """

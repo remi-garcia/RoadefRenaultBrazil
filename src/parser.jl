@@ -211,17 +211,15 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
                 else
                     if !(RC_value[nb_cars] in keys(same_RC))
                         same_RC[RC_value[nb_cars]] = Array{Car_ID, 1}([nb_cars])
+                        if !(HPRC_value[nb_cars] in keys(same_HPRC))
+                            same_HPRC[HPRC_value[nb_cars]] = Array{Car_ID, 1}([nb_cars])
+                        end
+                        if !(LPRC_value[nb_cars] in keys(same_LPRC))
+                            same_LPRC[LPRC_value[nb_cars]] = Array{Car_ID, 1}([nb_cars])
+                        end
                     else
                         push!(same_RC[RC_value[nb_cars]], nb_cars)
-                    end
-                    if !(HPRC_value[nb_cars] in keys(same_HPRC))
-                        same_HPRC[HPRC_value[nb_cars]] = Array{Car_ID, 1}([nb_cars])
-                    else
                         push!(same_HPRC[HPRC_value[nb_cars]], nb_cars)
-                    end
-                    if !(LPRC_value[nb_cars] in keys(same_LPRC))
-                        same_LPRC[LPRC_value[nb_cars]] = Array{Car_ID, 1}([nb_cars])
-                    else
                         push!(same_LPRC[LPRC_value[nb_cars]], nb_cars)
                     end
                     if !(color_code[nb_cars] in keys(same_color))

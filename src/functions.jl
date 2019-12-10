@@ -222,30 +222,6 @@ function print_cost(solution::Solution, instance::Instance)
     println("\tObjective value is ", weighted_sum(cost_solution))
 end
 
-# RC functions
-
-"""
-
-"""
-function HPRC_value(car::Int, instance::Instance)
-    car_HPRC_value = "0"
-    for option in 1:instance.nb_HPRC
-        car_HPRC_value = string(Int(instance.RC_flag[car, option])) * car_HPRC_value
-    end
-    return parse(Int, car_HPRC_value, base = 2)
-end
-
-"""
-
-"""
-function RC_value(car::Int, instance::Instance)
-    car_RC_value = "0"
-    for option in 1:(instance.nb_LPRC+instance.nb_HPRC)
-        car_RC_value = string(Int(instance.RC_flag[car, option])) * car_RC_value
-    end
-    return parse(Int, string(car_RC_value), base = 2)
-end
-
 """
 
 """

@@ -169,9 +169,9 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     indice = 0
     nb_RC = nb_HPRC + nb_LPRC
     color_code = Array{Int, 1}()
-    RC_key = Array{Int, 1}()
-    HPRC_key = Array{Int, 1}()
-    LPRC_key = Array{Int, 1}()
+    RC_keys = Array{Int, 1}()
+    HPRC_keys = Array{Int, 1}()
+    LPRC_keys = Array{Int, 1}()
     RC_flag = Array{Bool, 2}(undef, 0, nb_RC)
     same_RC = Dict{Int, Array{Car_ID, 1}}()
     same_HPRC = Dict{Int, Array{Car_ID, 1}}()
@@ -189,9 +189,9 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
         end
         RC_flag = Array{Bool, 2}(undef, nb_cars_total, nb_RC)
         color_code = Array{Int, 1}(undef, nb_cars_total)
-        RC_key = Array{Int, 1}(undef, nb_cars_total)
-        HPRC_key = Array{Int, 1}(undef, nb_cars_total)
-        LPRC_key = Array{Int, 1}(undef, nb_cars_total)
+        RC_keys = Array{Int, 1}(undef, nb_cars_total)
+        HPRC_keys = Array{Int, 1}(undef, nb_cars_total)
+        LPRC_keys = Array{Int, 1}(undef, nb_cars_total)
         for line in lines[2:end]
             if line != ""
                 values = split(line, ";", keepempty = false)
@@ -201,33 +201,33 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
                     RC_flag[nb_cars, rc - 4] = (values[rc] == "1")
                     car_RC_value *= values[rc]
                 end
-                RC_key[nb_cars] = parse(Int, car_RC_value, base = 2)
-                HPRC_key[nb_cars] = parse(Int, SubString(car_RC_value, 1:(nb_HPRC+1)), base = 2)
-                LPRC_key[nb_cars] = parse(Int, "0"*SubString(car_RC_value, (nb_HPRC+2)), base = 2)
+                RC_keys[nb_cars] = parse(Int, car_RC_value, base = 2)
+                HPRC_keys[nb_cars] = parse(Int, SubString(car_RC_value, 1:(nb_HPRC+1)), base = 2)
+                LPRC_keys[nb_cars] = parse(Int, "0"*SubString(car_RC_value, (nb_HPRC+2)), base = 2)
                 color_code[nb_cars] = parse(Int, values[4])
                 if nb_late_prec_day == 0
                     date = split(values[1], " ")
                     if date[3] != day
                         day = date[3]
                         nb_late_prec_day = nb_cars-1
-                        same_RC[RC_key[nb_cars]] = Array{Car_ID, 1}([nb_cars])
-                        same_HPRC[HPRC_key[nb_cars]] = Array{Car_ID, 1}([nb_cars])
-                        same_LPRC[LPRC_key[nb_cars]] = Array{Car_ID, 1}([nb_cars])
+                        same_RC[RC_keys[nb_cars]] = Array{Car_ID, 1}([nb_cars])
+                        same_HPRC[HPRC_keys[nb_cars]] = Array{Car_ID, 1}([nb_cars])
+                        same_LPRC[LPRC_keys[nb_cars]] = Array{Car_ID, 1}([nb_cars])
                         same_color[color_code[nb_cars]] = Array{Car_ID, 1}([nb_cars])
                     end
                 else
-                    if !(RC_key[nb_cars] in keys(same_RC))
-                        same_RC[RC_key[nb_cars]] = Array{Car_ID, 1}([nb_cars])
-                        if !(HPRC_key[nb_cars] in keys(same_HPRC))
-                            same_HPRC[HPRC_key[nb_cars]] = Array{Car_ID, 1}([nb_cars])
+                    if !haskey(same_RC, RC_keys[nb_cars])
+                        same_RC[RC_keys[nb_cars]] = Array{Car_ID, 1}([nb_cars])
+                        if !haskey(same_HPRC, HPRC_keys[nb_cars])
+                            same_HPRC[HPRC_keys[nb_cars]] = Array{Car_ID, 1}([nb_cars])
                         end
-                        if !(LPRC_key[nb_cars] in keys(same_LPRC))
-                            same_LPRC[LPRC_key[nb_cars]] = Array{Car_ID, 1}([nb_cars])
+                        if !haskey(same_LPRC, LPRC_keys[nb_cars])
+                            same_LPRC[LPRC_keys[nb_cars]] = Array{Car_ID, 1}([nb_cars])
                         end
                     else
-                        push!(same_RC[RC_key[nb_cars]], nb_cars)
-                        push!(same_HPRC[HPRC_key[nb_cars]], nb_cars)
-                        push!(same_LPRC[LPRC_key[nb_cars]], nb_cars)
+                        push!(same_RC[RC_keys[nb_cars]], nb_cars)
+                        push!(same_HPRC[HPRC_keys[nb_cars]], nb_cars)
+                        push!(same_LPRC[LPRC_keys[nb_cars]], nb_cars)
                     end
                     if !(color_code[nb_cars] in keys(same_color))
                         same_color[color_code[nb_cars]] = Array{Car_ID, 1}([nb_cars])
@@ -240,11 +240,41 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     end
     @assert nb_cars_total == nb_cars
 
+    RC_cars = Dict{Int, Array{Int, 1}}()
+    HPRC_cars = Dict{Int, Array{Int, 1}}()
+    for car in (nb_late_prec_day+1):nb_cars
+        RC_key_binary = "0"
+        HPRC_key_binary = "0"
+        for option in 1:nb_HPRC
+            RC_key_binary = string(Int(RC_flag[car, option])) * RC_key_binary
+            HPRC_key_binary = string(Int(RC_flag[car, option])) * HPRC_key_binary
+        end
+        for option in (nb_HPRC+1):nb_LPRC
+            RC_key_binary = string(Int(RC_flag[car, option])) * RC_key_binary
+        end
+        RC_key_bis = parse(Int, string(RC_key_binary), base = 2)
+        HPRC_key_bis = parse(Int, string(HPRC_key_binary), base = 2)
+
+        if !haskey(RC_cars, RC_key_bis)
+            RC_cars[RC_key_bis] = [car]
+        else
+            push!(RC_cars[RC_key_bis], car)
+        end
+        if !haskey(HPRC_cars, HPRC_key_bis)
+            HPRC_cars[HPRC_key_bis] = [car]
+        else
+            push!(HPRC_cars[HPRC_key_bis], car)
+        end
+    end
+
+    @assert keys(HPRC_cars) == keys(same_HPRC)
+    @assert keys(RC_cars) == keys(same_RC)
+
     return Instance(
             HPRC_rank, LPRC_rank, PCB_rank,                            # objectives file
             nb_paint_limitation,                                       # paint file
             RC_p, RC_q, nb_HPRC, nb_LPRC,                              # ratio file
-            RC_flag, RC_key, HPRC_key, LPRC_key,
+            RC_flag, RC_keys, HPRC_keys, LPRC_keys,
             same_RC, same_HPRC, same_LPRC,
             color_code, same_color, nb_late_prec_day, nb_cars
         )

@@ -130,7 +130,6 @@ function local_search_intensification_VNS_PCC_exchange!(solution::Solution, inst
     return solution
 end
 
-
 """
     local_search_intensification_VNS_PCC_insertion!(solution::Solution, instance::Instance)
 
@@ -139,7 +138,6 @@ Optimizes the weighted sum of three objectives using `move_insertion!`.
 function local_search_intensification_VNS_PCC_insertion!(solution::Solution, instance::Instance, start_time::UInt)
     # useful variable
     b0 = instance.nb_late_prec_day+1
-
     improved = true
     while improved && TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         improved = false

@@ -14,20 +14,13 @@ return -1 if such a car does not exist
 """
 function find_first_violation(solution::Solution, instance::Instance)
     first_violation = -1
-    current_color = batch_color = instance.color_code[solution.sequence[1]]
-    batch_size = 1
-    for i in 2:instance.nb_cars
-        current_color = instance.color_code[solution.sequence[i]]
-        if current_color == batch_color
-            batch_size += 1
-        else
-            batch_size = 1
-            batch_color = current_color
-        end
-        if batch_size > instance.nb_paint_limitation && i > instance.nb_late_prec_day
-            first_violation = i
+    position = 1
+    while position < solution.length
+        if solution.colors[position].width > instance.nb_paint_limitation && position > instance.nb_late_prec_day
+            first_violation = position + instance.nb_paint_limitation
             break
         end
+        position += solution.colors[position].width
     end
     return first_violation
 end
@@ -39,17 +32,7 @@ First strategy
 """
 function first_strategy_repair!(solution::Solution, instance::Instance)
     # First strategy
-    RC_cars_groups = Dict{Int, Array{Int, 1}}()
     b0 = instance.nb_late_prec_day+1
-    for car_pos in b0:instance.nb_cars
-        car_RC_value = RC_value(solution.sequence[car_pos], instance)
-        if !haskey(RC_cars_groups, car_RC_value)
-            RC_cars_groups[car_RC_value] = [car_pos]
-        else
-            push!(RC_cars_groups[car_RC_value], car_pos)
-        end
-    end
-    #filter!(x -> length(x.second) >= 2, RC_cars_groups)
 
     position = 1
     counter = 1
@@ -70,8 +53,8 @@ function first_strategy_repair!(solution::Solution, instance::Instance)
                 end
                 car_RC_value = RC_value(solution.sequence[position], instance)
                 car_pos = 1
-                len = length(RC_cars_groups[car_RC_value])
-                while (car_pos <= len) && (instance.color_code[RC_cars_groups[car_RC_value][car_pos]] == current_color)
+                len = length(instance.RC_cars[car_RC_value])
+                while (car_pos <= len) && (instance.color_code[instance.RC_cars[car_RC_value][car_pos]] == current_color)
                     car_pos += 1
                 end
                 if car_pos <= len
@@ -101,18 +84,6 @@ function first_strategy_repair!(solution::Solution, instance::Instance)
         position += 1
     end
 
-    HPRC_cars_groups = Dict{Int, Array{Int, 1}}()
-    b0 = instance.nb_late_prec_day+1
-    for car_pos in b0:instance.nb_cars
-        car_HPRC_value = HPRC_value(solution.sequence[car_pos], instance)
-        if !haskey(HPRC_cars_groups, car_HPRC_value)
-            HPRC_cars_groups[car_HPRC_value] = [car_pos]
-        else
-            push!(HPRC_cars_groups[car_HPRC_value], car_pos)
-        end
-    end
-    #filter!(x -> length(x.second) >= 2, HPRC_cars_groups)
-
     position = 1
     counter = 1
     current_color = instance.color_code[solution.sequence[position]]
@@ -132,8 +103,8 @@ function first_strategy_repair!(solution::Solution, instance::Instance)
                 end
                 car_HPRC_value = HPRC_value(solution.sequence[position], instance)
                 car_pos = 1
-                len = length(HPRC_cars_groups[car_HPRC_value])
-                while (car_pos <= len) && (instance.color_code[HPRC_cars_groups[car_HPRC_value][car_pos]] == current_color)
+                len = length(instance.HPRC_cars[car_HPRC_value])
+                while (car_pos <= len) && (instance.color_code[instance.HPRC_cars[car_HPRC_value][car_pos]] == current_color)
                     car_pos += 1
                 end
                 if car_pos <= len
@@ -227,6 +198,10 @@ end
 Apply 2 repair strategies on `solution`.
 """
 function repair!(solution::Solution, instance::Instance)
+    if solution.colors === nothing
+        initialize_batches!(solution, instance)
+    end
+
     first_strategy_repair!(solution, instance)
     second_strategy_repair!(solution, instance)
 

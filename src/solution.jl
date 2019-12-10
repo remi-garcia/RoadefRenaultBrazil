@@ -5,6 +5,19 @@
 # Author: Jonathan Fontaine, Killian Fretaud, Rémi Garcia,
 #         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
 #-------------------------------------------------------------------------------
+"""
+    Batch
+
+Initialize the set of batches
+"""
+mutable struct Batch
+    width::Int
+        # Width of the batch
+    start::Int
+        # First position of the batch
+
+    Batch(w::Int,s::Int) = new(w, s)
+end
 
 """
     Solution
@@ -26,13 +39,15 @@ mutable struct Solution
         # cars that require oj is greater than or equal to p(oj)
 
     length::Int
+    colors::Union{Nothing, Array{Batch, 1}}
 
     Solution(nC::Int,nO::Int) = new(
         zeros(Int,nC),#collect(1:nC),
         zeros(Int,nO,nC),
         zeros(Int,nO,nC),
         zeros(Int,nO,nC),
-        0
+        0,
+        nothing
     )
 end
 
@@ -158,6 +173,29 @@ function update_matrices_new_car!(solution::Solution, position::Int, instance::I
                     end
                 end
             end
+        end
+    end
+end
+
+"""
+    initialize_batches!(solution::Solution, instance::Instance)
+
+
+"""
+function initialize_batches!(solution::Solution, instance::Instance)
+    solution.colors = Array{Batch, 1}(undef, 0)
+    batch = Batch(1, 1)
+    current_color = instance.color_code[solution.sequence[1]]
+    push!(solution.colors, batch)
+    for position in 2:solution.length
+        car = solution.sequence[position]
+        if instance.color_code[car] == current_color
+            batch.width += 1
+            push!(solution.colors, batch)
+        else
+            current_color = instance.color_code[car]
+            batch = Batch(1, position)
+            push!(solution.colors, batch)
         end
     end
 end

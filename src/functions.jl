@@ -249,7 +249,7 @@ end
 """
 
 """
-#TODO: why n ?
+#TODO: why n, why sequence, why not solution ?
 function is_sequence_valid(sequence::Array{Int, 1}, n::Int, instance::Instance)
     counter = 1
     for car_pos in 2:n

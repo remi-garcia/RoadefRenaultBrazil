@@ -15,10 +15,64 @@ Replaces car at `old_index` at `new_index` and updates the solution's matrices.
 function move_insertion!(solution::Solution, old_index::Int,
                          new_index::Int, instance::Instance)
 
-    #Update sequence
-    # car = solution.sequence[old_index]
-    # deleteat!(solution.sequence, old_index)
-    # insert!(solution.sequence, new_index, car)
+    # #DEBUG and TODO: Comment / uncomment for debbuging.
+    # #                Ensure the quality of the solution.
+    # update_matrices!(solution, instance)
+    # initialize_batches!(solution, instance)
+
+    # #DEBUG and TODO: Comment / uncomment for debbuging.
+    # #                Test the quality of the given solution.
+    # s1 = deepcopy(solution)
+    #
+    # update_matrices!(solution, instance)
+    # if !(solution.colors === nothing)
+    #     initialize_batches!(solution, instance)
+    # end
+    #
+    # error1 = false
+    # if !(solution.colors === nothing)
+    #     for i in 1:solution.length
+    #         bool_print = false
+    #         if s1.colors[i].start != solution.colors[i].start
+    #             #println("\tBad start batch (",i,") - ", s1.colors[i].start," and ",solution.colors[i].start)
+    #             error1 = true
+    #             bool_print= true
+    #         end
+    #         if s1.colors[i].width != solution.colors[i].width
+    #             #println("\tBad width batch (",i,") - ", s1.colors[i].width," and ",solution.colors[i].width)
+    #             error1 = true
+    #             bool_print= true
+    #         end
+    #         if bool_print
+    #             #println("\t", instance.color_code[i] ,"-", instance.color_code[car_pos_a]," and ",instance.color_code[car_pos_b])
+    #         end
+    #     end
+    # end
+    #
+    # error2 = false
+    # for o in 1:instance.nb_HPRC+instance.nb_LPRC
+    #     for i in 1:solution.length
+    #         if s1.M1[o,i] != solution.M1[o,i]
+    #             error2 = true
+    #         end
+    #         if s1.M2[o,i] != solution.M2[o,i]
+    #             error2 = true
+    #         end
+    #         if s1.M3[o,i] != solution.M3[o,i]
+    #             error2 = true
+    #         end
+    #     end
+    # end
+    # if error1 || error2
+    #     print("\t\t\tIn move_insertion for given sol ", old_index, " at ", new_index)
+    #     if error1
+    #         print(" --  Error batch")
+    #     end
+    #     if error2
+    #         print(" -- Error matrices")
+    #     end
+    #     println()
+    # end
 
     #Update sequence (better complexity ?)
     car_inserted = solution.sequence[old_index]
@@ -37,6 +91,60 @@ function move_insertion!(solution::Solution, old_index::Int,
 
     # TODO: COMPLEXITY NON-OPTIMAL
     update_matrices!(solution, instance)
+    if !(solution.colors === nothing)
+        initialize_batches!(solution, instance)
+    end
+
+    # #DEBUG and TODO: Comment / uncomment for debbuging.
+    # #                Test the quality of the move.
+    # s1 = deepcopy(solution)
+    #
+    # update_matrices!(solution, instance)
+    # if !(solution.colors === nothing)
+    #     initialize_batches!(solution, instance)
+    # end
+    #
+    # error1 = false
+    # for i in 1:solution.length
+    #     bool_print = false
+    #     if s1.colors[i].start != solution.colors[i].start
+    #         println("\tBad start batch (",i,") - ", s1.colors[i].start," and ",solution.colors[i].start)
+    #         error1 = true
+    #         bool_print= true
+    #     end
+    #     if s1.colors[i].width != solution.colors[i].width
+    #         println("\tBad width batch (",i,") - ", s1.colors[i].width," and ",solution.colors[i].width)
+    #         error1 = true
+    #         bool_print= true
+    #     end
+    #     if bool_print
+    #         println("\t", instance.color_code[i] ,"-", instance.color_code[old_index]," to ",instance.color_code[new_index])
+    #     end
+    # end
+    #
+    # error2 = false
+    # for o in 1:instance.nb_HPRC+instance.nb_LPRC
+    #     for i in 1:solution.length
+    #         if s1.M1[o,i] != solution.M1[o,i]
+    #             error2 = true
+    #         end
+    #         if s1.M2[o,i] != solution.M2[o,i]
+    #             error2 = true
+    #         end
+    #         if s1.M3[o,i] != solution.M3[o,i]
+    #             error2 = true
+    #         end
+    #     end
+    # end
+    # if error1 || error2
+    #     println("\nIn move_insertion for ", old_index, " to ", new_index)
+    #     if error1
+    #         println("\nError batch")
+    #     end
+    #     if error2
+    #         println("\nError matrices")
+    #     end
+    # end
 
     return solution
 end
@@ -51,6 +159,10 @@ the move is interesting with respect to treated objectives.
 function cost_move_insertion(solution::Solution, position::Int,
                              instance::Instance, objectives::BitArray{1})
     @assert length(objectives) == 3
+
+    # # DEBUG and TODO: Comment / uncomment for debbuging.
+    # #                 Ensure to test every variation.
+    # objectives = trues(3)
 
     cost_on_objective = zeros(Int, solution.length, 3)
     b0 = instance.nb_late_prec_day+1
@@ -191,6 +303,18 @@ function cost_move_insertion(solution::Solution, position::Int,
             end
         end
     end
+
+    # #DEBUG and TODO: Comment / uncomment for debbuging.
+    # #                Test the quality of the variation computed.
+    # s1 = deepcopy(solution)
+    # s1.sequence[car_pos_a], s1.sequence[car_pos_b] = s1.sequence[car_pos_b], s1.sequence[car_pos_a]
+    # update_matrices!(s1, instance)
+    #
+    # real_cost = cost(s1, instance, objectives) - cost(solution, instance, objectives)
+    # if real_cost != cost_on_objective
+    #     println("\nIn cost_move_exchange for ", car_pos_a, " and ", car_pos_b)
+    #     println("\tError (real vs computed) : ", real_cost, " - ", cost_on_objective)
+    # end
 
     return cost_on_objective
 end

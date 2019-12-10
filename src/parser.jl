@@ -32,9 +32,9 @@ struct Instance
     nb_LPRC::Int
     # sequence vehicle data
     RC_flag::Array{Bool, 2}
-    RC_value::Array{Int, 1}
-    HPRC_value::Array{Int, 1}
-    LPRC_value::Array{Int, 1}
+    RC_keys::Array{Int, 1}
+    HPRC_keys::Array{Int, 1}
+    LPRC_keys::Array{Int, 1}
     same_RC::Dict{Int, Array{Car_ID, 1}}
     same_HPRC::Dict{Int, Array{Car_ID, 1}}
     same_LPRC::Dict{Int, Array{Car_ID, 1}}
@@ -56,13 +56,13 @@ function nb_RC(instance::Instance)
 end
 
 function HPRC_value(car::Car_ID, instance::Instance)
-    return instance.HPRC_value[car]
+    return instance.HPRC_keys[car]
 end
 function LPRC_value(car::Car_ID, instance::Instance)
-    return instance.LPRC_value[car]
+    return instance.LPRC_keys[car]
 end
 function RC_value(car::Car_ID, instance::Instance)
-    return instance.RC_value[car]
+    return instance.RC_keys[car]
 end
 
 function option_p(option::Option, instance::Instance)
@@ -88,13 +88,13 @@ function has_option(car::Car_ID, option::Option, instance::Instance)
 end
 
 function get_cars_with_same_RC(car::Car_ID, instance::Instance)
-    return instance.same_RC[instance.RC_value[car]]
+    return instance.same_RC[RC_value(car, instance)]
 end
 function get_cars_with_same_HPRC(car::Car_ID, instance::Instance)
-    return instance.same_HPRC[instance.HPRC_value[car]]
+    return instance.same_HPRC[HPRC_value(car, instance)]
 end
 function get_cars_with_same_LPRC(car::Car_ID, instance::Instance)
-    return instance.same_LPRC[instance.LPRC_value[car]]
+    return instance.same_LPRC[LPRC_value(car, instance)]
 end
 function get_cars_with_same_color(car::Car_ID, instance::Instance)
     return instance.same_color[instance.color_code[car]]

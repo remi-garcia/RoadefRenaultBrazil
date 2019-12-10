@@ -128,7 +128,7 @@ end;
             costs = RRB.cost(solution, instance, 3)
             for j in 1:3
                 solution_test = deepcopy(solution)
-                insertion_position = rand((get_b0(instance)):instance.nb_cars)
+                insertion_position = rand(get_b0(instance):instance.nb_cars)
                 RRB.move_insertion!(solution_test, position, insertion_position, instance)
                 costs_bis = RRB.cost(solution_test, instance, 3)
                 @test vector_cost[insertion_position,:] == (costs_bis .- costs)

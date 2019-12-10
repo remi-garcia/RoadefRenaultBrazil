@@ -35,7 +35,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
     #
     # error1 = false
     # if !(solution.colors === nothing)
-    #     for i in 1:solution.length
+    #     for i::Car_Position in 1:solution.length
     #         bool_print = false
     #         if s1.colors[i].start != solution.colors[i].start
     #             #println("\tBad start batch (",i,") - ", s1.colors[i].start," and ",solution.colors[i].start)
@@ -48,7 +48,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
     #             bool_print= true
     #         end
     #         if bool_print
-    #             #println("\t", instance.color_code[i] ,"-", instance.color_code[car_pos_a]," and ",instance.color_code[car_pos_b])
+    #             #println("\t", get_color(i, solution, instance) ,"-", get_color(car_pos_a, solution, instance), " and ", get_color(car_pos_b, solution, instance))
     #         end
     #     end
     # end
@@ -89,12 +89,12 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
 
     # COLORS
     if !(solution.colors === nothing)
-        if instance.color_code[car_a] != instance.color_code[car_b]
+        if get_color(car_a, instance) != get_color(car_b, instance)
             # cars are neighbors
             if car_pos_a+1 == car_pos_b
                 # modifications at car_pos_a
                 if (car_pos_a-1 > 0
-                && instance.color_code[car_b] == instance.color_code[solution.sequence[car_pos_a-1]])
+                && get_color(car_b, instance) == get_color(car_pos_a-1, solution, instance))
                     solution.colors[car_pos_a-1].width += 1
                     solution.colors[car_pos_a] = solution.colors[car_pos_a-1]
                 else
@@ -103,7 +103,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
                 end
                 # modifications at car_pos_b
                 if (car_pos_b+1 <= solution.length
-                && instance.color_code[car_a] == instance.color_code[solution.sequence[car_pos_b+1]])
+                && get_color(car_a, instance) == get_color(car_pos_b+1, solution, instance))
                     solution.colors[car_pos_b+1].width += 1
                     solution.colors[car_pos_b+1].start -= 1
                     solution.colors[car_pos_b] = solution.colors[car_pos_b+1]
@@ -119,14 +119,14 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
                     solution.colors[car_pos_a].width -= 1
                     solution.colors[car_pos_a].start += 1
                     if (car_pos_a-1 > 0
-                    && instance.color_code[car_b] == instance.color_code[solution.sequence[car_pos_a-1]])
+                    && get_color(car_b, instance) == get_color(car_pos_a-1, solution, instance))
                         solution.colors[car_pos_a-1].width += 1
                         solution.colors[car_pos_a] = solution.colors[car_pos_a-1]
                     else
                         solution.colors[car_pos_a] = Batch(1, car_pos_a)
                     end
                     # if car_a was a batch of width 1 -> is next batch of b's color ?
-                    if instance.color_code[car_b] == instance.color_code[solution.sequence[car_pos_a+1]]
+                    if get_color(car_b, solution, instance) == get_color(car_pos_a+1, solution, instance)
                         solution.colors[car_pos_a+1].start = solution.colors[car_pos_a].start
                         solution.colors[car_pos_a+1].width += solution.colors[car_pos_a].width
                         for index in (solution.colors[car_pos_a].start):car_pos_a
@@ -137,7 +137,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
                 # elseif end at car_pos_a -> is next batch of b's color ?
                 elseif (solution.colors[car_pos_a].start+solution.colors[car_pos_a].width) == car_pos_a+1
                     solution.colors[car_pos_a].width -= 1
-                    if instance.color_code[car_b] == instance.color_code[solution.sequence[car_pos_a+1]]
+                    if get_color(car_b, instance) == get_color(car_pos_a+1, solution, instance)
                         solution.colors[car_pos_a+1].width += 1
                         solution.colors[car_pos_a+1].start -= 1
                         solution.colors[car_pos_a] = solution.colors[car_pos_a+1]
@@ -162,7 +162,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
                 if solution.colors[car_pos_b].start == car_pos_b
                     solution.colors[car_pos_b].width -= 1
                     solution.colors[car_pos_b].start += 1
-                    if instance.color_code[car_a] == instance.color_code[solution.sequence[car_pos_b-1]]
+                    if get_color(car_a, instance) == get_color(car_pos_b-1, solution, instance)
                         solution.colors[car_pos_b-1].width += 1
                         solution.colors[car_pos_b] = solution.colors[car_pos_b-1]
                     else
@@ -170,7 +170,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
                     end
                     # if car_b was a batch of width 1 -> is next batch of a's color ?
                     if (car_pos_b+1 <= solution.length
-                    && instance.color_code[car_a] == instance.color_code[solution.sequence[car_pos_b+1]])
+                    && get_color(car_a, instance) == get_color(car_pos_b+1, solution, instance))
                         solution.colors[car_pos_b+1].start = solution.colors[car_pos_b].start
                         solution.colors[car_pos_b+1].width += solution.colors[car_pos_b].width
                         for index in (solution.colors[car_pos_b].start):car_pos_b
@@ -181,7 +181,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
                 elseif (solution.colors[car_pos_b].start+solution.colors[car_pos_b].width) == car_pos_b+1
                     solution.colors[car_pos_b].width -= 1
                     if (car_pos_b+1 <= solution.length
-                    && instance.color_code[car_a] == instance.color_code[solution.sequence[car_pos_b+1]])
+                    && get_color(car_a, instance) == get_color(car_pos_b+1, solution, instance))
                         solution.colors[car_pos_b+1].width += 1
                         solution.colors[car_pos_b+1].start -= 1
                         solution.colors[car_pos_b] = solution.colors[car_pos_b+1]
@@ -281,10 +281,10 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
     # #                Test the quality of the move.
     # s1 = deepcopy(solution)
     #
-    update_matrices!(solution, instance)
-    if !(solution.colors === nothing)
-        initialize_batches!(solution, instance)
-    end
+    # update_matrices!(solution, instance)
+    # if !(solution.colors === nothing)
+    #     initialize_batches!(solution, instance)
+    # end
     #
     # error1 = false
     # for i in 1:solution.length
@@ -369,7 +369,7 @@ function cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
     if objectives[3] # Cost on PCC
         car_a = solution.sequence[car_pos_a]
         car_b = solution.sequence[car_pos_b]
-        if instance.color_code[car_a] != instance.color_code[car_b]
+        if get_color(car_a, instance) != get_color(car_b, instance)
             # First position
             if car_pos_a > 1
                 if instance.color_code[car_a] != instance.color_code[solution.sequence[car_pos_a-1]]

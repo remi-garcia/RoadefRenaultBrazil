@@ -34,7 +34,7 @@ function perturbation_VNS_PCC_exchange!(solution::Solution, k::Int, instance::In
             car_pos_b = rand(HPRC_cars_groups[HPRC_group])
         end
         solution.sequence[car_pos_a], solution.sequence[car_pos_b] = solution.sequence[car_pos_b], solution.sequence[car_pos_a]
-        if is_sequence_valid(solution.sequence, instance.nb_cars, instance)
+        if is_sequence_valid(solution.sequence, instance.nb_cars, solution, instance)
             solution.sequence[car_pos_a], solution.sequence[car_pos_b] = solution.sequence[car_pos_b], solution.sequence[car_pos_a]
             move_exchange!(solution, car_pos_a, car_pos_b, instance)
         else
@@ -104,7 +104,7 @@ function local_search_intensification_VNS_PCC_exchange!(solution::Solution, inst
             for index_car_b in b0:instance.nb_cars
                 if index_car_a != index_car_b
                     sequence[index_car_a], sequence[index_car_b] = sequence[index_car_b], sequence[index_car_a]
-                    if is_sequence_valid(sequence, instance.nb_cars, instance)
+                    if is_sequence_valid(sequence, instance.nb_cars, solution, instance)
                         delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 3))
                         if delta < best_delta
                             best_positions = Array{Int, 1}([index_car_b])
@@ -207,7 +207,7 @@ function local_search_VNS_PCC!(solution::Solution, instance::Instance, start_tim
             for index_car_b in all_list_same_HPRC[hprc_value]
                 if index_car_a != index_car_b
                     sequence[index_car_a], sequence[index_car_b] = sequence[index_car_b], sequence[index_car_a]
-                    if is_sequence_valid(sequence, instance.nb_cars, instance)
+                    if is_sequence_valid(sequence, instance.nb_cars, solution, instance)
                         delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 3))
                         if delta < best_delta
                             best_positions = Array{Int, 1}([index_car_b])

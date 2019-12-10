@@ -84,6 +84,10 @@ function get_cars_with_same_color(position::Car_Position, solution::Solution, in
     return get_cars_with_same_color(id_from_position(position, solution), instance)
 end
 
+function get_color(position::Car_Position, solution::Solution, instance::Instance)
+    return get_color(id_from_position(position, solution), instance)
+end
+
 # Build an initial
 """
 
@@ -110,11 +114,11 @@ init_solution(nom_fichier::String, type_fichier::String) =
 Updates `solution.M1`, `solution.M2` and `solution.M3` for known cars at positions 1 to `solution.length`.
 """
 function update_matrices!(solution::Solution, instance::Instance)
-    nb_RC = nb_RC(instance)
+    nb_options = nb_RC(instance)
     nb = solution.length
 
     # Last column has just one car
-    for option in 1:nb_RC
+    for option in 1:nb_options
         car = solution.sequence[nb]
         if instance.RC_flag[car, option]
             solution.M1[option, nb] = 1
@@ -127,7 +131,7 @@ function update_matrices!(solution::Solution, instance::Instance)
     for counter in 1:(nb-1)
         index = nb - counter
         car = solution.sequence[index]
-        for option in 1:nb_RC
+        for option in 1:nb_options
             # Has option -> next sequence + 1
             if instance.RC_flag[car, option]
                 solution.M1[option, index] = solution.M1[option, index+1] + 1
@@ -148,7 +152,7 @@ function update_matrices!(solution::Solution, instance::Instance)
     end
 
     # Update M2 and M3 (left to right)
-    for option in 1:nb_RC
+    for option in 1:nb_options
         for index in 1:nb
             if index > 1
                 solution.M2[option, index] = solution.M2[option, index-1]
@@ -177,10 +181,10 @@ DOES NOT update columns for sequences excluding the position. Assert made: the f
 when we add a car in a tail-less sequence.
 """
 function update_matrices_new_car!(solution::Solution, position::Int, instance::Instance)
-    nb_RC = nb_RC(instance)
+    nb_options = nb_RC(instance)
     car = solution.sequence[position]
 
-    for option in 1:nb_RC
+    for option in 1:nb_options
         for index in (position - option_q(option, instance) + 1):position
             if index > 0
                 # TODO: flag not raise -> index loop skipped

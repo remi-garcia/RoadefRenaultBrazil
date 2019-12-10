@@ -37,13 +37,13 @@ function penalize_costs!(costs::Array{Int, 2}, init_position::Int,
     sequence = copy(solution.sequence)
     b0 = get_b0(instance)
     sequence_insert!(sequence, init_position, b0)
-    if !is_sequence_valid(sequence, solution.length, instance)
+    if !is_sequence_valid(sequence, solution.length, solution, instance)
         costs[b0, :] .= instance.nb_cars
     end
 
     for position in b0:(solution.length-1)
         sequence[position], sequence[position+1] = sequence[position+1], sequence[position]
-        if !is_sequence_valid(sequence, solution.length, instance)
+        if !is_sequence_valid(sequence, solution.length, solution, instance)
             costs[position+1, :] .= instance.nb_cars
         end
     end
@@ -168,15 +168,15 @@ function cost(solution::Solution, instance::Instance, objectives::BitArray{1})
 
     if objectives[2]
         for car in 1:solution.length
-            for option in (nb_HPRC(instance)+1):(nb_HP(instance))
+            for option in (nb_HPRC(instance)+1):(nb_RC(instance))
                 cost_on_objective[2] += max(0 , solution.M1[option, car] - option_p(option, instance))
             end
         end
     end
 
     if objectives[3]
-        for i in 2:solution.length
-            if instance.color_code[solution.sequence[i]] != instance.color_code[solution.sequence[i-1]]
+        for i::Car_Position in 2:solution.length
+            if get_color(i, solution, instance) != get_color(i-1, solution, instance)
                 cost_on_objective[3] += 1
             end
         end
@@ -226,10 +226,10 @@ end
 
 """
 #TODO: why n, why sequence, why not solution ?
-function is_sequence_valid(sequence::Array{Int, 1}, n::Int, instance::Instance)
+function is_sequence_valid(sequence::Array{Int, 1}, n::Int, solution::Solution, instance::Instance)
     counter = 1
-    for car_pos in 2:n
-        if instance.color_code[sequence[car_pos-1]] == instance.color_code[sequence[car_pos]]
+    for car_pos::Car_Position in 2:n
+        if get_color(car_pos-1, solution, instance) == get_color(car_pos, solution, instance)
             counter += 1
         else
             counter = 1

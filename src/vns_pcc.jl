@@ -14,7 +14,7 @@ cars must have the same HPRC constraints.
 """
 function perturbation_VNS_PCC_exchange!(solution::Solution, k::Int, instance::Instance)
     HPRC_cars_groups = Dict{Int, Array{Int, 1}}()
-    b0 = instance.nb_late_prec_day+1
+    b0 = get_b0(instance)
     for car_pos in b0:instance.nb_cars
         car_HPRC_value = HPRC_value(solution.sequence[car_pos], instance)
         if !haskey(HPRC_cars_groups, car_HPRC_value)
@@ -90,7 +90,7 @@ Optimizes the weighted sum of three objectives using `move_exchange!`.
 """
 function local_search_intensification_VNS_PCC_exchange!(solution::Solution, instance::Instance, start_time::UInt)
     # useful variable
-    b0 = instance.nb_late_prec_day+1
+    b0 = get_b0(instance)
     n = instance.nb_cars
 
     improved = true
@@ -137,7 +137,7 @@ Optimizes the weighted sum of three objectives using `move_insertion!`.
 """
 function local_search_intensification_VNS_PCC_insertion!(solution::Solution, instance::Instance, start_time::UInt)
     # useful variable
-    b0 = instance.nb_late_prec_day+1
+    b0 = get_b0(instance)
     improved = true
     while improved && TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         improved = false
@@ -186,7 +186,7 @@ end
 
 """
 function local_search_VNS_PCC!(solution::Solution, instance::Instance, start_time::UInt)
-    b0 = instance.nb_late_prec_day+1
+    b0 = get_b0(instance)
     all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
     for index_car in b0:instance.nb_cars
         key_HPRC = HPRC_value(solution.sequence[index_car], instance)

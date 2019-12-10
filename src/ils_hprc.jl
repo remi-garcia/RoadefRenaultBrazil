@@ -40,7 +40,7 @@ function local_search_exchange_ils_hprc!(solution::Solution, instance::Instance,
                                          start_time::UInt)
     while 0.9 * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         overall_delta = 0
-        b0 = instance.nb_late_prec_day + 1      #First car of the current production day
+        b0 = get_b0(instance)      #First car of the current production day
         for i in b0:instance.nb_cars
             hprc_current_car = HPRC_value(solution.sequence[i], instance)
             best_delta = 0
@@ -82,7 +82,7 @@ function local_search_insertion_ils_hprc!(solution::Solution, instance::Instance
                                           start_time::UInt)
     while 0.9 * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         overall_delta = 0
-        b0 = instance.nb_late_prec_day + 1      #First car of the current production day
+        b0 = get_b0(instance)      #First car of the current production day
         for i in b0:instance.nb_cars
             best_delta = 0
             new_possible_positions = Array{Int, 1}()
@@ -121,7 +121,7 @@ for well chosen cars tagged in `critical_cars`.
 function fast_local_search_exchange_ils_hprc!(solution::Solution, instance::Instance,
                                               critical_cars::Array{Int, 1}, start_time::UInt)
     while !isempty(critical_cars) && (0.9 * TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
-        b0 = instance.nb_late_prec_day + 1      #First car of the current production day
+        b0 = get_b0(instance)      #First car of the current production day
         position_car_a = rand(critical_cars)
         hprc_current_car = HPRC_value(solution.sequence[position_car_a], instance)
         best_delta = 0

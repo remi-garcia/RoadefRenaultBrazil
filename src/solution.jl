@@ -93,10 +93,11 @@ function init_solution(instance::Instance)
     m = instance.nb_HPRC + instance.nb_LPRC # number of ratio
     solution = Solution(n, m)
 
-    for i in 1:instance.nb_late_prec_day
+    nb_late_prec_day = get_b0(instance) - 1
+    for i in 1:nb_late_prec_day
         solution.sequence[i] = i
     end
-    solution.length = instance.nb_late_prec_day
+    solution.length = nb_late_prec_day
     return solution
 end
 

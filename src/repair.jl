@@ -16,7 +16,7 @@ function find_first_violation(solution::Solution, instance::Instance)
     first_violation = -1
     position = 1
     while position < solution.length
-        if solution.colors[position].width > instance.nb_paint_limitation && position > instance.nb_late_prec_day
+        if solution.colors[position].width > instance.nb_paint_limitation && position > (get_b0(instance)-1)
             first_violation = position + instance.nb_paint_limitation
             break
         end
@@ -32,7 +32,7 @@ First strategy
 """
 function first_strategy_repair!(solution::Solution, instance::Instance)
     # First strategy
-    b0 = instance.nb_late_prec_day+1
+    b0 = get_b0(instance)
 
     position = 1
     counter = 1
@@ -143,13 +143,13 @@ Second strategy
 function second_strategy_repair!(solution::Solution, instance::Instance)
     # Second strategy
     first_violation = find_first_violation(solution, instance)
-    b0 = instance.nb_late_prec_day+1
+    b0 = get_b0(instance)
     while first_violation != -1
         # Compute the best_insertion index
         solution_value = weighted_sum(solution, instance)
         cost_insertion = zeros(instance.nb_cars)
         for i in b0:instance.nb_cars
-            if i <= instance.nb_late_prec_day || i == first_violation # avoiding insterting in sequence from the precedent day and at the same position
+            if i == first_violation # avoiding insterting in sequence from the precedent day and at the same position
                 cost_insertion[i] = Inf
             else
                 #checking for validity of insertion :  if it does not add an other violation of Paint batch constraint

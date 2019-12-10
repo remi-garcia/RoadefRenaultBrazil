@@ -35,7 +35,7 @@ end
 function penalize_costs!(costs::Array{Int, 2}, init_position::Int,
                          solution::Solution, instance::Instance)
     sequence = copy(solution.sequence)
-    b0 = instance.nb_late_prec_day+1
+    b0 = get_b0(instance)
     sequence_insert!(sequence, init_position, b0)
     if !is_sequence_valid(sequence, solution.length, instance)
         costs[b0, :] .= instance.nb_cars
@@ -60,7 +60,7 @@ function greedy_add!(solution::Solution, instance::Instance, position_car::Int,
                      objectives::Int, valid_sequence::Bool = false)
     @assert objectives <= 3
     @assert objectives >= 1
-    b0 = instance.nb_late_prec_day + 1
+    b0 = get_b0(instance)
     costs = cost_move_insertion(solution, position_car, instance, objectives)
     if valid_sequence
         penalize_costs!(costs, position_car, solution, instance)
@@ -128,7 +128,7 @@ function find_critical_cars(solution::Solution, instance::Instance,
     end
 
     critical_cars = Set{Int}()
-    b0 = instance.nb_late_prec_day + 1
+    b0 = get_b0(instance)
     for index_car in b0:solution.length
         for option in first_option:last_option
             if solution.M1[option, index_car] > instance.RC_p[option]
@@ -234,7 +234,7 @@ function is_sequence_valid(sequence::Array{Int, 1}, n::Int, instance::Instance)
         else
             counter = 1
         end
-        if counter > instance.nb_paint_limitation && car_pos >= instance.nb_late_prec_day+1
+        if counter > instance.nb_paint_limitation && car_pos >= get_b0(instance)
             return false
         end
     end

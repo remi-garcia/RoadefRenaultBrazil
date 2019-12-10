@@ -33,7 +33,7 @@ constraints.
 function perturbation_VNS_LPRC_exchange!(solution::Solution, k::Int, instance::Instance)
     # Dict that contain for each HRPC level an array of all index that have this HPRC level.
     all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
-    b0 = instance.nb_late_prec_day+1
+    b0 = get_b0(instance)
 
     for index_car in b0:instance.nb_cars
         key_HPRC = HPRC_value(solution.sequence[index_car], instance)
@@ -86,7 +86,7 @@ objective.
 """
 function local_search_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, instance::Instance)
     # useful variable
-    b0 = instance.nb_late_prec_day+1
+    b0 = get_b0(instance)
     all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
     for index_car in b0:instance.nb_cars
         key_HPRC = HPRC_value(solution.sequence[index_car], instance)
@@ -135,7 +135,7 @@ Optimizes the weighted sum of first and second objectives using `move_exchange!`
 """
 function local_search_intensification_VNS_LPRC_exchange!(solution::Solution, instance::Instance)
     # useful variable
-    b0 = instance.nb_late_prec_day+1
+    b0 = get_b0(instance)
 
     improved = true
     while improved
@@ -175,7 +175,7 @@ Optimizes the weighted sum of first and second objectives using `move_insertion!
 """
 function local_search_intensification_VNS_LPRC_insertion!(solution::Solution, instance::Instance)
     # useful variable
-    b0 = instance.nb_late_prec_day+1
+    b0 = get_b0(instance)
 
     improved = true
     while improved

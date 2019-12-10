@@ -40,7 +40,7 @@ struct Instance
     same_LPRC::Dict{Int, Array{Car_ID, 1}}
     color_code::Array{Int, 1}
     same_color::Dict{Int, Array{Car_ID, 1}}
-    # Number of vehicles that weren't build the precedet day.
+    # Number of vehicles that weren't build the precedent day.
     nb_late_prec_day::Int # Usage 1:nb_late_prec_day give the list of index of those vehicles.
     nb_cars::Int
 end

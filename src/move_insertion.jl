@@ -165,7 +165,7 @@ function cost_move_insertion(solution::Solution, position::Int,
     # objectives = trues(3)
 
     cost_on_objective = zeros(Int, solution.length, 3)
-    b0 = instance.nb_late_prec_day+1
+    b0 = get_b0(instance)
 
     delta1_for_first = zeros(Int, solution.length)
     delta1_for_second = zeros(Int, solution.length)
@@ -350,7 +350,7 @@ function update_lines_remove!(solution::Solution, instance::Instance,
     violations_caused = 0 # Removing car_pos_a will change the number of violations.
     due_to_sequence_removed = 0
 
-    b0 = instance.nb_late_prec_day+1
+    b0 = get_b0(instance)
     # forall option there is 1 to last_sequence_intact sequences unchanged
     for option in first_line:last_line
         last_sequence_intact = car_pos_a - instance.RC_q[option]
@@ -409,7 +409,7 @@ function compute_delta2_for_b0(solution::Solution, instance::Instance,
                                M1::Array{Int,2}, sequence::Array{Int,1},
                                car_pos_a::Int, first_line::Int, last_line::Int)
 
-    b0 = instance.nb_late_prec_day+1
+    b0 = get_b0(instance)
     delta2 = 0
 
     C_in = solution.sequence[car_pos_a]

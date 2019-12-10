@@ -58,13 +58,13 @@ function main()
             costs[3,:] = RRB.cost(solution, instance, 3)
 
             # Repair
-            #RRB.repair!(solution, instance)
-            #println("Solution repaired")
+            RRB.repair!(solution, instance)
+            println("Solution repaired")
             costs[4,:] = RRB.cost(solution, instance, 3)
 
             # VNS-PCC
-            #solution = RRB.VNS_PCC(solution, instance, start_time)
-            #println("Solution improved with VNS_PCC")
+            solution = RRB.VNS_PCC(solution, instance, start_time)
+            println("Solution improved with VNS_PCC")
             costs[5,:] = RRB.cost(solution, instance, 3)
 
             println("\tGr. \tILS \tVNS_lp\trepair\tVNS_pc")

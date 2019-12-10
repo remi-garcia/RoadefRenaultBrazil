@@ -170,31 +170,51 @@ end
 Second strategy
 """
 function second_strategy_repair!(solution::Solution, instance::Instance)
+    # Second strategy
     first_violation = find_first_violation(solution, instance)
-    println(first_violation != -1)
-    println(first_violation)
+    b0 = instance.nb_late_prec_day+1
     while first_violation != -1
-        println("TEST")
-        println("First violation: ", first_violation)
         # Compute the best_insertion index
         solution_value = weighted_sum(solution, instance)
         cost_insertion = zeros(instance.nb_cars)
-
-        #TODO: It is false!
-        for i in 1:instance.nb_cars
-            if i <= instance.nb_late_prec_day || instance.color_code[i] == instance.color_code[first_violation]# Pour empêcher d'insérer dans les nb_late_prec_day
+        for i in b0:instance.nb_cars
+            if i <= instance.nb_late_prec_day || i == first_violation # avoiding insterting in sequence from the precedent day and at the same position
                 cost_insertion[i] = Inf
             else
-                solution_copy = deepcopy(solution)
-                move_insertion!(solution, first_violation, i, instance)
-                cost_insertion[i] = weighted_sum(solution_copy, instance) - solution_value
+                #checking for validity of insertion :  if it does not add an other violation of Paint batch constraint
+                batch_size = 1
+                batch_color = instance.color_code[solution.sequence[first_violation]]
+                if instance.color_code[solution.sequence[i]] == batch_color # if inserting create a batch of length greater than one
+                    batch_size += 1
+                    j = 1
+                    same_batch_sup = true
+                    same_batch_inf = true
+                    while same_batch_inf || same_batch_sup
+                        if i-j > 0 && instance.color_code[solution.sequence[i-j]] == batch_color && same_batch_inf
+                            batch_size += 1
+                        else
+                            same_batch_inf = false
+                        end
+
+                        if i+j <= instance.nb_cars && instance.color_code[solution.sequence[i+j]] == batch_color && same_batch_sup
+                            batch_size += 1
+                        else
+                            same_batch_sup = false
+                        end
+                        j += 1
+                    end
+                end
+                if batch_size > instance.nb_paint_limitation
+                    cost_insertion[i] = Inf
+                else
+                    solution_copy = deepcopy(solution)
+                    move_insertion!(solution, first_violation, i, instance)
+                    cost_insertion[i] = weighted_sum(solution_copy, instance) - solution_value
+                end
             end
         end
-        println("For end")
-
         best_insertion = argmin(cost_insertion)[1]
         move_insertion!(solution, first_violation, best_insertion, instance)
-        println(first_violation, " - ", best_insertion)
 
         first_violation = find_first_violation(solution, instance)
     end
@@ -209,5 +229,7 @@ Apply 2 repair strategies on `solution`.
 function repair!(solution::Solution, instance::Instance)
     first_strategy_repair!(solution, instance)
     second_strategy_repair!(solution, instance)
+
+    @assert find_first_violation(solution, instance) == -1
     return solution
 end

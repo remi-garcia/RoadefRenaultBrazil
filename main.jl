@@ -38,24 +38,24 @@ function main()
             println("Instance ", instance_type, "/", instance_name)
 
             # Parser
-            @time instance = RRB.parser(instance_name, instance_type)
-            println("Loaded...")
+            tmp = @timed instance = RRB.parser(instance_name, instance_type)
+            println("Loaded... \t" * string(tmp[2]))
 
             costs = zeros(Int,5,3)
 
             # Greedy
-            @time solution = RRB.greedy(instance)
-            println("Initial solution created...")
+            tmp = @timed solution = RRB.greedy(instance)
+            println("Initial solution created... \t" * string(tmp[2]))
             costs[1,:] = RRB.cost(solution, instance, 3)
 
             # ILS-HPRC
-            @time solution = RRB.ILS_HPRC(solution, instance, start_time)
-            println("Solution improved with ILS_HPRC")
+            tmp = @timed solution = RRB.ILS_HPRC(solution, instance, start_time)
+            println("Solution improved with ILS_HPRC \t" * string(tmp[2]))
             costs[2,:] = RRB.cost(solution, instance, 3)
 
             # VNS-LPRC
-            @time solution = RRB.VNS_LPRC(solution, instance, start_time)
-            println("Solution improved with VNS_LPRC")
+            tmp = @timed solution = RRB.VNS_LPRC(solution, instance, start_time)
+            println("Solution improved with VNS_LPRC \t" * string(tmp[2]))
             costs[3,:] = RRB.cost(solution, instance, 3)
 
             # print("[", instance.color_code[solution.sequence[1]])
@@ -73,14 +73,14 @@ function main()
             # println("]")
 
             # Repair
-            @time RRB.initialize_batches!(solution, instance)
-            @time RRB.repair!(solution, instance)
-            println("Solution repaired")
+            tmp = @timed RRB.initialize_batches!(solution, instance)
+            tmp1 = @timed RRB.repair!(solution, instance)
+            println("Solution repaired \t" * string(tmp[2])*" - "*string(tmp1[2]))
             costs[4,:] = RRB.cost(solution, instance, 3)
 
             # VNS-PCC
-            @time solution = RRB.VNS_PCC(solution, instance, start_time)
-            println("Solution improved with VNS_PCC")
+            tmp = @timed solution = RRB.VNS_PCC(solution, instance, start_time)
+            println("Solution improved with VNS_PCC \t" * string(tmp[2]))
             costs[5,:] = RRB.cost(solution, instance, 3)
 
             println("\tGr. \tILS \tVNS_lp\trepair\tVNS_pc")

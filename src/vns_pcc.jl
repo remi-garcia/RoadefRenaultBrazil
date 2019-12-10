@@ -25,7 +25,6 @@ function perturbation_VNS_PCC_exchange!(solution::Solution, k::Int, instance::In
     end
     filter!(x -> length(x.second) >= 2, HPRC_cars_groups)
 
-    sequence = solution.sequence
     for _ in 1:k
         HPRC_group = rand(keys(HPRC_cars_groups))
         car_pos_a = rand(HPRC_cars_groups[HPRC_group])
@@ -34,12 +33,12 @@ function perturbation_VNS_PCC_exchange!(solution::Solution, k::Int, instance::In
         while car_pos_a == car_pos_b
             car_pos_b = rand(HPRC_cars_groups[HPRC_group])
         end
-        sequence[car_pos_a], sequence[car_pos_b] = sequence[car_pos_b], sequence[car_pos_a]
-        if is_sequence_valid(sequence, instance.nb_cars, instance)
-            sequence[car_pos_a], sequence[car_pos_b] = sequence[car_pos_b], sequence[car_pos_a]
+        solution.sequence[car_pos_a], solution.sequence[car_pos_b] = solution.sequence[car_pos_b], solution.sequence[car_pos_a]
+        if is_sequence_valid(solution.sequence, instance.nb_cars, instance)
+            solution.sequence[car_pos_a], solution.sequence[car_pos_b] = solution.sequence[car_pos_b], solution.sequence[car_pos_a]
             move_exchange!(solution, car_pos_a, car_pos_b, instance)
         else
-            sequence[car_pos_a], sequence[car_pos_b] = sequence[car_pos_b], sequence[car_pos_a]
+            solution.sequence[car_pos_a], solution.sequence[car_pos_b] = solution.sequence[car_pos_b], solution.sequence[car_pos_a]
         end
     end
 
@@ -131,7 +130,6 @@ function local_search_intensification_VNS_PCC_exchange!(solution::Solution, inst
     return solution
 end
 
-
 """
     local_search_intensification_VNS_PCC_insertion!(solution::Solution, instance::Instance)
 
@@ -140,7 +138,6 @@ Optimizes the weighted sum of three objectives using `move_insertion!`.
 function local_search_intensification_VNS_PCC_insertion!(solution::Solution, instance::Instance, start_time::UInt)
     # useful variable
     b0 = instance.nb_late_prec_day+1
-
     improved = true
     while improved && TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         improved = false

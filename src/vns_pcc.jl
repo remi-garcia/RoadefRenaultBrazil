@@ -13,25 +13,22 @@ Returns a new solution obtain by `k` random exchanges between cars. Exchanged
 cars must have the same HPRC constraints.
 """
 function perturbation_VNS_PCC_exchange!(solution::Solution, k::Int, instance::Instance)
-    HPRC_cars_groups = Dict{Int, Array{Int, 1}}()
     b0 = instance.nb_late_prec_day+1
-    for car_pos in b0:instance.nb_cars
-        car_HPRC_value = HPRC_value(solution.sequence[car_pos], instance)
-        if !haskey(HPRC_cars_groups, car_HPRC_value)
-            HPRC_cars_groups[car_HPRC_value] = [car_pos]
-        else
-            push!(HPRC_cars_groups[car_HPRC_value], car_pos)
+    # Array that contain only key defining more than one car
+    valid_key_HPRC = Array{Int,1}(undef, 0)
+    for group in instance.HPRC_cars
+        if length(group.second) >= 2
+            push!(valid_key_HPRC, group.first)
         end
     end
-    filter!(x -> length(x.second) >= 2, HPRC_cars_groups)
 
     for _ in 1:k
-        HPRC_group = rand(keys(HPRC_cars_groups))
-        car_pos_a = rand(HPRC_cars_groups[HPRC_group])
-        car_pos_b = rand(HPRC_cars_groups[HPRC_group])
+        HPRC_group = rand(valid_key_HPRC)
+        car_pos_a = rand(instance.HPRC_cars[HPRC_group])
+        car_pos_b = rand(instance.HPRC_cars[HPRC_group])
         # Must have the same options
         while car_pos_a == car_pos_b
-            car_pos_b = rand(HPRC_cars_groups[HPRC_group])
+            car_pos_b = rand(instance.HPRC_cars[HPRC_group])
         end
         solution.sequence[car_pos_a], solution.sequence[car_pos_b] = solution.sequence[car_pos_b], solution.sequence[car_pos_a]
         if is_sequence_valid(solution.sequence, instance.nb_cars, instance)
@@ -187,14 +184,6 @@ end
 """
 function local_search_VNS_PCC!(solution::Solution, instance::Instance, start_time::UInt)
     b0 = instance.nb_late_prec_day+1
-    all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
-    for index_car in b0:instance.nb_cars
-        key_HPRC = HPRC_value(solution.sequence[index_car], instance)
-        if !(key_HPRC in keys(all_list_same_HPRC))
-            all_list_same_HPRC[key_HPRC] = Array{Int, 1}()
-        end
-        push!(all_list_same_HPRC[key_HPRC], index_car)
-    end
 
     improved = true
     sequence = copy(solution.sequence)
@@ -203,8 +192,8 @@ function local_search_VNS_PCC!(solution::Solution, instance::Instance, start_tim
         for index_car_a in b0:instance.nb_cars
             best_delta = 0
             best_positions = Array{Int, 1}()
-            hprc_value = HPRC_value(solution.sequence[index_car_a], instance)
-            for index_car_b in all_list_same_HPRC[hprc_value]
+            hprc_value = instance.HPRC_keys[solution.sequence[index_car_a]]
+            for index_car_b in instance.HPRC_cars[hprc_value]
                 if index_car_a != index_car_b
                     sequence[index_car_a], sequence[index_car_b] = sequence[index_car_b], sequence[index_car_a]
                     if is_sequence_valid(sequence, instance.nb_cars, instance)

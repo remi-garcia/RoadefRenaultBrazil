@@ -246,42 +246,42 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     end
     @assert nb_cars_total == nb_cars
 
-    # RC_cars = Dict{Int, Array{Int, 1}}()
-    # HPRC_cars = Dict{Int, Array{Int, 1}}()
-    # for car in (nb_late_prec_day+1):nb_cars
-    #     RC_key_binary = "0"
-    #     HPRC_key_binary = "0"
-    #     for option in 1:nb_HPRC
-    #         RC_key_binary = string(Int(RC_flag[car, option])) * RC_key_binary
-    #         HPRC_key_binary = string(Int(RC_flag[car, option])) * HPRC_key_binary
-    #     end
-    #     for option in (nb_HPRC+1):nb_LPRC
-    #         RC_key_binary = string(Int(RC_flag[car, option])) * RC_key_binary
-    #     end
-    #     RC_key_bis = parse(Int, string(RC_key_binary), base = 2)
-    #     HPRC_key_bis = parse(Int, string(HPRC_key_binary), base = 2)
-    #
-    #     if !haskey(RC_cars, RC_key_bis)
-    #         RC_cars[RC_key_bis] = [car]
-    #     else
-    #         push!(RC_cars[RC_key_bis], car)
-    #     end
-    #     if !haskey(HPRC_cars, HPRC_key_bis)
-    #         HPRC_cars[HPRC_key_bis] = [car]
-    #     else
-    #         push!(HPRC_cars[HPRC_key_bis], car)
-    #     end
-    # end
-    #
-    # println(length(keys(HPRC_cars)))
-    # println(length(keys(same_HPRC)))
-    # println(length(keys(RC_cars)))
-    # println(length(keys(same_RC)))
-    # println(RC_cars)
-    # println(same_RC)
-    #
-    # @assert length(keys(RC_cars)) == length(keys(same_RC))
-    # @assert length(keys(HPRC_cars)) == length(keys(same_HPRC))
+    RC_cars = Dict{Int, Array{Int, 1}}()
+    HPRC_cars = Dict{Int, Array{Int, 1}}()
+    for car in (nb_late_prec_day+1):nb_cars
+        RC_key_binary = "0"
+        HPRC_key_binary = "0"
+        for option in 1:nb_HPRC
+            RC_key_binary = string(Int(RC_flag[car, option])) * RC_key_binary
+            HPRC_key_binary = string(Int(RC_flag[car, option])) * HPRC_key_binary
+        end
+        for option in (nb_HPRC+1):(nb_LPRC+nb_HPRC)
+            RC_key_binary = string(Int(RC_flag[car, option])) * RC_key_binary
+        end
+        RC_key_bis = parse(Int, string(RC_key_binary), base = 2)
+        HPRC_key_bis = parse(Int, string(HPRC_key_binary), base = 2)
+
+        if !haskey(RC_cars, RC_key_bis)
+            RC_cars[RC_key_bis] = [car]
+        else
+            push!(RC_cars[RC_key_bis], car)
+        end
+        if !haskey(HPRC_cars, HPRC_key_bis)
+            HPRC_cars[HPRC_key_bis] = [car]
+        else
+            push!(HPRC_cars[HPRC_key_bis], car)
+        end
+    end
+
+    println(length(keys(HPRC_cars)))
+    println(length(keys(same_HPRC)))
+    println(length(keys(RC_cars)))
+    println(length(keys(same_RC)))
+    println(RC_cars)
+    println(same_RC)
+
+    @assert length(keys(RC_cars)) == length(keys(same_RC))
+    @assert length(keys(HPRC_cars)) == length(keys(same_HPRC))
 
 
     return Instance(

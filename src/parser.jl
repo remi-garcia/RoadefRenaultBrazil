@@ -43,9 +43,6 @@ struct Instance
     # Number of vehicles that weren't build the precedet day.
     nb_late_prec_day::Int # Usage 1:nb_late_prec_day give the list of index of those vehicles.
     nb_cars::Int
-    # description of cars
-    RC_cars::Dict{Int, Array{Int, 1}}
-    HPRC_cars::Dict{Int, Array{Int, 1}}
 end
 
 function nb_HPRC(instance::Instance)
@@ -172,6 +169,9 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     indice = 0
     nb_RC = nb_HPRC + nb_LPRC
     color_code = Array{Int, 1}()
+    RC_key = Array{Int, 1}()
+    HPRC_key = Array{Int, 1}()
+    LPRC_key = Array{Int, 1}()
     RC_flag = Array{Bool, 2}(undef, 0, nb_RC)
     same_RC = Dict{Int, Array{Car_ID, 1}}()
     same_HPRC = Dict{Int, Array{Car_ID, 1}}()
@@ -188,45 +188,46 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
             nb_cars_total = length(lines) - 1
         end
         RC_flag = Array{Bool, 2}(undef, nb_cars_total, nb_RC)
-        color_code = zeros(Int, nb_cars_total)
+        color_code = Array{Int, 1}(undef, nb_cars_total)
+        RC_key = Array{Int, 1}(undef, nb_cars_total)
+        HPRC_key = Array{Int, 1}(undef, nb_cars_total)
+        LPRC_key = Array{Int, 1}(undef, nb_cars_total)
         for line in lines[2:end]
             if line != ""
                 values = split(line, ";", keepempty = false)
                 nb_cars += 1
                 car_RC_value = "0"
-                car_HPRC_value = "0"
-                car_LPRC_value = "0"
                 for rc in 5:length(values)
                     RC_flag[nb_cars, rc - 4] = (values[rc] == "1")
                     car_RC_value *= values[rc]
                 end
-                RC_value[nb_cars] = parse(Int, car_RC_value, base = 2)
-                HPRC_value[nb_cars] = parse(Int, SubString(car_RC_value, 1:(nb_HPRC+1)), base = 2)
-                LPRC_value[nb_cars] = parse(Int, "0"*SubString(car_RC_value, (nb_HPRC+2)), base = 2)
+                RC_key[nb_cars] = parse(Int, car_RC_value, base = 2)
+                HPRC_key[nb_cars] = parse(Int, SubString(car_RC_value, 1:(nb_HPRC+1)), base = 2)
+                LPRC_key[nb_cars] = parse(Int, "0"*SubString(car_RC_value, (nb_HPRC+2)), base = 2)
                 color_code[nb_cars] = parse(Int, values[4])
                 if nb_late_prec_day == 0
                     date = split(values[1], " ")
                     if date[3] != day
                         day = date[3]
                         nb_late_prec_day = nb_cars-1
-                        same_RC[RC_value[nb_cars]] = Array{Car_ID, 1}([nb_cars])
-                        same_HPRC[HPRC_value[nb_cars]] = Array{Car_ID, 1}([nb_cars])
-                        same_LPRC[LPRC_value[nb_cars]] = Array{Car_ID, 1}([nb_cars])
+                        same_RC[RC_key[nb_cars]] = Array{Car_ID, 1}([nb_cars])
+                        same_HPRC[HPRC_key[nb_cars]] = Array{Car_ID, 1}([nb_cars])
+                        same_LPRC[LPRC_key[nb_cars]] = Array{Car_ID, 1}([nb_cars])
                         same_color[color_code[nb_cars]] = Array{Car_ID, 1}([nb_cars])
                     end
                 else
-                    if !(RC_value[nb_cars] in keys(same_RC))
-                        same_RC[RC_value[nb_cars]] = Array{Car_ID, 1}([nb_cars])
-                        if !(HPRC_value[nb_cars] in keys(same_HPRC))
-                            same_HPRC[HPRC_value[nb_cars]] = Array{Car_ID, 1}([nb_cars])
+                    if !(RC_key[nb_cars] in keys(same_RC))
+                        same_RC[RC_key[nb_cars]] = Array{Car_ID, 1}([nb_cars])
+                        if !(HPRC_key[nb_cars] in keys(same_HPRC))
+                            same_HPRC[HPRC_key[nb_cars]] = Array{Car_ID, 1}([nb_cars])
                         end
-                        if !(LPRC_value[nb_cars] in keys(same_LPRC))
-                            same_LPRC[LPRC_value[nb_cars]] = Array{Car_ID, 1}([nb_cars])
+                        if !(LPRC_key[nb_cars] in keys(same_LPRC))
+                            same_LPRC[LPRC_key[nb_cars]] = Array{Car_ID, 1}([nb_cars])
                         end
                     else
-                        push!(same_RC[RC_value[nb_cars]], nb_cars)
-                        push!(same_HPRC[HPRC_value[nb_cars]], nb_cars)
-                        push!(same_LPRC[LPRC_value[nb_cars]], nb_cars)
+                        push!(same_RC[RC_key[nb_cars]], nb_cars)
+                        push!(same_HPRC[HPRC_key[nb_cars]], nb_cars)
+                        push!(same_LPRC[LPRC_key[nb_cars]], nb_cars)
                     end
                     if !(color_code[nb_cars] in keys(same_color))
                         same_color[color_code[nb_cars]] = Array{Car_ID, 1}([nb_cars])
@@ -243,7 +244,7 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
             HPRC_rank, LPRC_rank, PCB_rank,                            # objectives file
             nb_paint_limitation,                                       # paint file
             RC_p, RC_q, nb_HPRC, nb_LPRC,                              # ratio file
-            RC_flag, RC_value, HPRC_value, LPRC_value,
+            RC_flag, RC_key, HPRC_key, LPRC_key,
             same_RC, same_HPRC, same_LPRC,
             color_code, same_color, nb_late_prec_day, nb_cars
         )

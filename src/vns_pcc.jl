@@ -243,7 +243,9 @@ function VNS_PCC(solution_init::Solution, instance::Instance, start_time::UInt)
     costs_solution = cost(solution, instance, 3)
     cost_solution = weighted_sum(costs_solution)
     cost_HPRC_solution = costs_solution[1]
+    counter = 0
     while TIME_LIMIT > (time_ns() - start_time) / 1.0e9
+        counter += 1
         while (k <= VNS_PCC_MINMAX[p+1][2]) && (TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
             solution_perturbation = perturbation_VNS_PCC(solution, p, k, instance)
             if cost_HPRC_solution < cost(solution_perturbation, instance, 1)[1]
@@ -270,6 +272,8 @@ function VNS_PCC(solution_init::Solution, instance::Instance, start_time::UInt)
         p = 1 - p
         k = VNS_PCC_MINMAX[p+1][1]
     end
+
+    println(counter)
 
     return solution
 end

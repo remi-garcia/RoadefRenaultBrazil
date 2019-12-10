@@ -80,7 +80,7 @@ function get_color(car::Car_ID, instance::Instance)
 end
 
 function get_b0(instance::Instance)
-    return instance.nb_late_prec_day
+    return instance.nb_late_prec_day+1
 end
 function get_nb_cars(instance::Instance)
     return instance.nb_cars
@@ -90,13 +90,13 @@ function has_option(car::Car_ID, option::Option, instance::Instance)
     return instance.RC_flag[car, option]
 end
 
-function get_cars_with_same_RC_value(car::Car_ID, instance::Instance)
+function get_cars_with_same_RC(car::Car_ID, instance::Instance)
     return instance.same_RC[instance.RC_value[car]]
 end
-function get_cars_with_same_HPRC_value(car::Car_ID, instance::Instance)
+function get_cars_with_same_HPRC(car::Car_ID, instance::Instance)
     return instance.same_HPRC[instance.HPRC_value[car]]
 end
-function get_cars_with_same_LPRC_value(car::Car_ID, instance::Instance)
+function get_cars_with_same_LPRC(car::Car_ID, instance::Instance)
     return instance.same_LPRC[instance.LPRC_value[car]]
 end
 function get_cars_with_same_color(car::Car_ID, instance::Instance)

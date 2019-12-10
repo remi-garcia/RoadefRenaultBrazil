@@ -31,22 +31,20 @@ Randomly applies k exchange between cars that are involved in the same
 constraints.
 """
 function perturbation_VNS_LPRC_exchange!(solution::Solution, k::Int, instance::Instance)
-    # Dict that contain for each HRPC level an array of all index that have this HPRC level.
-    all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
-    b0 = instance.nb_late_prec_day+1
-
-    for index_car in b0:instance.nb_cars
-        key_HPRC = HPRC_value(solution.sequence[index_car], instance)
-        if !(key_HPRC in keys(all_list_same_HPRC))
-            all_list_same_HPRC[key_HPRC] = Array{Int, 1}()
+    # Array that contain only key defining more than one car
+    valid_key_HPRC = Array{Int,1}(undef, 0)
+    # for key in keys(instance.HPRC_cars)
+    #   if length(instance.HPRC_cars[key]) >= 2
+    #       push!(valid_key_HPRC, key)
+    # OR:
+    for group in instance.HPRC_cars
+        if length(group.second) >= 2
+            push!(valid_key_HPRC, group.first)
         end
-        push!(all_list_same_HPRC[key_HPRC], index_car)
     end
-    # Delete all HPRC with length less than 2 (Can't exchange 2 vehicles if there is less than 2)
-    filter!(x -> length(x.second) >= 2, all_list_same_HPRC)
 
-    for iterator in 1:k
-        same_HPRC_array = rand(all_list_same_HPRC).second
+    for _ in 1:k
+        same_HPRC_array = instance.HPRC_cars[rand(valid_key_HPRC)]
         index_car_a = rand(same_HPRC_array)
         index_car_b = rand(same_HPRC_array)
         # Cannot be the same
@@ -88,13 +86,6 @@ function local_search_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool,
     # useful variable
     b0 = instance.nb_late_prec_day+1
     all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
-    for index_car in b0:instance.nb_cars
-        key_HPRC = HPRC_value(solution.sequence[index_car], instance)
-        if !(key_HPRC in keys(all_list_same_HPRC))
-            all_list_same_HPRC[key_HPRC] = Array{Int, 1}()
-        end
-        push!(all_list_same_HPRC[key_HPRC], index_car)
-    end
 
     improved = true
     while improved
@@ -103,9 +94,9 @@ function local_search_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool,
         for index_car_a in critical_cars
             best_delta = 0
             best_positions = Array{Int, 1}()
-            hprc_value = HPRC_value(solution.sequence[index_car_a], instance)
+            hprc_value = instance.HPRC_keys[solution.sequence[index_car_a]]
             for index_car_b in b0:instance.nb_cars
-                if !perturbation_exchange || (index_car_a != index_car_b && index_car_b in all_list_same_HPRC[hprc_value])
+                if !perturbation_exchange || (index_car_a != index_car_b && index_car_b in instance.HPRC_cars[hprc_value])
                     delta = weighted_sum(cost_move_exchange(solution, index_car_a, index_car_b, instance, 2))
                     if delta < best_delta
                         best_positions = Array{Int, 1}([index_car_b])

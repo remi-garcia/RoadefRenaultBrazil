@@ -255,7 +255,7 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
             RC_key_binary = string(Int(RC_flag[car, option])) * RC_key_binary
             HPRC_key_binary = string(Int(RC_flag[car, option])) * HPRC_key_binary
         end
-        for option in (nb_HPRC+1):(nb_LPRC+nb_HPRC)
+        for option in (nb_HPRC+1):(nb_HPRC+nb_LPRC)
             RC_key_binary = string(Int(RC_flag[car, option])) * RC_key_binary
         end
         RC_key_bis = parse(Int, string(RC_key_binary), base = 2)
@@ -273,16 +273,41 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
         end
     end
 
-    println(length(keys(HPRC_cars)))
-    println(length(keys(same_HPRC)))
-    println(length(keys(RC_cars)))
-    println(length(keys(same_RC)))
-    println(RC_cars)
-    println(same_RC)
+    println("SIZES ======================= ")
+    println("Remi RC: ", length(same_RC))
+    println("Remi HP: ", length(same_HPRC))
+    println("Remi LP: ", length(same_LPRC))
+    println()
+    println("Mine RC: ", length(RC_cars))
+    println("Mine HP: ", length(HPRC_cars))
 
-    @assert length(keys(RC_cars)) == length(keys(same_RC))
-    @assert length(keys(HPRC_cars)) == length(keys(same_HPRC))
+    println(" RC - ======================= ")
 
+    for i in same_RC
+        println(length(i.second)," .. ",i)
+    end
+    println()
+    println(" --- me")
+    println()
+    for i in RC_cars
+        println(length(i.second)," .. ",i)
+    end
+
+    println()
+    println()
+    println(" HPRC - ======================= ")
+    println()
+    println()
+
+    for i in same_HPRC
+        println(length(i.second)," .. ",i)
+    end
+    println()
+    println(" --- me")
+    println()
+    for i in HPRC_cars
+        println(length(i.second)," .. ",i)
+    end
 
     return Instance(
             HPRC_rank, LPRC_rank, PCB_rank,                            # objectives file

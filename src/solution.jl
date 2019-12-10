@@ -5,6 +5,8 @@
 # Author: Jonathan Fontaine, Killian Fretaud, Rémi Garcia,
 #         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
 #-------------------------------------------------------------------------------
+Car_Position = Int
+
 """
     Batch
 
@@ -25,7 +27,7 @@ end
 Create a empty sequence with matrices of zeros.
 """
 mutable struct Solution
-    sequence::Array{Int, 1}
+    sequence::Array{Car_ID, 1}
         # vector of cars (sequence pi or s in the following algorithms)
     M1::Array{Int, 2}
         # M1_ij is the number of cars with oj in the subsequence of
@@ -41,14 +43,45 @@ mutable struct Solution
     length::Int
     colors::Union{Nothing, Array{Batch, 1}}
 
-    Solution(nC::Int,nO::Int) = new(
-        zeros(Int,nC),#collect(1:nC),
-        zeros(Int,nO,nC),
-        zeros(Int,nO,nC),
-        zeros(Int,nO,nC),
+    Solution(nC::Int, nO::Int) = new(
+        zeros(Int, nC),#collect(1:nC),
+        zeros(Int, nO, nC),
+        zeros(Int, nO, nC),
+        zeros(Int, nO, nC),
         0,
         nothing
     )
+end
+
+function id_from_position(position::Car_Position, solution::Solution)
+    return solution.sequence[position]
+end
+
+function HPRC_value(position::Car_Position, solution::Solution, instance::Instance)
+    return HPRC_value(id_from_position(position, solution), instance)
+end
+function LPRC_value(position::Car_Position, solution::Solution, instance::Instance)
+    return LPRC_value(id_from_position(position, solution), instance)
+end
+function RC_value(position::Car_Position, solution::Solution, instance::Instance)
+    return RC_value(id_from_position(position, solution), instance)
+end
+
+function has_option(position::Car_Position, option::Option, solution::Solution, instance::Instance)
+    return has_option(id_from_position(position, solution), option, instance)
+end
+
+function get_cars_with_same_RC(position::Car_Position, solution::Solution, instance::Instance)
+    return get_cars_with_same_RC(id_from_position(position, solution), instance)
+end
+function get_cars_with_same_HPRC(position::Car_Position, solution::Solution, instance::Instance)
+    return get_cars_with_same_HPRC(id_from_position(position, solution), instance)
+end
+function get_cars_with_same_LPRC(position::Car_Position, solution::Solution, instance::Instance)
+    return get_cars_with_same_LPRC(id_from_position(position, solution), instance)
+end
+function get_cars_with_same_color(position::Car_Position, solution::Solution, instance::Instance)
+    return get_cars_with_same_color(id_from_position(position, solution), instance)
 end
 
 # Build an initial

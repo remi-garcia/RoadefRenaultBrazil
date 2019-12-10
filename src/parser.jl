@@ -161,6 +161,12 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
         end
     end
 
+    # TODO:
+    # string(Int(RC_flag[car, option])) * RC_value
+    # become RC_value *string(Int(RC_flag[car, option]))
+    # then:
+    # two cars -> difference in RC value is less than 2^nb_LPRC
+    # one array not needed but more time to compute difference later
     #Lecture VEHICLES_FILE_NAME
     day = 0
     indice = 0
@@ -232,39 +238,6 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
         end
     end
     @assert nb_cars_total == nb_cars
-
-    # TODO:
-    # string(Int(RC_flag[car, option])) * RC_value
-    # become RC_value *string(Int(RC_flag[car, option]))
-    # then:
-    # two cars -> difference in RC value is less than 2^nb_LPRC
-    # one array not needed but more time to compute difference later
-    RC_cars = Dict{Int, Array{Int, 1}}()
-    HPRC_cars = Dict{Int, Array{Int, 1}}()
-    for car in (nb_late_prec_day+1):nb_cars
-        RC_value = "0"
-        HPRC_value = "0"
-        for option in 1:nb_HPRC
-            RC_value = string(Int(RC_flag[car, option])) * RC_value
-            HPRC_value = string(Int(RC_flag[car, option])) * HPRC_value
-        end
-        for option in (nb_HPRC+1):nb_LPRC
-            RC_value = string(Int(RC_flag[car, option])) * RC_value
-        end
-        RC_key = parse(Int, string(RC_value), base = 2)
-        HPRC_key = parse(Int, string(HPRC_value), base = 2)
-
-        if !haskey(RC_cars, RC_key)
-            RC_cars[RC_key] = [car]
-        else
-            push!(RC_cars[RC_key], car)
-        end
-        if !haskey(HPRC_cars, HPRC_key)
-            HPRC_cars[HPRC_key] = [car]
-        else
-            push!(HPRC_cars[HPRC_key], car)
-        end
-    end
 
     return Instance(
             HPRC_rank, LPRC_rank, PCB_rank,                            # objectives file

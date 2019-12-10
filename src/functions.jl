@@ -37,13 +37,13 @@ function penalize_costs!(costs::Array{Int, 2}, init_position::Int,
     sequence = copy(solution.sequence)
     b0 = get_b0(instance)
     sequence_insert!(sequence, init_position, b0)
-    if !is_sequence_valid(sequence, solution.length, solution, instance)
+    if !is_sequence_valid(sequence, solution.length, instance)
         costs[b0, :] .= instance.nb_cars
     end
 
     for position in b0:(solution.length-1)
         sequence[position], sequence[position+1] = sequence[position+1], sequence[position]
-        if !is_sequence_valid(sequence, solution.length, solution, instance)
+        if !is_sequence_valid(sequence, solution.length, instance)
             costs[position+1, :] .= instance.nb_cars
         end
     end
@@ -226,10 +226,10 @@ end
 
 """
 #TODO: why n, why sequence, why not solution ?
-function is_sequence_valid(sequence::Array{Int, 1}, n::Int, solution::Solution, instance::Instance)
+function is_sequence_valid(sequence::Array{Car_ID, 1}, n::Int, instance::Instance)
     counter = 1
     for car_pos::Car_Position in 2:n
-        if get_color(car_pos-1, solution, instance) == get_color(car_pos, solution, instance)
+        if get_color(sequence[car_pos-1], instance) == get_color(sequence[car_pos], instance)
             counter += 1
         else
             counter = 1

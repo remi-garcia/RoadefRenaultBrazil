@@ -189,6 +189,12 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     end
     @assert nb_cars_total == nb_cars
 
+    # for i in (nb_late_prec_day+1):nb_cars
+    #     @assert i in same_RC[RC_keys[i]]
+    #     @assert i in same_LPRC[LPRC_keys[i]]
+    #     @assert i in same_HPRC[HPRC_keys[i]]
+    # end
+
     return Instance(
             HPRC_rank, LPRC_rank, PCB_rank,                            # objectives file
             nb_paint_limitation,                                       # paint file

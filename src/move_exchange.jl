@@ -126,7 +126,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
                         solution.colors[car_pos_a] = Batch(1, car_pos_a)
                     end
                     # if car_a was a batch of width 1 -> is next batch of b's color ?
-                    if get_color(car_b, solution, instance) == get_color(car_pos_a+1, solution, instance)
+                    if get_color(car_b, instance) == get_color(car_pos_a+1, solution, instance)
                         solution.colors[car_pos_a+1].start = solution.colors[car_pos_a].start
                         solution.colors[car_pos_a+1].width += solution.colors[car_pos_a].width
                         for index in (solution.colors[car_pos_a].start):car_pos_a

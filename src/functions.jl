@@ -119,12 +119,12 @@ function find_critical_cars(solution::Solution, instance::Instance,
     if objectives[1]
         first_option = 1
     else
-        first_option = instance.nb_HPRC+1
+        first_option = nb_HPRC(instance)+1
     end
     if objectives[2]
-        last_option = instance.nb_HPRC+instance.nb_LPRC
+        last_option = nb_RC(instance)
     else
-        last_option = instance.nb_HPRC
+        last_option = nb_HPRC(instance)
     end
 
     critical_cars = Set{Int}()
@@ -160,7 +160,7 @@ function cost(solution::Solution, instance::Instance, objectives::BitArray{1})
 
     if objectives[1]
         for car in 1:solution.length
-            for option in 1:instance.nb_HPRC
+            for option in 1:nb_HPRC(instance)
                 cost_on_objective[1] += max(0 , solution.M1[option, car] - instance.RC_p[option])
             end
         end
@@ -168,7 +168,7 @@ function cost(solution::Solution, instance::Instance, objectives::BitArray{1})
 
     if objectives[2]
         for car in 1:solution.length
-            for option in (instance.nb_HPRC+1):(instance.nb_HPRC+instance.nb_LPRC)
+            for option in (nb_HPRC(instance)+1):(nb_HP(instance))
                 cost_on_objective[2] += max(0 , solution.M1[option, car] - instance.RC_p[option])
             end
         end

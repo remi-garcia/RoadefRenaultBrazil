@@ -54,7 +54,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
     # end
     #
     # error2 = false
-    # for o in 1:instance.nb_HPRC+instance.nb_LPRC
+    # for o in 1:nb_RC(instance)
     #     for i in 1:solution.length
     #         if s1.M1[o,i] != solution.M1[o,i]
     #             error2 = true
@@ -205,7 +205,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
     end
 
     # OPTIONS
-    for option in 1:(instance.nb_HPRC + instance.nb_LPRC)
+    for option in 1:nb_RC(instance)
         if xor(instance.RC_flag[car_a, option], instance.RC_flag[car_b, option])
             first_modified_pos_a = car_pos_a - instance.RC_q[option] + 1
             last_modified_sequence_a = min(car_pos_a, car_pos_b - instance.RC_q[option])
@@ -305,7 +305,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
     # end
     #
     # error2 = false
-    # for o in 1:instance.nb_HPRC+instance.nb_LPRC
+    # for o in 1:nb_RC(instance)
     #     for i in 1:solution.length
     #         if s1.M1[o,i] != solution.M1[o,i]
     #             error2 = true
@@ -358,13 +358,13 @@ function cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
     if objectives[1] # Cost on HPRC
         cost_on_objective[1] = compute_delta_exchange(solution, instance,
                                                       car_pos_a, car_pos_b,
-                                                      1, instance.nb_HPRC)
+                                                      1, nb_HPRC(instance))
     end
     if objectives[2] # Cost on LPRC
         cost_on_objective[2] = compute_delta_exchange(solution, instance,
                                                       car_pos_a, car_pos_b,
-                                                      instance.nb_HPRC+1,
-                                                      instance.nb_HPRC+instance.nb_LPRC)
+                                                      nb_HPRC(instance)+1,
+                                                      nb_RC(instance))
     end
     if objectives[3] # Cost on PCC
         car_a = solution.sequence[car_pos_a]

@@ -50,7 +50,7 @@ function move_insertion!(solution::Solution, old_index::Int,
     # end
     #
     # error2 = false
-    # for o in 1:instance.nb_HPRC+instance.nb_LPRC
+    # for o in 1:nb_RC(instance)
     #     for i in 1:solution.length
     #         if s1.M1[o,i] != solution.M1[o,i]
     #             error2 = true
@@ -123,7 +123,7 @@ function move_insertion!(solution::Solution, old_index::Int,
     # end
     #
     # error2 = false
-    # for o in 1:instance.nb_HPRC+instance.nb_LPRC
+    # for o in 1:nb_RC(instance)
     #     for i in 1:solution.length
     #         if s1.M1[o,i] != solution.M1[o,i]
     #             error2 = true
@@ -183,7 +183,7 @@ function cost_move_insertion(solution::Solution, position::Int,
         M1, violations_caused_on_first = update_lines_remove!(
             solution, instance, # instance
             M1, position, # calcul
-            1, instance.nb_HPRC # lines modified
+            1, nb_HPRC(instance) # lines modified
         )
     end
 
@@ -191,7 +191,7 @@ function cost_move_insertion(solution::Solution, position::Int,
         M1, violations_caused_on_second = update_lines_remove!(
             solution, instance, # instance
             M1, position, # calcul
-            instance.nb_HPRC+1, instance.nb_HPRC+instance.nb_LPRC # lines modified
+            nb_HPRC(instance)+1, nb_RC(instance) # lines modified
         )
     end
 
@@ -203,12 +203,12 @@ function cost_move_insertion(solution::Solution, position::Int,
         delta2_for_first[b0] = compute_delta2_for_b0(
             solution, instance, # instance
             M1, sequence, position, # calcul
-            1, instance.nb_HPRC # for options
+            1, nb_HPRC(instance) # for options
         )
         delta1_for_first[b0] = compute_delta1(
             solution, instance, # instance
             M1, sequence, b0, position, # calcul
-            1, instance.nb_HPRC # for options
+            1, nb_HPRC(instance) # for options
         )
 
         # for all other valid positions
@@ -216,12 +216,12 @@ function cost_move_insertion(solution::Solution, position::Int,
             # Delta 1 is compute as for b0
             delta1_for_first[index] = compute_delta1(solution, instance,
                                                      M1, sequence, index, position,
-                                                     1, instance.nb_HPRC)
+                                                     1, nb_HPRC(instance))
         end
         for index in (b0+1):solution.length
             delta2_for_first = compute_delta2(solution, instance,
                                               M1, sequence, index, position,
-                                              1, instance.nb_HPRC,
+                                              1, nb_HPRC(instance),
                                               delta2_for_first)
         end
         # The cost is variation of deletion + delta1 (new sequence) + delta2 (modified sequences)
@@ -235,24 +235,24 @@ function cost_move_insertion(solution::Solution, position::Int,
         delta2_for_second[b0] = compute_delta2_for_b0(
             solution, instance,
             M1, sequence, position,
-            instance.nb_HPRC+1,
-            instance.nb_HPRC+instance.nb_LPRC)
+            nb_HPRC(instance)+1,
+            nb_RC(instance))
         delta1_for_second[b0] = compute_delta1(
             solution, instance,
             M1, sequence, b0, position,
-            instance.nb_HPRC+1, instance.nb_HPRC+instance.nb_LPRC)
+            nb_HPRC(instance)+1, nb_RC(instance))
         for index in (b0+1):solution.length
             # Delta 1 is compute as for b0
             delta1_for_second[index] = compute_delta1(
                 solution, instance,
                 M1, sequence, index, position,
-                instance.nb_HPRC+1, instance.nb_HPRC+instance.nb_LPRC)
+                nb_HPRC(instance)+1, nb_RC(instance))
         end
         for index in (b0+1):solution.length
             delta2_for_second = compute_delta2(
                 solution, instance,
                 M1, sequence, index, position,
-                (instance.nb_HPRC+1), (instance.nb_HPRC+instance.nb_LPRC),
+                (nb_HPRC(instance)+1), (nb_RC(instance)),
                 delta2_for_second)
         end
 

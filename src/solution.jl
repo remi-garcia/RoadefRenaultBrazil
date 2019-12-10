@@ -90,7 +90,7 @@ end
 """
 function init_solution(instance::Instance)
     n = instance.nb_cars
-    m = instance.nb_HPRC + instance.nb_LPRC # number of ratio
+    m = nb_RC(instance) # number of ratio
     solution = Solution(n, m)
 
     nb_late_prec_day = get_b0(instance) - 1
@@ -110,7 +110,7 @@ init_solution(nom_fichier::String, type_fichier::String) =
 Updates `solution.M1`, `solution.M2` and `solution.M3` for known cars at positions 1 to `solution.length`.
 """
 function update_matrices!(solution::Solution, instance::Instance)
-    nb_RC = instance.nb_HPRC + instance.nb_LPRC
+    nb_RC = nb_RC(instance)
     nb = solution.length
 
     # Last column has just one car
@@ -177,7 +177,7 @@ DOES NOT update columns for sequences excluding the position. Assert made: the f
 when we add a car in a tail-less sequence.
 """
 function update_matrices_new_car!(solution::Solution, position::Int, instance::Instance)
-    nb_RC = instance.nb_HPRC + instance.nb_LPRC
+    nb_RC = nb_RC(instance)
     car = solution.sequence[position]
 
     for option in 1:nb_RC

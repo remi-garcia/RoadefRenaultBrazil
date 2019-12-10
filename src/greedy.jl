@@ -63,7 +63,7 @@ function greedy(instance::Instance)
     solution = init_solution(instance)
     # We have V the set of cars to be scheduled
     len = get_nb_cars(instance) - (get_b0(instance)-1)
-    V = collect(CarID, get_b0(instance):get_nb_cars(instance))
+    V = collect(Car_ID, get_b0(instance):get_nb_cars(instance))
 
     # Compute for each option the number of cars who need it in V
     # TODO : Could be done in the parser and stocked in the instance

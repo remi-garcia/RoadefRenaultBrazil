@@ -131,8 +131,8 @@ function find_critical_cars(solution::Solution, instance::Instance,
     b0 = get_b0(instance)
     for index_car in b0:solution.length
         for option in first_option:last_option
-            if solution.M1[option, index_car] > instance.RC_p[option]
-                index_car_lim = index_car + min(instance.RC_p[option], solution.length-index_car)
+            if solution.M1[option, index_car] > option_p(option, instance)
+                index_car_lim = index_car + min(option_p(option, instance), solution.length-index_car)
                 for index_car_add in index_car:index_car_lim
                     if instance.RC_flag[solution.sequence[index_car_add], option]
                         push!(critical_cars, index_car_add)
@@ -161,7 +161,7 @@ function cost(solution::Solution, instance::Instance, objectives::BitArray{1})
     if objectives[1]
         for car in 1:solution.length
             for option in 1:nb_HPRC(instance)
-                cost_on_objective[1] += max(0 , solution.M1[option, car] - instance.RC_p[option])
+                cost_on_objective[1] += max(0 , solution.M1[option, car] - option_p(option, instance))
             end
         end
     end
@@ -169,7 +169,7 @@ function cost(solution::Solution, instance::Instance, objectives::BitArray{1})
     if objectives[2]
         for car in 1:solution.length
             for option in (nb_HPRC(instance)+1):(nb_HP(instance))
-                cost_on_objective[2] += max(0 , solution.M1[option, car] - instance.RC_p[option])
+                cost_on_objective[2] += max(0 , solution.M1[option, car] - option_p(option, instance))
             end
         end
     end

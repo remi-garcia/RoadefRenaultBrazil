@@ -353,7 +353,7 @@ function update_lines_remove!(solution::Solution, instance::Instance,
     b0 = get_b0(instance)
     # forall option there is 1 to last_sequence_intact sequences unchanged
     for option in first_line:last_line
-        last_sequence_intact = car_pos_a - instance.RC_q[option]
+        last_sequence_intact = car_pos_a - option_q(option, instance)
         if last_sequence_intact < 0
             last_sequence_intact = 0
         end
@@ -363,16 +363,16 @@ function update_lines_remove!(solution::Solution, instance::Instance,
         for index in (last_sequence_intact+1):(car_pos_a-1)
             # one less violation if car has the option
             if instance.RC_flag[solution.sequence[car_pos_a], option]
-                if M1[option, index] > instance.RC_p[option] #
+                if M1[option, index] > option_p(option, instance)
                     violations_caused -= 1
                 end
                 M1[option, index] -= 1
             end
             # one more violation if new car reached has the option
-            new_index_reached = index + instance.RC_q[option]
+            new_index_reached = index + option_q(option, instance)
             if new_index_reached <= solution.length #TODO: is it not < ? Don't think so
                 if instance.RC_flag[solution.sequence[new_index_reached], option]
-                    if M1[option, index] >= instance.RC_p[option]
+                    if M1[option, index] >= option_p(option, instance)
                         violations_caused += 1
                     end
                     M1[option, index] += 1
@@ -381,10 +381,10 @@ function update_lines_remove!(solution::Solution, instance::Instance,
         end
 
         # sequence pos_a is deleted, every violation of this sequence disappear
-        violations_caused -= max(0, solution.M1[option, car_pos_a] - instance.RC_p[option])
+        violations_caused -= max(0, solution.M1[option, car_pos_a] - option_p(option, instance))
 
         if (car_pos_a == b0)
-            due_to_sequence_removed -= (max(0, solution.M1[option, car_pos_a] - instance.RC_p[option]))
+            due_to_sequence_removed -= (max(0, solution.M1[option, car_pos_a] - option_p(option, instance)))
         end
 
         # forall sequences from pos_a+1 to n are intact but shifted,
@@ -417,28 +417,28 @@ function compute_delta2_for_b0(solution::Solution, instance::Instance,
     for option in first_line:last_line
 
         #there is q(oj)-1 modified sequences...
-        first_modified_sequence = (b0 - instance.RC_q[option]) + 1
+        first_modified_sequence = (b0 - option_q(option, instance)) + 1
         if first_modified_sequence < 1 # must be a valid index
             first_modified_sequence = 1
         end
 
         for modified_sequence in first_modified_sequence:(b0-1)
-            new_unreached_index = modified_sequence + instance.RC_q[option] - 1
+            new_unreached_index = modified_sequence + option_q(option, instance) - 1
 
             # car force another one to quit the sequence
             if new_unreached_index <= solution.length-1 # must be a valid index
                 C_out = sequence[new_unreached_index]
                 # C_in has different option than C_out -> variation in violations number
                 if xor(instance.RC_flag[C_in, option], instance.RC_flag[C_out, option])
-                    if instance.RC_flag[C_out, option] && M1[option, modified_sequence] > instance.RC_p[option]
+                    if instance.RC_flag[C_out, option] && M1[option, modified_sequence] > option_p(option, instance)
                         delta2 -= 1
                     end
-                    if instance.RC_flag[C_in, option] && M1[option, modified_sequence] >= instance.RC_p[option]
+                    if instance.RC_flag[C_in, option] && M1[option, modified_sequence] >= option_p(option, instance)
                         delta2 += 1
                     end
                 end
             else # it is an ending sequence, there is no new unreached car
-                if instance.RC_flag[C_in, option] && M1[option, modified_sequence] >= instance.RC_p[option]
+                if instance.RC_flag[C_in, option] && M1[option, modified_sequence] >= option_p(option, instance)
                     delta2 += 1
                 end
             end
@@ -462,8 +462,8 @@ function compute_delta1(solution::Solution, instance::Instance,
     delta1 = 0
     for option in first_line:last_line
         # ... and one new sequence at cursor
-        # This is basically sequence at cursor without the (cursor + instance.RC_q[option] - 1)-th index (ejected by car)
-        first_unreached_index = cursor + instance.RC_q[option] - 1
+        # This is basically sequence at cursor without the (cursor + option_q(option, instance) - 1)-th index (ejected by car)
+        first_unreached_index = cursor + option_q(option, instance) - 1
         # has different option than unreached -> variation in violations number
         # car is in ...
         variation = 0
@@ -476,7 +476,7 @@ function compute_delta1(solution::Solution, instance::Instance,
                 variation -= 1
             end
         end
-        delta1 += max(0, (M1[option, cursor] + variation) - instance.RC_p[option])
+        delta1 += max(0, (M1[option, cursor] + variation) - option_p(option, instance))
     end
 
     return delta1
@@ -499,10 +499,10 @@ function compute_delta2(solution::Solution, instance::Instance,
     if index == solution.length
         C_insert = solution.sequence[car_pos_a]
         for option in first_line:last_line
-            sequence_unreaching_it = index - instance.RC_q[option]
+            sequence_unreaching_it = index - option_q(option, instance)
             if sequence_unreaching_it > 0
                 for i in (sequence_unreaching_it+1):solution.length
-                    if (M1[option, i] >= instance.RC_p[option] && instance.RC_flag[C_insert, option])
+                    if (M1[option, i] >= option_p(option, instance) && instance.RC_flag[C_insert, option])
                         delta2_for_objective[index] += 1
                     end
                 end
@@ -516,19 +516,19 @@ function compute_delta2(solution::Solution, instance::Instance,
         for option in first_line:last_line
             # What is called in the article: delta_{b-q(o_j)}
             # there is one sequence too far from us now
-            sequence_unreaching_it = index - instance.RC_q[option]
+            sequence_unreaching_it = index - option_q(option, instance)
             if sequence_unreaching_it > 0 && index < solution.length
                 C_in = sequence[index-1] # It was previously push out (shifted to index in the last calcul of d2)
                 if xor(instance.RC_flag[C_insert, option], instance.RC_flag[C_in, option])
                     # The last sequence is now more violated than before ?
                     if instance.RC_flag[C_in, option]
-                        if M1[option, sequence_unreaching_it] > instance.RC_p[option]
+                        if M1[option, sequence_unreaching_it] > option_p(option, instance)
                             delta2_for_objective[index] += 1
                         end
                     end
                     # Car was counted as a violation
                     if instance.RC_flag[C_insert, option]
-                        if M1[option, sequence_unreaching_it] >= instance.RC_p[option]
+                        if M1[option, sequence_unreaching_it] >= option_p(option, instance)
                             delta2_for_objective[index] -= 1
                         end
                     end
@@ -537,19 +537,19 @@ function compute_delta2(solution::Solution, instance::Instance,
 
             # What is called in the article: delta_{b-1}
             new_modified_sequence = index - 1
-            first_unreached_index = index + instance.RC_q[option] - 2
+            first_unreached_index = index + option_q(option, instance) - 2
             if new_modified_sequence > 0 && first_unreached_index <= (solution.length-1)
                 C_out = sequence[first_unreached_index]
                 if xor(instance.RC_flag[C_out, option], instance.RC_flag[C_insert, option])
                     # The new sequence is now more violated than before
                     if instance.RC_flag[C_out, option]
-                        if M1[option, new_modified_sequence] > instance.RC_p[option]
+                        if M1[option, new_modified_sequence] > option_p(option, instance)
                             delta2_for_objective[index] -= 1
                         end
                     end
                     # Car dropped one violation
                     if instance.RC_flag[C_insert, option]
-                        if M1[option, new_modified_sequence] >= instance.RC_p[option]
+                        if M1[option, new_modified_sequence] >= option_p(option, instance)
                             delta2_for_objective[index] += 1
                         end
                     end
@@ -557,7 +557,7 @@ function compute_delta2(solution::Solution, instance::Instance,
             else # sequence was at the end, no-one is getting out
                 # Car may cause one violation
                 if instance.RC_flag[C_insert, option]
-                    if M1[option, new_modified_sequence] >= instance.RC_p[option]
+                    if M1[option, new_modified_sequence] >= option_p(option, instance)
                         delta2_for_objective[index] += 1
                     end
                 end

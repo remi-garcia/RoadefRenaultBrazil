@@ -136,7 +136,7 @@ function update_matrices!(solution::Solution, instance::Instance)
             end
 
             # Is there one car not reach anymore ?
-            index_first_out = index + instance.RC_q[option]
+            index_first_out = index + option_q(option, instance)
             if index_first_out <= nb
                 car_first_out = solution.sequence[index_first_out]
                 # It had option -> sequence - 1
@@ -158,10 +158,10 @@ function update_matrices!(solution::Solution, instance::Instance)
                solution.M3[option, index] = 0
             end
             # M3 is >=
-            if solution.M1[option, index] >= instance.RC_p[option]
+            if solution.M1[option, index] >= option_p(option, instance)
                 solution.M3[option, index] += 1
                 # M2 is >
-                if solution.M1[option, index] > instance.RC_p[option]
+                if solution.M1[option, index] > option_p(option, instance)
                     solution.M2[option, index] += 1
                 end
             end
@@ -181,7 +181,7 @@ function update_matrices_new_car!(solution::Solution, position::Int, instance::I
     car = solution.sequence[position]
 
     for option in 1:nb_RC
-        for index in (position - instance.RC_q[option] + 1):position
+        for index in (position - option_q(option, instance) + 1):position
             if index > 0
                 # TODO: flag not raise -> index loop skipped
                 # new car has option -> update M1
@@ -199,10 +199,10 @@ function update_matrices_new_car!(solution::Solution, position::Int, instance::I
                 end
 
                 # M3 is >=
-                if solution.M1[option, index] >= instance.RC_p[option]
+                if solution.M1[option, index] >= option_p(option, instance)
                     solution.M3[option, index] += 1
                     # M2 is >
-                    if solution.M1[option, index] > instance.RC_p[option]
+                    if solution.M1[option, index] > option_p(option, instance)
                         solution.M2[option, index] += 1
                     end
                 end

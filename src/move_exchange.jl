@@ -207,9 +207,9 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
     # OPTIONS
     for option in 1:nb_RC(instance)
         if xor(instance.RC_flag[car_a, option], instance.RC_flag[car_b, option])
-            first_modified_pos_a = car_pos_a - instance.RC_q[option] + 1
-            last_modified_sequence_a = min(car_pos_a, car_pos_b - instance.RC_q[option])
-            first_modified_sequence_b = max(car_pos_a+1, car_pos_b - instance.RC_q[option]+1)
+            first_modified_pos_a = car_pos_a - option_q(option, instance) + 1
+            last_modified_sequence_a = min(car_pos_a, car_pos_b - option_q(option, instance))
+            first_modified_sequence_b = max(car_pos_a+1, car_pos_b - option_q(option, instance)+1)
 
             plus_minus_one = 1
             if instance.RC_flag[car_a, option]
@@ -234,10 +234,10 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
                         solution.M3[option, car_pos] = solution.M3[option, car_pos-1]
                     end
                     # M3 is >=
-                    if solution.M1[option, car_pos] >= instance.RC_p[option]
+                    if solution.M1[option, car_pos] >= option_p(option, instance)
                         solution.M3[option, car_pos] += 1
                         # M2 is >
-                        if solution.M1[option, car_pos] > instance.RC_p[option]
+                        if solution.M1[option, car_pos] > option_p(option, instance)
                             solution.M2[option, car_pos] += 1
                         end
                     end
@@ -259,10 +259,10 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
                 solution.M2[option, car_pos] = solution.M2[option, car_pos-1]
                 solution.M3[option, car_pos] = solution.M3[option, car_pos-1]
                 # M3 is >=
-                if solution.M1[option, car_pos] >= instance.RC_p[option]
+                if solution.M1[option, car_pos] >= option_p(option, instance)
                     solution.M3[option, car_pos] += 1
                     # M2 is >
-                    if solution.M1[option, car_pos] > instance.RC_p[option]
+                    if solution.M1[option, car_pos] > option_p(option, instance)
                         solution.M2[option, car_pos] += 1
                     end
                 end
@@ -456,9 +456,9 @@ function compute_delta_exchange(solution::Solution, instance::Instance,
     for option in first_line:last_line
         # No cost if both have it / have it not
         if xor(instance.RC_flag[car_a, option], instance.RC_flag[car_b, option])
-            last_ended_sequence_a = car_pos_a - instance.RC_q[option]
-            first_modified_sequence_a = min(car_pos_a, car_pos_b - instance.RC_q[option])
-            last_unmodified_sequence_b = max(car_pos_a, car_pos_b - instance.RC_q[option])
+            last_ended_sequence_a = car_pos_a - option_q(option, instance)
+            first_modified_sequence_a = min(car_pos_a, car_pos_b - option_q(option, instance))
+            last_unmodified_sequence_b = max(car_pos_a, car_pos_b - option_q(option, instance))
 
             if instance.RC_flag[car_a, option]
                 if first_modified_sequence_a > 0

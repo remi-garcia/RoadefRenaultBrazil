@@ -62,8 +62,8 @@ function greedy(instance::Instance)
     # with some cars already scheduled
     solution = init_solution(instance)
     # We have V the set of cars to be scheduled
-    len = (instance.nb_cars) - (instance.nb_late_prec_day)
-    V = collect((instance.nb_late_prec_day+1):(instance.nb_cars))
+    len = get_nb_cars(instance) - (get_b0(instance)-1)
+    V = collect(CarID, get_b0(instance):get_nb_cars(instance))
 
     # Compute for each option the number of cars who need it in V
     # TODO : Could be done in the parser and stocked in the instance
@@ -74,10 +74,10 @@ function greedy(instance::Instance)
 
     # Initialization for first tie-break criterion
     # Compute for each option the number of cars who need it in Pi
-    rpi = zeros(Int,instance.nb_HPRC)
-    for i in 1:instance.nb_late_prec_day
-        for j in 1:instance.nb_HPRC
-            if instance.RC_flag[i,j]
+    rpi = zeros(Int, nb_HPRC(instance))
+    for i in 1:(get_b0(instance)-1)
+        for j in 1:nb_HPRC(instance)
+            if has_option(i, j, instance)
                 rpi[j] = rpi[j]+1
             end
         end
@@ -86,13 +86,13 @@ function greedy(instance::Instance)
     # The greedy criterion consists in choosing, at each iteration, the car
     # that induces the smallest number of new violations when inserted at
     # the end of the current partial sequence.
-    for position in (instance.nb_late_prec_day+1):(instance.nb_cars)
+    for position in get_b0(instance):get_nb_cars(instance)
         # Compute the number of violations caused by each car
         nb_new_violation = zeros(Int, len)
         for c in 1:len
-            for j in 1:instance.nb_HPRC
-                if instance.RC_flag[V[c], j]
-                    last_ended_sequence = (position - instance.RC_q[j])
+            for j in 1:nb_HPRC(instance)
+                if  has_option(V[c], j, instance)
+                    last_ended_sequence = (position - option_q(j, instance))
                     if last_ended_sequence > 0
                         nb_new_violation[c] += solution.M3[j, position-1] - solution.M3[j, last_ended_sequence]
                     else
@@ -113,8 +113,8 @@ function greedy(instance::Instance)
             # Compute the tie break criterion for each candidates
             tie_break = zeros(Int,length(candidates))
             for i in 1:length(candidates)
-                for j in 1:instance.nb_HPRC
-                    cond1 = !instance.RC_flag[candidates[i],j]
+                for j in 1:nb_HPRC(instance)
+                    cond1 = !has_option(candidates[i], j, instance)
                     cond2 = (rv[j]-rpi[j])/len > (rpi[j])/solution.length
                     tie_break[i] += Int(xor( cond1 , cond2 ))
                 end
@@ -128,14 +128,14 @@ function greedy(instance::Instance)
         # Cars that require options with higher utilization rates should enter.
         if length(candidates) > 1
             # Compute the utilization rate of each options
-            utilization_rate = Array{Float64,1}(UndefInitializer(),instance.nb_HPRC)
-            for j in 1:instance.nb_HPRC
-                utilization_rate[j] = ( (rv[j] - rpi[j])/len ) / ( instance.RC_p[j] / instance.RC_q[j] )
+            utilization_rate = Array{Float64,1}(UndefInitializer(),nb_HPRC(instance))
+            for j in 1:nb_HPRC(instance)
+                utilization_rate[j] = ( (rv[j] - rpi[j])/len ) / ( option_p(j, instance) / option_q(j, instance) )
             end
             tie_break = zeros(length(candidates))
             for i in 1:length(candidates)
-                for j in 1:instance.nb_HPRC
-                    tie_break[i] += instance.RC_flag[candidates[i],j] * utilization_rate[j]
+                for j in 1:nb_HPRC(instance)
+                    tie_break[i] += has_option(candidates[i],j,instance) * utilization_rate[j]
                 end
             end
 
@@ -151,9 +151,9 @@ function greedy(instance::Instance)
             nb_new_violation = zeros(Int, length(candidates))
             for ind in 1:length(candidates)
                 c = candidates[ind]
-                for j in (instance.nb_HPRC+1):(instance.nb_HPRC+instance.nb_LPRC)
-                    if instance.RC_flag[c, j]
-                        last_ended_sequence = (position - instance.RC_q[j])
+                for j in (nb_HPRC(instance)+1):nb_RC(instance)
+                    if has_option(c,j,instance)
+                        last_ended_sequence = (position - option_q(j, instance))
                         if last_ended_sequence > 0
                             nb_new_violation[ind] += solution.M3[j, position-1] - solution.M3[j, last_ended_sequence]
                         else
@@ -174,7 +174,7 @@ function greedy(instance::Instance)
         # The utilization rates components are dynamically updated.
         # Update rpi with the options of c
         for j in 1:instance.nb_HPRC
-            rpi[j] += Int(instance.RC_flag[c,j])
+            rpi[j] += Int(has_option(c, j, instance))
         end
 
         # Update M1, M2 and M3

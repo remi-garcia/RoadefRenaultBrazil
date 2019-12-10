@@ -220,9 +220,13 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
                         same_RC[RC_keys[nb_cars]] = Array{Car_ID, 1}([nb_cars])
                         if !haskey(same_HPRC, HPRC_keys[nb_cars])
                             same_HPRC[HPRC_keys[nb_cars]] = Array{Car_ID, 1}([nb_cars])
+                        else
+                            push!(same_HPRC[HPRC_keys[nb_cars]], nb_cars)
                         end
                         if !haskey(same_LPRC, LPRC_keys[nb_cars])
                             same_LPRC[LPRC_keys[nb_cars]] = Array{Car_ID, 1}([nb_cars])
+                        else
+                            push!(same_LPRC[LPRC_keys[nb_cars]], nb_cars)
                         end
                     else
                         push!(same_RC[RC_keys[nb_cars]], nb_cars)
@@ -240,35 +244,32 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
     end
     @assert nb_cars_total == nb_cars
 
-    RC_cars = Dict{Int, Array{Int, 1}}()
-    HPRC_cars = Dict{Int, Array{Int, 1}}()
-    for car in (nb_late_prec_day+1):nb_cars
-        RC_key_binary = "0"
-        HPRC_key_binary = "0"
-        for option in 1:nb_HPRC
-            RC_key_binary = string(Int(RC_flag[car, option])) * RC_key_binary
-            HPRC_key_binary = string(Int(RC_flag[car, option])) * HPRC_key_binary
-        end
-        for option in (nb_HPRC+1):nb_LPRC
-            RC_key_binary = string(Int(RC_flag[car, option])) * RC_key_binary
-        end
-        RC_key_bis = parse(Int, string(RC_key_binary), base = 2)
-        HPRC_key_bis = parse(Int, string(HPRC_key_binary), base = 2)
-
-        if !haskey(RC_cars, RC_key_bis)
-            RC_cars[RC_key_bis] = [car]
-        else
-            push!(RC_cars[RC_key_bis], car)
-        end
-        if !haskey(HPRC_cars, HPRC_key_bis)
-            HPRC_cars[HPRC_key_bis] = [car]
-        else
-            push!(HPRC_cars[HPRC_key_bis], car)
-        end
-    end
-
-    @assert keys(HPRC_cars) == keys(same_HPRC)
-    @assert keys(RC_cars) == keys(same_RC)
+    # RC_cars = Dict{Int, Array{Int, 1}}()
+    # HPRC_cars = Dict{Int, Array{Int, 1}}()
+    # for car in (nb_late_prec_day+1):nb_cars
+    #     RC_key_binary = "0"
+    #     HPRC_key_binary = "0"
+    #     for option in 1:nb_HPRC
+    #         RC_key_binary = string(Int(RC_flag[car, option])) * RC_key_binary
+    #         HPRC_key_binary = string(Int(RC_flag[car, option])) * HPRC_key_binary
+    #     end
+    #     for option in (nb_HPRC+1):nb_LPRC
+    #         RC_key_binary = string(Int(RC_flag[car, option])) * RC_key_binary
+    #     end
+    #     RC_key_bis = parse(Int, string(RC_key_binary), base = 2)
+    #     HPRC_key_bis = parse(Int, string(HPRC_key_binary), base = 2)
+    #
+    #     if !haskey(RC_cars, RC_key_bis)
+    #         RC_cars[RC_key_bis] = [car]
+    #     else
+    #         push!(RC_cars[RC_key_bis], car)
+    #     end
+    #     if !haskey(HPRC_cars, HPRC_key_bis)
+    #         HPRC_cars[HPRC_key_bis] = [car]
+    #     else
+    #         push!(HPRC_cars[HPRC_key_bis], car)
+    #     end
+    # end
 
     return Instance(
             HPRC_rank, LPRC_rank, PCB_rank,                            # objectives file
@@ -276,6 +277,7 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
             RC_p, RC_q, nb_HPRC, nb_LPRC,                              # ratio file
             RC_flag, RC_keys, HPRC_keys, LPRC_keys,
             same_RC, same_HPRC, same_LPRC,
+            #RC_cars, HPRC_cars, same_LPRC,
             color_code, same_color, nb_late_prec_day, nb_cars
         )
 end

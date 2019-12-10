@@ -149,7 +149,7 @@ function parser(instance_name::String, instance_type::String, path_folder::Strin
             RC_value = string(Int(RC_flag[car, option])) * RC_value
             HPRC_value = string(Int(RC_flag[car, option])) * HPRC_value
         end
-        for option in (nb_HPRC+1):nb_LPRC
+        for option in (nb_HPRC+1):(nb_HPRC+nb_LPRC)
             RC_value = string(Int(RC_flag[car, option])) * RC_value
         end
         RC_key = parse(Int, string(RC_value), base = 2)

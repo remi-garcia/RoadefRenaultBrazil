@@ -175,8 +175,17 @@ function cost(solution::Solution, instance::Instance, objectives::BitArray{1})
     end
 
     if objectives[3]
-        for i in 2:solution.length
-            if instance.color_code[solution.sequence[i]] != instance.color_code[solution.sequence[i-1]]
+        if solution.colors === nothing
+            for i in 2:solution.length
+                if instance.color_code[solution.sequence[i]] != instance.color_code[solution.sequence[i-1]]
+                    cost_on_objective[3] += 1
+                end
+            end
+        else
+            cost_on_objective[3] = -1
+            index_batch = instance.nb_late_prec_day + 1
+            while index_batch <= solution.length
+                index_batch += solution.colors[index_batch].width
                 cost_on_objective[3] += 1
             end
         end

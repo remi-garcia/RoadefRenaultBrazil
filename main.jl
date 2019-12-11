@@ -48,16 +48,6 @@ function main()
             println("Initial solution created... \t" * string(tmp[2]))
             costs[1,:] = RRB.cost(solution, instance, 3)
 
-            # # ILS-HPRC
-            # tmp = @timed solution = RRB.ILS_HPRC(solution, instance, start_time)
-            # println("Solution improved with ILS_HPRC \t" * string(tmp[2]))
-            # costs[2,:] = RRB.cost(solution, instance, 3)
-            #
-            # # VNS-LPRC
-            # tmp = @timed solution = RRB.VNS_LPRC(solution, instance, start_time)
-            # println("Solution improved with VNS_LPRC \t" * string(tmp[2]))
-            # costs[3,:] = RRB.cost(solution, instance, 3)
-
             # Repair
             tmp = @timed RRB.initialize_batches!(solution, instance)
             tmp1 = @timed RRB.repair!(solution, instance)

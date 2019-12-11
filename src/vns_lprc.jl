@@ -128,7 +128,7 @@ function local_search_intensification_VNS_LPRC_exchange!(solution::Solution, ins
     b0 = instance.nb_late_prec_day+1
 
     improved = true
-    while improved  && TIME_PART_VNS_LPRC * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
+    while improved && TIME_PART_VNS_LPRC * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         improved = false
         critical_cars = find_critical_cars(solution, instance, 2)
         for index_car_a in critical_cars

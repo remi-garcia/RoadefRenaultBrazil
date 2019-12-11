@@ -85,6 +85,7 @@ function main()
 
             if !is_solution_valid(solution, instance)
                 println("Solution invalid")
+                for i in 1:solution
             end
             println("\tGr. \tILS \tVNS_lp\trepair\tVNS_pc")
             println("HP \t", costs[1,1] ,"\t", costs[2,1] ,"\t", costs[3,1] ,"\t", costs[4,1], "\t", costs[5,1])

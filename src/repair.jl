@@ -84,7 +84,7 @@ function first_strategy_repair!(solution::Solution, instance::Instance)
         position += 1
     end
 
-    position = 1
+    position = b0
     counter = 1
     current_color = instance.color_code[solution.sequence[position]]
     position += 1

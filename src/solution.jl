@@ -211,7 +211,7 @@ function initialize_batches!(solution::Solution, instance::Instance)
         push!(solution.colors, batch)
     end
     batch = Batch(1, b0)
-    current_color = instance.color_code[solution.sequence[1]]
+    current_color = instance.color_code[solution.sequence[b0]]
     push!(solution.colors, batch)
     for position in (b0+1):solution.length
         car = solution.sequence[position]

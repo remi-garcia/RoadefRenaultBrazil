@@ -176,7 +176,7 @@ function cost(solution::Solution, instance::Instance, objectives::BitArray{1})
 
     if objectives[3]
         if solution.colors === nothing
-            for i in 2:solution.length
+            for i in  (instance.nb_late_prec_day+1):solution.length
                 if instance.color_code[solution.sequence[i]] != instance.color_code[solution.sequence[i-1]]
                     cost_on_objective[3] += 1
                 end

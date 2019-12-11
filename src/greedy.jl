@@ -198,8 +198,6 @@ function greedy_pcc(instance::Instance)
     len = (instance.nb_cars) - (instance.nb_late_prec_day)
     V = collect((instance.nb_late_prec_day+1):(instance.nb_cars))
 
-    repair_needed = false
-
     # Compute for each option the number of cars who need it in V
     # TODO : Could be done in the parser and stocked in the instance
     rv = sum(instance.RC_flag,dims=1)
@@ -329,6 +327,7 @@ function greedy_pcc(instance::Instance)
                     same_colors[1], same_colors[2] = copy(same_colors[2]), copy(same_colors[1])
                 catch
                     position_car = instance.nb_late_prec_day+1
+                    #TODO this condition might not be enough in peculiar cases
                     while instance.color_code[solution.sequence[position_car]] == instance.color_code[same_colors[1][1]]
                         position_car += 1
                     end
@@ -349,11 +348,6 @@ function greedy_pcc(instance::Instance)
     end
 
     @assert solution.length == instance.nb_cars
-
-    if repair_needed
-        initialize_batches!(solution, instance)
-        second_strategy_repair!(solution, instance)
-    end
 
     return solution
 end

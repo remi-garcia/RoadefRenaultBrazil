@@ -83,11 +83,15 @@ function main()
             println("Solution improved with VNS_PCC \t" * string(tmp[2]))
             costs[5,:] = RRB.cost(solution, instance, 3)
 
+            if !is_solution_valid(solution, instance)
+                println("Solution invalid")
+            end
             println("\tGr. \tILS \tVNS_lp\trepair\tVNS_pc")
             println("HP \t", costs[1,1] ,"\t", costs[2,1] ,"\t", costs[3,1] ,"\t", costs[4,1], "\t", costs[5,1])
             println("LP \t", costs[1,2] ,"\t", costs[2,2] ,"\t", costs[3,2] ,"\t", costs[4,2], "\t", costs[5,2])
             println("PCC \t", costs[1,3] ,"\t", costs[2,3] ,"\t", costs[3,3] ,"\t", costs[4,3], "\t", costs[5,3])
             println()
+
 
             end #@time
             println()

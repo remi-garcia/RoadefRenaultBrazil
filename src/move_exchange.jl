@@ -89,11 +89,12 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
 
     # COLORS
     if !(solution.colors === nothing)
+        b0 = instance.nb_late_prec_day+1
         if instance.color_code[car_a] != instance.color_code[car_b]
             # cars are neighbors
             if car_pos_a+1 == car_pos_b
                 # modifications at car_pos_a
-                if (car_pos_a-1 > 0
+                if (car_pos_a-1 >= b0
                 && instance.color_code[car_b] == instance.color_code[solution.sequence[car_pos_a-1]])
                     solution.colors[car_pos_a-1].width += 1
                     solution.colors[car_pos_a] = solution.colors[car_pos_a-1]
@@ -118,7 +119,7 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
                 if solution.colors[car_pos_a].start == car_pos_a
                     solution.colors[car_pos_a].width -= 1
                     solution.colors[car_pos_a].start += 1
-                    if (car_pos_a-1 > 0
+                    if (car_pos_a-1 >= b0
                     && instance.color_code[car_b] == instance.color_code[solution.sequence[car_pos_a-1]])
                         solution.colors[car_pos_a-1].width += 1
                         solution.colors[car_pos_a] = solution.colors[car_pos_a-1]
@@ -367,11 +368,12 @@ function cost_move_exchange(solution::Solution, car_pos_a::Int, car_pos_b::Int,
                                                       instance.nb_HPRC+instance.nb_LPRC)
     end
     if objectives[3] # Cost on PCC
+        b0 = instance.nb_late_prec_day+1
         car_a = solution.sequence[car_pos_a]
         car_b = solution.sequence[car_pos_b]
         if instance.color_code[car_a] != instance.color_code[car_b]
             # First position
-            if car_pos_a > 1
+            if car_pos_a > b0
                 if instance.color_code[car_a] != instance.color_code[solution.sequence[car_pos_a-1]]
                     cost_on_objective[3] -= 1
                 end

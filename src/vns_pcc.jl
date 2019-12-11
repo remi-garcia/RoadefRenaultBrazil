@@ -23,12 +23,12 @@ function perturbation_VNS_PCC_exchange!(solution::Solution, k::Int, instance::In
     end
 
     for _ in 1:k
-        HPRC_group = rand(valid_key_HPRC)
-        car_pos_a = rand(instance.same_HPRC[HPRC_group])
-        car_pos_b = rand(instance.same_HPRC[HPRC_group])
-        # Must have the same options
+        same_HPRC_array = instance.same_HPRC[rand(valid_key_HPRC)]
+        car_pos_a = rand(same_HPRC_array)
+        car_pos_b = rand(same_HPRC_array)
+        # Cannot be the same
         while car_pos_a == car_pos_b
-            car_pos_b = rand(instance.same_HPRC[HPRC_group])
+            car_pos_b = rand(same_HPRC_array)
         end
         solution.sequence[car_pos_a], solution.sequence[car_pos_b] = solution.sequence[car_pos_b], solution.sequence[car_pos_a]
         if is_sequence_valid(solution.sequence, instance.nb_cars, instance)

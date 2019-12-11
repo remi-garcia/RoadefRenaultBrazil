@@ -85,7 +85,6 @@ objective.
 function local_search_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, instance::Instance)
     # useful variable
     b0 = instance.nb_late_prec_day+1
-    all_list_same_HPRC = Dict{Int, Array{Int, 1}}()
 
     improved = true
     while improved

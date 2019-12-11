@@ -46,7 +46,7 @@ function local_search_exchange_ils_hprc!(solution::Solution, instance::Instance,
             best_delta = 0
             new_possible_positions = Array{Int, 1}()
             for j in b0:instance.nb_cars
-                if hprc_current_car !=  instance.HPRC_keys[solution.sequence[j]]
+                if hprc_current_car != instance.HPRC_keys[solution.sequence[j]]
                     delta = cost_move_exchange(solution, i, j, instance,1)[1]
                     if delta < best_delta
                         empty!(new_possible_positions)

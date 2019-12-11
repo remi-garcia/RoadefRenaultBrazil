@@ -8,7 +8,11 @@
 
 const WEIGHTS_OBJECTIVE_FUNCTION = [1000000, 1000, 1]
 
+# TIME
 const TIME_LIMIT = 60.0
+const TIME_PART_ILS = 0.9
+const TIME_PART_VNS_LPRC = 0.96
+const TIME_PART_VNS_PCC = 1 # Unused for now
 
 # ILS-HPRC
 const ALPHA_ILS = 25

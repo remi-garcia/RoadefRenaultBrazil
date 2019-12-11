@@ -282,10 +282,10 @@ function move_exchange!(solution::Solution, car_pos_a::Int,
     # #                Test the quality of the move.
     # s1 = deepcopy(solution)
     #
-    update_matrices!(solution, instance)
-    if !(solution.colors === nothing)
-        initialize_batches!(solution, instance)
-    end
+    # update_matrices!(solution, instance)
+    # if !(solution.colors === nothing)
+    #     initialize_batches!(solution, instance)
+    # end
     #
     # error1 = false
     # for i in 1:solution.length

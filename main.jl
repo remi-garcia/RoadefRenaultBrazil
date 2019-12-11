@@ -44,33 +44,19 @@ function main()
             costs = zeros(Int,5,3)
 
             # Greedy
-            tmp = @timed solution = RRB.greedy(instance)
+            tmp = @timed solution = RRB.greedy_pcc(instance)
             println("Initial solution created... \t" * string(tmp[2]))
             costs[1,:] = RRB.cost(solution, instance, 3)
 
-            # ILS-HPRC
-            tmp = @timed solution = RRB.ILS_HPRC(solution, instance, start_time)
-            println("Solution improved with ILS_HPRC \t" * string(tmp[2]))
-            costs[2,:] = RRB.cost(solution, instance, 3)
-
-            # VNS-LPRC
-            tmp = @timed solution = RRB.VNS_LPRC(solution, instance, start_time)
-            println("Solution improved with VNS_LPRC \t" * string(tmp[2]))
-            costs[3,:] = RRB.cost(solution, instance, 3)
-
-            # print("[", instance.color_code[solution.sequence[1]])
-            # for pos in 2:instance.nb_cars
-            #     print(",", instance.color_code[solution.sequence[pos]])
-            # end
-            # println("]")
+            # # ILS-HPRC
+            # tmp = @timed solution = RRB.ILS_HPRC(solution, instance, start_time)
+            # println("Solution improved with ILS_HPRC \t" * string(tmp[2]))
+            # costs[2,:] = RRB.cost(solution, instance, 3)
             #
-            # print("[")
-            # pos = 1
-            # while pos <= instance.nb_cars
-            #     print(solution.colors[pos].start,"(",solution.colors[pos].width,") ")
-            #     pos += solution.colors[pos].width
-            # end
-            # println("]")
+            # # VNS-LPRC
+            # tmp = @timed solution = RRB.VNS_LPRC(solution, instance, start_time)
+            # println("Solution improved with VNS_LPRC \t" * string(tmp[2]))
+            # costs[3,:] = RRB.cost(solution, instance, 3)
 
             # Repair
             tmp = @timed RRB.initialize_batches!(solution, instance)

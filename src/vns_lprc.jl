@@ -274,10 +274,10 @@ function VNS_LPRC(solution_init::Solution, instance::Instance, start_time::UInt)
     nb_intens_not_better = 0
     vector_zero = zeros(Int, 3)
     while (nb_intens_not_better < VNS_LPRC_MAX_NON_IMPROVEMENT
-          && (96/100) * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
+          && TIME_PART_VNS_LPRC * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
           && cost(solution_best, instance, _bitarray) != vector_zero)
         while (k <= k_max[p+1]
-              && (96/100) * TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
+              && TIME_PART_VNS_LPRC * TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
             neighbor = perturbation_VNS_LPRC(solution_best, p, k, instance)
             local_search_VNS_LPRC!(neighbor, p == 1, instance)
             if is_strictly_better_VNS_LPRC(neighbor, solution_best, instance)

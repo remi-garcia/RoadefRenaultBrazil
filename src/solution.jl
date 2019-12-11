@@ -71,6 +71,27 @@ init_solution(nom_fichier::String, type_fichier::String) =
     init_solution(parser(nom_fichier, type_fichier))
 
 """
+
+"""
+function is_solution_valid(solution::Solution, instance::Instance)
+    if solution.length != instance.nb_cars
+        return false
+    end
+
+    batch = instance.nb_late_prec_day+1
+    valid = true
+    while batch <= solution.length
+        if solution.colors[batch].width <= instance.nb_paint_limitation
+            batch += solution.colors[batch].width
+        else
+            valid = false
+            break
+        end
+    end
+    return valid
+end
+
+"""
     update_matrices!(solution::Solution, instance::Instance)
 
 Updates `solution.M1`, `solution.M2` and `solution.M3` for known cars at positions 1 to `solution.length`.
@@ -184,10 +205,15 @@ end
 """
 function initialize_batches!(solution::Solution, instance::Instance)
     solution.colors = Array{Batch, 1}(undef, 0)
-    batch = Batch(1, 1)
+    b0 = instance.nb_late_prec_day+1
+    batch = Batch(b0-1,1)
+    for i in 1:(b0-1)
+        push!(solution.colors, batch)
+    end
+    batch = Batch(1, b0)
     current_color = instance.color_code[solution.sequence[1]]
     push!(solution.colors, batch)
-    for position in 2:solution.length
+    for position in (b0+1):solution.length
         car = solution.sequence[position]
         if instance.color_code[car] == current_color
             batch.width += 1

@@ -268,7 +268,7 @@ function cost_move_insertion(solution::Solution, position::Int,
             car = solution.sequence[position]
 
             # Due to deletion
-            if position > 1
+            if position > b0
                 if instance.color_code[car] != instance.color_code[solution.sequence[position-1]]
                     cost_on_objective[index, 3] -= 1
                 end
@@ -286,12 +286,12 @@ function cost_move_insertion(solution::Solution, position::Int,
             end
 
             # Due to insertion
-            if index > 1 && index < solution.length
+            if index > b0 && index < solution.length
                 if instance.color_code[sequence[index-1]] != instance.color_code[sequence[index]]
                     cost_on_objective[index, 3] -= 1
                 end
             end
-            if index > 1
+            if index > b0
                 if instance.color_code[sequence[index-1]] != instance.color_code[car]
                     cost_on_objective[index, 3] += 1
                 end

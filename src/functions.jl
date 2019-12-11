@@ -228,13 +228,13 @@ end
 #TODO: why n, why sequence, why not solution ?
 function is_sequence_valid(sequence::Array{Int, 1}, n::Int, instance::Instance)
     counter = 1
-    for car_pos in 2:n
+    for car_pos in (instance.nb_late_prec_day+2):n
         if instance.color_code[sequence[car_pos-1]] == instance.color_code[sequence[car_pos]]
             counter += 1
         else
             counter = 1
         end
-        if counter > instance.nb_paint_limitation && car_pos >= instance.nb_late_prec_day+1
+        if counter > instance.nb_paint_limitation
             return false
         end
     end

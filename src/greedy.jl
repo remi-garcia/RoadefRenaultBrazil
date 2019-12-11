@@ -13,8 +13,8 @@
 
 Takes a set of candidates and removes all elements with bad criterion.
 """
-function filter_on_max_criterion(candidates::Array{Int64,1},
-                                 criterion::Union{Array{Int64,1},Array{Float64,1}})
+function filter_on_max_criterion(candidates::Array{Int,1},
+                                 criterion::Union{Array{Int,1},Array{Float,1}})
     tmp_candidates = [candidates[1]]
     max_criterion = criterion[1]
     for i in 2:length(criterion)
@@ -35,8 +35,8 @@ end
 
 Takes a set of candidates and removes all elements with bad criterion.
 """
-function filter_on_min_criterion(candidates::Array{Int64,1},
-                                 criterion::Array{Int64,1})
+function filter_on_min_criterion(candidates::Array{Int,1},
+                                 criterion::Array{Int,1})
     tmp_candidates = [candidates[1]]
     min_criterion = criterion[1]
     for i in 2:length(criterion)
@@ -56,7 +56,7 @@ end
 
 First criterion defined by Ribeiro, Aloise, Noronha, Rocha and Urrutia.
 """
-function criterion_nb_violations(solution::Solution, position::Int, candidates::Array{Int64,1}, instance::Instance,
+function criterion_nb_violations(solution::Solution, position::Int, candidates::Array{Int,1}, instance::Instance,
                                 first_line::Int, last_line::Int)
     nb_new_violation = zeros(Int, length(candidates))
     for ind in 1:length(candidates)
@@ -81,8 +81,8 @@ end
 
 Second criterion defined by Ribeiro, Aloise, Noronha, Rocha and Urrutia.
 """
-function criterion_tie_break(candidates::Array{Int64,1}, instance::Instance,
-                             rv::Array{Int64,2}, rpi::Array{Int64,1}, length_pi::Int)
+function criterion_tie_break(candidates::Array{Int,1}, instance::Instance,
+                             rv::Array{Int,2}, rpi::Array{Int,1}, length_pi::Int)
     len = (instance.nb_cars) - (instance.nb_late_prec_day)
     tie_break = zeros(Int,length(candidates))
     for i in 1:length(candidates)
@@ -101,7 +101,7 @@ end
 
 Third criterion defined by Ribeiro, Aloise, Noronha, Rocha and Urrutia.
 """
-function criterion_second_tie_break(candidates::Array{Int64,1}, instance::Instance, rv::Array{Int64,2}, rpi::Array{Int64,1})
+function criterion_second_tie_break(candidates::Array{Int,1}, instance::Instance, rv::Array{Int,2}, rpi::Array{Int,1})
     len = (instance.nb_cars) - (instance.nb_late_prec_day)
     utilization_rate = Array{Float64,1}(UndefInitializer(),instance.nb_HPRC)
 

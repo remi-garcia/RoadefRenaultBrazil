@@ -8,7 +8,7 @@ const RRB = RoadefRenaultBrazil
     type_fichier = "A"
     nom_fichier = "024_38_3_EP_ENP_RAF"
     instance = RRB.parser(nom_fichier, type_fichier)
-    solution = RRB.greedy(instance)
+    solution = RRB.greedy_pcc(instance)
     @testset "move_exchange!" begin
         solution_test = deepcopy(solution)
         RRB.move_exchange!(solution_test, 1, instance.nb_cars, instance)
@@ -62,7 +62,7 @@ end;
     type_fichier = "A"
     nom_fichier = "024_38_3_EP_ENP_RAF"
     instance = RRB.parser(nom_fichier, type_fichier)
-    solution = RRB.greedy(instance)
+    solution = RRB.greedy_pcc(instance)
     @testset "move_insertion!" begin
         solution_test = deepcopy(solution)
         RRB.move_insertion!(solution_test, 1, 1, instance)
@@ -141,7 +141,7 @@ end;
     type_fichier = "A"
     nom_fichier = "024_38_3_EP_ENP_RAF"
     instance = RRB.parser(nom_fichier, type_fichier)
-    solution = RRB.greedy(instance)
+    solution = RRB.greedy_pcc(instance)
     @testset "update_matrices!" begin
         solution_test = deepcopy(solution)
         RRB.update_matrices!(solution_test, instance)

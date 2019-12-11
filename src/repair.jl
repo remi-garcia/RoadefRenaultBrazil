@@ -53,8 +53,8 @@ function first_strategy_repair!(solution::Solution, instance::Instance)
                 end
                 car_RC_value = instance.RC_keys[solution.sequence[position]]
                 car_pos = 1
-                len = length(instance.RC_cars[car_RC_value])
-                while (car_pos <= len) && (instance.color_code[instance.RC_cars[car_RC_value][car_pos]] == current_color)
+                len = length(instance.same_RC[car_RC_value])
+                while (car_pos <= len) && (instance.color_code[instance.same_RC[car_RC_value][car_pos]] == current_color)
                     car_pos += 1
                 end
                 if car_pos <= len
@@ -103,8 +103,8 @@ function first_strategy_repair!(solution::Solution, instance::Instance)
                 end
                 car_HPRC_value = instance.HPRC_keys[solution.sequence[position]]
                 car_pos = 1
-                len = length(instance.HPRC_cars[car_HPRC_value])
-                while (car_pos <= len) && (instance.color_code[instance.HPRC_cars[car_HPRC_value][car_pos]] == current_color)
+                len = length(instance.same_HPRC[car_HPRC_value])
+                while (car_pos <= len) && (instance.color_code[instance.same_HPRC[car_HPRC_value][car_pos]] == current_color)
                     car_pos += 1
                 end
                 if car_pos <= len

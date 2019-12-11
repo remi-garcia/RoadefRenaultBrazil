@@ -221,7 +221,7 @@ function greedy_pcc(instance::Instance)
     # Get colors
     same_colors = Array{Array{Int, 1}, 1}()
     for color_groups in instance.same_color
-        push!(same_colors, color_groups.second)
+        push!(same_colors, copy(color_groups.second))
     end
     sort!(same_colors, by = x -> length(x), rev = true)
     batch_size = 0

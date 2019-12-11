@@ -82,12 +82,12 @@ Optimizes the weighted sum of first and second objectives. When
 `perturbation_exchange` is `true` this function does not degrade the first
 objective.
 """
-function local_search_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, instance::Instance)
+function local_search_VNS_LPRC!(solution::Solution, perturbation_exchange::Bool, instance::Instance, start_time::UInt)
     # useful variable
     b0 = instance.nb_late_prec_day+1
 
     improved = true
-    while improved
+    while improved && TIME_PART_VNS_LPRC * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         improved = false
         critical_cars = find_critical_cars(solution, instance, 2)
         for index_car_a in critical_cars
@@ -123,12 +123,12 @@ end
 
 Optimizes the weighted sum of first and second objectives using `move_exchange!`.
 """
-function local_search_intensification_VNS_LPRC_exchange!(solution::Solution, instance::Instance)
+function local_search_intensification_VNS_LPRC_exchange!(solution::Solution, instance::Instance, start_time::UInt)
     # useful variable
     b0 = instance.nb_late_prec_day+1
 
     improved = true
-    while improved
+    while improved  && TIME_PART_VNS_LPRC * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         improved = false
         critical_cars = find_critical_cars(solution, instance, 2)
         for index_car_a in critical_cars
@@ -163,12 +163,12 @@ end
 
 Optimizes the weighted sum of first and second objectives using `move_insertion!`.
 """
-function local_search_intensification_VNS_LPRC_insertion!(solution::Solution, instance::Instance)
+function local_search_intensification_VNS_LPRC_insertion!(solution::Solution, instance::Instance, start_time::UInt)
     # useful variable
     b0 = instance.nb_late_prec_day+1
 
     improved = true
-    while improved
+    while improved && TIME_PART_VNS_LPRC * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
         improved = false
         critical_cars = find_critical_cars(solution, instance, 2)
         for index_car in critical_cars
@@ -203,9 +203,9 @@ end
 
 Calls both intensification.
 """
-function intensification_VNS_LPRC!(solution::Solution, instance::Instance)
-    local_search_intensification_VNS_LPRC_insertion!(solution, instance)
-    local_search_intensification_VNS_LPRC_exchange!(solution, instance)
+function intensification_VNS_LPRC!(solution::Solution, instance::Instance, start_time::UInt)
+    local_search_intensification_VNS_LPRC_insertion!(solution, instance, start_time)
+    local_search_intensification_VNS_LPRC_exchange!(solution, instance, start_time)
     return solution
 end
 
@@ -269,7 +269,7 @@ function VNS_LPRC(solution_init::Solution, instance::Instance, start_time::UInt)
         while (k <= k_max[p+1]
               && TIME_PART_VNS_LPRC * TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
             neighbor = perturbation_VNS_LPRC(solution_best, p, k, instance)
-            local_search_VNS_LPRC!(neighbor, p == 1, instance)
+            local_search_VNS_LPRC!(neighbor, p == 1, instance, start_time)
             if is_strictly_better_VNS_LPRC(neighbor, solution_best, instance)
                 k = k_min[p+1]
                 nb_intens_not_better = 0
@@ -280,7 +280,7 @@ function VNS_LPRC(solution_init::Solution, instance::Instance, start_time::UInt)
                 solution_best = deepcopy(neighbor)
             end
         end
-        intensification_VNS_LPRC!(solution_best, instance)
+        intensification_VNS_LPRC!(solution_best, instance, start_time)
         nb_intens_not_better += 1
 
         p = 1 - p

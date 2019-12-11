@@ -81,7 +81,7 @@ function is_solution_valid(solution::Solution, instance::Instance)
     batch = instance.nb_late_prec_day+1
     valid = true
     while batch <= solution.length
-        if solution.colors[batch].width <= instance.paint_batch_limit
+        if solution.colors[batch].width <= instance.nb_paint_limitation
             batch += solution.colors[batch].width
         else
             valid = false
@@ -206,6 +206,10 @@ end
 function initialize_batches!(solution::Solution, instance::Instance)
     solution.colors = Array{Batch, 1}(undef, 0)
     b0 = instance.nb_late_prec_day+1
+    batch = Batch(b0-1,1)
+    for i in 1:(b0-1)
+        push!(solution.colors, batch)
+    end
     batch = Batch(1, b0)
     current_color = instance.color_code[solution.sequence[1]]
     push!(solution.colors, batch)

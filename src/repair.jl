@@ -15,7 +15,7 @@ return -1 if such a car does not exist
 function find_first_violation(solution::Solution, instance::Instance)
     first_violation = -1
     position = instance.nb_late_prec_day+1
-    while position < solution.length
+    while position <= solution.length
         if solution.colors[position].width > instance.nb_paint_limitation
             first_violation = position + instance.nb_paint_limitation
             break

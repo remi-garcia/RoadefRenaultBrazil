@@ -83,9 +83,15 @@ function main()
             println("Solution improved with VNS_PCC \t" * string(tmp[2]))
             costs[5,:] = RRB.cost(solution, instance, 3)
 
-            if !is_solution_valid(solution, instance)
-                println("Solution invalid")
-                for i in 1:solution
+            if !RRB.is_solution_valid(solution, instance)
+                println("Solution invalid (paint batch limit of ", instance.nb_paint_limitation,")")
+                i = instance.nb_late_prec_day+1
+                while i <= solution.length
+                    if solution.colors[i].width > instance.nb_paint_limitation
+                        println("Batch starting at ", solution.colors[i].start, " is ", solution.colors[i].width)
+                    end
+                    i = i + solution.colors[i].width
+                end
             end
             println("\tGr. \tILS \tVNS_lp\trepair\tVNS_pc")
             println("HP \t", costs[1,1] ,"\t", costs[2,1] ,"\t", costs[3,1] ,"\t", costs[4,1], "\t", costs[5,1])

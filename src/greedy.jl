@@ -52,6 +52,73 @@ function filter_on_min_criterion(candidates::Array{Int64,1},
 end
 
 """
+    criterion_nb_violations(position::Int, V::Array{Int64,1}, instance::Instance)
+
+First criterion defined by Ribeiro, Aloise, Noronha, Rocha and Urrutia.
+"""
+function criterion_nb_violations(solution::Solution, position::Int, candidates::Array{Int64,1}, instance::Instance,
+                                first_line::Int, last_line::Int)
+    nb_new_violation = zeros(Int, length(candidates))
+    for ind in 1:length(candidates)
+        for j in first_line:last_line
+            if instance.RC_flag[candidates[ind], j]
+                last_ended_sequence = (position - instance.RC_q[j])
+                if last_ended_sequence > 0
+                    nb_new_violation[ind] += solution.M3[j, position-1] - solution.M3[j, last_ended_sequence]
+                else
+                    nb_new_violation[ind] += solution.M3[j, position-1]
+                end
+            end
+        end
+    end
+
+    return filter_on_min_criterion(candidates, nb_new_violation)
+end
+
+"""
+    criterion_tie_break(candidates::Array{Int64,1}, instance::Instance,
+                        rv, rpi, length_pi::Int)
+
+Second criterion defined by Ribeiro, Aloise, Noronha, Rocha and Urrutia.
+"""
+function criterion_tie_break(candidates::Array{Int64,1}, instance::Instance,
+                             rv::Array{Int64,2}, rpi::Array{Int64,1}, length_pi::Int)
+    len = (instance.nb_cars) - (instance.nb_late_prec_day)
+    tie_break = zeros(Int,length(candidates))
+    for i in 1:length(candidates)
+        for j in 1:instance.nb_HPRC
+            cond1 = !instance.RC_flag[candidates[i],j]
+            cond2 = (rv[j]-rpi[j])/len > (rpi[j])/length_pi
+            tie_break[i] += Int(xor( cond1 , cond2 ))
+        end
+    end
+
+    return filter_on_max_criterion(candidates, tie_break)
+end
+
+"""
+    criterion_second_tie_break(candidates::Array{Int64,1}, instance::Instance, rv, rpi)
+
+Third criterion defined by Ribeiro, Aloise, Noronha, Rocha and Urrutia.
+"""
+function criterion_second_tie_break(candidates::Array{Int64,1}, instance::Instance, rv::Array{Int64,2}, rpi::Array{Int64,1})
+    len = (instance.nb_cars) - (instance.nb_late_prec_day)
+    utilization_rate = Array{Float64,1}(UndefInitializer(),instance.nb_HPRC)
+
+    for j in 1:instance.nb_HPRC
+        utilization_rate[j] = ( (rv[j] - rpi[j])/len ) / ( instance.RC_p[j] / instance.RC_q[j] )
+    end
+    tie_break = zeros(length(candidates))
+    for i in 1:length(candidates)
+        for j in 1:instance.nb_HPRC
+            tie_break[i] += instance.RC_flag[candidates[i],j] * utilization_rate[j]
+        end
+    end
+
+    return filter_on_max_criterion(candidates, tie_break)
+end
+
+"""
     greedy(instance::Instances)
 
 Takes an `Instance` and return a valid `Solution`.

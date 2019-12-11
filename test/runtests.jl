@@ -47,8 +47,6 @@ const RRB = RoadefRenaultBrazil
             solution_test = deepcopy(solution)
             car_pos_a = rand((instance.nb_late_prec_day+1):instance.nb_cars)
             car_pos_b = rand((instance.nb_late_prec_day+1):instance.nb_cars)
-            println("a - a+1: ", instance.color_code[solution.sequence[car_pos_a]], " - ", instance.color_code[solution.sequence[car_pos_a+1]])
-            println("b-1 - b: ", instance.color_code[solution.sequence[car_pos_b-1]], " - ", instance.color_code[solution.sequence[car_pos_b]])
             vector_cost = RRB.cost_move_exchange(solution_test, car_pos_a, car_pos_b, instance, 3)
             costs = RRB.cost(solution, instance, 3)
             RRB.move_exchange!(solution_test, car_pos_a, car_pos_b, instance)

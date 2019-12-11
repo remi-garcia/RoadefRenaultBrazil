@@ -42,11 +42,11 @@ function local_search_exchange_ils_hprc!(solution::Solution, instance::Instance,
         overall_delta = 0
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
         for i in b0:instance.nb_cars
-            hprc_current_car = HPRC_value(solution.sequence[i], instance)
+            hprc_current_car = instance.HPRC_keys[solution.sequence[i]]
             best_delta = 0
             new_possible_positions = Array{Int, 1}()
             for j in b0:instance.nb_cars
-                if hprc_current_car != HPRC_value(solution.sequence[j], instance)
+                if hprc_current_car != instance.HPRC_keys[solution.sequence[j]]
                     delta = cost_move_exchange(solution, i, j, instance,1)[1]
                     if delta < best_delta
                         empty!(new_possible_positions)
@@ -123,11 +123,11 @@ function fast_local_search_exchange_ils_hprc!(solution::Solution, instance::Inst
     while !isempty(critical_cars) && (TIME_PART_ILS * TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
         position_car_a = rand(critical_cars)
-        hprc_current_car = HPRC_value(solution.sequence[position_car_a], instance)
+        hprc_current_car = instance.HPRC_keys[solution.sequence[position_car_a]]
         best_delta = 0
         new_possible_positions = Array{Int, 1}()
         for position_car_b in b0:instance.nb_cars
-            if hprc_current_car != HPRC_value(solution.sequence[position_car_b], instance)
+            if hprc_current_car != instance.HPRC_keys[solution.sequence[position_car_b]]
                 delta = cost_move_exchange(solution, position_car_a, position_car_b, instance, 1)[1]
                 if delta < best_delta
                     empty!(new_possible_positions)

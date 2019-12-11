@@ -214,9 +214,15 @@ Returns the partial weighted sum of the objective values.
 function weighted_sum(cost_solution::Array{Int, 1})
     return sum(cost_solution[i] * WEIGHTS_OBJECTIVE_FUNCTION[i] for i in 1:length(cost_solution))
 end
+function weighted_sum(cost_solution::Array{Int, 1}, objective::Int)
+    return sum(cost_solution[i] * WEIGHTS_OBJECTIVE_FUNCTION[i] for i in 1:objective)
+end
 
 weighted_sum(solution::Solution, instance::Instance) =
     weighted_sum(cost(solution, instance))
+
+weighted_sum(solution::Solution, instance::Instance, objective::Int) =
+    weighted_sum(cost(solution, instance, objective), objective)
 
 """
     print_cost(solution::Solution, instance::Instance)

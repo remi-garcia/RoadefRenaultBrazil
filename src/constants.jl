@@ -6,13 +6,14 @@
 #         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
 #-------------------------------------------------------------------------------
 
-const WEIGHTS_OBJECTIVE_FUNCTION = [1000, 1, 1000000]
+const WEIGHTS_OBJECTIVE_FUNCTION = [1000000, 1000, 1]
 
 # TIME
-const TIME_LIMIT = 60.0
+const TIME_LIMIT_LEX = 10.0
 const TIME_PART_ILS = 0.9
 const TIME_PART_VNS_LPRC = 0.96
-const TIME_PART_VNS_PCC = 1 # Unused for now
+const TIME_PART_VNS_PCC = 1.0 # Not used for now
+const TIME_LIMIT = 60.0 - 2*TIME_LIMIT_LEX
 
 # ILS-HPRC
 const ALPHA_ILS = 25
@@ -34,6 +35,13 @@ const VNS_PCC_MAX_INSERT = 8
 const VNS_PCC_MIN_EXCHANGE = 2
 const VNS_PCC_MAX_EXCHANGE = 10
 const VNS_PCC_MINMAX = [(VNS_PCC_MIN_INSERT, VNS_PCC_MAX_INSERT), (VNS_PCC_MIN_EXCHANGE, VNS_PCC_MAX_EXCHANGE)]
+
+# VNS-MO
+const VNS_MO_MIN_INSERT = 2
+const VNS_MO_MAX_INSERT = 4
+const VNS_MO_MIN_EXCHANGE = 2
+const VNS_MO_MAX_EXCHANGE = 10
+const VNS_MO_MINMAX = [(VNS_MO_MIN_INSERT, VNS_MO_MAX_INSERT), (VNS_MO_MIN_EXCHANGE, VNS_MO_MAX_EXCHANGE)]
 
 # Files names
 const INSTANCES = Dict{String, Array{String, 1}}(

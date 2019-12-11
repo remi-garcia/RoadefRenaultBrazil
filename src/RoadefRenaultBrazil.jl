@@ -11,5 +11,6 @@ include("ils_hprc.jl")
 include("vns_lprc.jl")
 include("repair.jl")
 include("vns_pcc.jl")
+include("vns_mo.jl")
 
 end # module

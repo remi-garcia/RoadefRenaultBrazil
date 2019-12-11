@@ -27,19 +27,21 @@ Create a empty sequence with matrices of zeros.
 mutable struct Solution
     sequence::Array{Int, 1}
         # vector of cars (sequence pi or s in the following algorithms)
-    M1::Array{Int, 2}
+    M1::Union{Array{Int, 2}, Nothing}
         # M1_ij is the number of cars with oj in the subsequence of
         # q(oj) cars starting at position i of sequence pi
-    M2::Array{Int, 2}
+    M2::Union{Array{Int, 2}, Nothing}
         # M2_ij is the number of subsequences of q(oj) cars starting
         # at positions 1 up to i in which the number of cars that
         # require oj is greater than p(oj)
-    M3::Array{Int, 2}
+    M3::Union{Array{Int, 2}, Nothing}
         # M3_ij is the number of subsequences in which the number of
         # cars that require oj is greater than or equal to p(oj)
 
     length::Int
-    colors::Union{Nothing, Array{Batch, 1}}
+    colors::Union{Array{Batch, 1}, Nothing}
+
+    saved_costs::Union{Tuple{Int, Int, Int}, Nothing}
 
     Solution(nC::Int,nO::Int) = new(
         zeros(Int,nC),#collect(1:nC),
@@ -47,6 +49,7 @@ mutable struct Solution
         zeros(Int,nO,nC),
         zeros(Int,nO,nC),
         0,
+        nothing,
         nothing
     )
 end

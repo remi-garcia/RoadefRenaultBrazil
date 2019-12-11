@@ -92,7 +92,7 @@ function local_search_intensification_VNS_PCC_exchange!(solution::Solution, inst
 
     improved = true
     sequence = copy(solution.sequence)
-    while improved && TIME_LIMIT > (time_ns() - start_time) / 1.0e9
+    while improved && TIME_LIMIT_LEX > (time_ns() - start_time) / 1.0e9
         improved = false
         critical_cars = find_critical_cars(solution, instance, 2)
         for index_car_a in critical_cars
@@ -136,7 +136,7 @@ function local_search_intensification_VNS_PCC_insertion!(solution::Solution, ins
     # useful variable
     b0 = instance.nb_late_prec_day+1
     improved = true
-    while improved && TIME_LIMIT > (time_ns() - start_time) / 1.0e9
+    while improved && TIME_LIMIT_LEX > (time_ns() - start_time) / 1.0e9
         improved = false
         for index_car in b0:instance.nb_cars
             best_delta = 0
@@ -187,7 +187,7 @@ function local_search_VNS_PCC!(solution::Solution, instance::Instance, start_tim
 
     improved = true
     sequence = copy(solution.sequence)
-    while improved && TIME_LIMIT > (time_ns() - start_time) / 1.0e9
+    while improved && TIME_LIMIT_LEX > (time_ns() - start_time) / 1.0e9
         improved = false
         for index_car_a in b0:instance.nb_cars
             best_delta = 0
@@ -232,8 +232,8 @@ function VNS_PCC(solution_init::Solution, instance::Instance, start_time::UInt)
     costs_solution = cost(solution, instance, 3)
     cost_solution = weighted_sum(costs_solution)
     cost_HPRC_solution = costs_solution[1]
-    while TIME_LIMIT > (time_ns() - start_time) / 1.0e9
-        while (k <= VNS_PCC_MINMAX[p+1][2]) && (TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
+    while TIME_LIMIT_LEX > (time_ns() - start_time) / 1.0e9
+        while (k <= VNS_PCC_MINMAX[p+1][2]) && (TIME_LIMIT_LEX > (time_ns() - start_time) / 1.0e9)
             solution_perturbation = perturbation_VNS_PCC(solution, p, k, instance)
             if cost_HPRC_solution < cost(solution_perturbation, instance, 1)[1]
                 solution_perturbation = deepcopy(solution)

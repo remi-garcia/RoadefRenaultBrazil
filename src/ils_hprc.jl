@@ -38,7 +38,7 @@ Performs a local search on `solution` using only exchange moves with respect to
 """
 function local_search_exchange_ils_hprc!(solution::Solution, instance::Instance,
                                          start_time::UInt)
-    while TIME_PART_ILS * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
+    while TIME_PART_ILS * TIME_LIMIT_LEX > (time_ns() - start_time) / 1.0e9
         overall_delta = 0
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
         for i in b0:instance.nb_cars
@@ -80,7 +80,7 @@ Performs a local search on `solution` using only insertion moves with respect to
 """
 function local_search_insertion_ils_hprc!(solution::Solution, instance::Instance,
                                           start_time::UInt)
-    while TIME_PART_ILS * TIME_LIMIT > (time_ns() - start_time) / 1.0e9
+    while TIME_PART_ILS * TIME_LIMIT_LEX > (time_ns() - start_time) / 1.0e9
         overall_delta = 0
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
         for i in b0:instance.nb_cars
@@ -120,7 +120,7 @@ for well chosen cars tagged in `critical_cars`.
 """
 function fast_local_search_exchange_ils_hprc!(solution::Solution, instance::Instance,
                                               critical_cars::Array{Int, 1}, start_time::UInt)
-    while !isempty(critical_cars) && (TIME_PART_ILS * TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
+    while !isempty(critical_cars) && (TIME_PART_ILS * TIME_LIMIT_LEX > (time_ns() - start_time) / 1.0e9)
         b0 = instance.nb_late_prec_day + 1      #First car of the current production day
         position_car_a = rand(critical_cars)
         hprc_current_car = instance.HPRC_keys[solution.sequence[position_car_a]]
@@ -190,7 +190,7 @@ function ILS_HPRC(solution_init::Solution, instance::Instance, start_time::UInt)
     solution_opt = deepcopy(solution_init)
     lastopt = deepcopy(solution_init)
     cond = 0 #TODO
-    while cond < STOPPING_CRITERIA_ILS_HPRC && cost_HPRC(solution_opt, instance) != 0 && (TIME_PART_ILS * TIME_LIMIT > (time_ns() - start_time) / 1.0e9)
+    while cond < STOPPING_CRITERIA_ILS_HPRC && cost_HPRC(solution_opt, instance) != 0 && (TIME_PART_ILS * TIME_LIMIT_LEX > (time_ns() - start_time) / 1.0e9)
         critical_cars = find_critical_cars(solution, instance, 1)
         neighbor = perturbation_ils_hprc(solution, instance, NBCAR_PERTURBATION, critical_cars)
         critical_cars = find_critical_cars(neighbor, instance, 1)

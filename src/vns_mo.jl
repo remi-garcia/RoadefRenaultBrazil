@@ -235,7 +235,7 @@ function VNS_MO(solutions_init::Array{Solution, 1}, instance::Instance, start_ti
     while TIME_LIMIT > (time_ns() - start_time) / 1.0e9 && solutions[1].saved_costs[3] > solutions[end].saved_costs[3]
         max_possible_delta = 8
         time_left = TIME_LIMIT - ((time_ns() - start_time) / 1.0e9)
-        time_for_solution = min(time_left, time_left*max_possible_delta / (2*(solutions[1].saved_costs[3] - solutions[end].saved_costs[3])))
+        time_for_solution = min(time_left, time_left*max_possible_delta / (10*(solutions[1].saved_costs[3] - solutions[end].saved_costs[3])))
         time_for_next_solution = time_for_solution + ((time_ns() - start_time) / 1.0e9)
         solution = deepcopy(solutions[end])
         solution.M1 = zeros(Int, instance.nb_HPRC + instance.nb_LPRC, instance.nb_cars)
@@ -280,9 +280,9 @@ function VNS_MO(solutions_init::Array{Solution, 1}, instance::Instance, start_ti
                 improved = true
             end
             if time_for_next_solution < (time_ns() - start_time) / 1.0e9 && !improved
-                time_for_next_solution = min(time_left, (time_left*max_possible_delta / (2*(solutions[1].saved_costs[3] - solutions[end].saved_costs[3])))) + ((time_ns() - start_time) / 1.0e9)
+                time_for_next_solution = min(time_left, (time_left*max_possible_delta / (10*(solutions[1].saved_costs[3] - solutions[end].saved_costs[3])))) + ((time_ns() - start_time) / 1.0e9)
+                intensification_VNS_MO!(solution, instance, max_possible_delta-(cost_MO_solution-cost_MO_solution_init), time_for_next_solution, cost_MO_solution_init, start_time)
             end
-            intensification_VNS_MO!(solution, instance, max_possible_delta-(cost_MO_solution-cost_MO_solution_init), time_for_next_solution, cost_MO_solution_init, start_time)
             costs_solution = cost(solution, instance, 3)
             cost_solution = weighted_sum(costs_solution, 2)
             cost_MO_solution = costs_solution[3]
@@ -293,7 +293,7 @@ function VNS_MO(solutions_init::Array{Solution, 1}, instance::Instance, start_ti
             end
             if time_for_next_solution < (time_ns() - start_time) / 1.0e9 && !improved
                 max_possible_delta += 8
-                time_for_next_solution = min(time_left, (time_left*max_possible_delta / (2*(solutions[1].saved_costs[3] - solutions[end].saved_costs[3]))) + ((time_ns() - start_time) / 1.0e9))
+                time_for_next_solution = min(time_left, (time_left*max_possible_delta / (10*(solutions[1].saved_costs[3] - solutions[end].saved_costs[3]))) + ((time_ns() - start_time) / 1.0e9))
             end
         end
 

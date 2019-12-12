@@ -13,7 +13,7 @@ const TIME_LIMIT_LEX = 10.0
 const TIME_PART_ILS = 0.9
 const TIME_PART_VNS_LPRC = 0.96
 const TIME_PART_VNS_PCC = 1.0 # Not used for now
-const TIME_LIMIT = 60.0 - 2*TIME_LIMIT_LEX
+const TIME_LIMIT = 120.0 - 2*TIME_LIMIT_LEX
 
 # ILS-HPRC
 const ALPHA_ILS = 25

@@ -304,7 +304,7 @@ function VNS_MO(solutions_init::Array{Solution, 1}, instance::Instance, start_ti
         solution.M3 = nothing
         solution.colors = nothing
         push!(solutions, solution)
-        println(costs_solution)
+        #println(costs_solution)
     end
 
     return solutions

@@ -255,3 +255,46 @@ function is_sequence_valid(sequence::Array{Int, 1}, n::Int, instance::Instance)
     end
     return true
 end
+
+
+"""
+    dominate(left::Solution, right::Solution)
+Test if `left` dominate `right` in a minimization MO context.
+"""
+function dominate(left::Solution, right::Solution)
+    worse = false
+    equal = true
+    for i in 1:3
+        worse |= left.saved_costs[i] > right.saved_costs[i]
+        equal &= left.saved_costs[i] == right.saved_costs[i]
+    end
+    return !worse && !equal
+end
+
+"""
+    dominated(point::Solution, solutions::Array{Solution, 1}
+Return if `solution` is dominated by any solution in `solution_set`.
+"""
+function dominated(solution::Solution, solutions::Array{Solution, 1})
+    dominated = false
+    for s in solutions
+        dominated |= dominate(s, solution)
+    end
+    return dominated
+end
+
+"""
+    filter_dominate_point(solutions::Array{Solution, 1})
+Return an array that contains all non dominated point.
+"""
+function filter_dominate_point(solutions::Array{Solution, 1})
+    solutionsND = Array{Solution, 1}()
+    for s in solutions
+        if !dominated(s, setdiff(solutions, [s]))
+            if !(s.saved_costs in [sol.saved_costs for sol in solutionsND])
+                push!(solutionsND, s)
+            end
+        end
+    end
+    return solutionsND
+end

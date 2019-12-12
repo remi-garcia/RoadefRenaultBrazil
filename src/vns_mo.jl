@@ -184,7 +184,7 @@ end
 Calls both intensification.
 """
 function intensification_VNS_MO!(solution::Solution, instance::Instance, max_possible_delta::Int, time_for_next_solution, cost_MO_solution_init::Int, start_time::UInt)
-    local_search_intensification_VNS_MO_insertion!(solution, instance, max_possible_delta, time_for_next_solution, start_time)
+    #local_search_intensification_VNS_MO_insertion!(solution, instance, max_possible_delta, time_for_next_solution, start_time)
     local_search_intensification_VNS_MO_exchange!(solution, instance, max_possible_delta-(cost(solution, instance, 3)[3]-cost_MO_solution_init), time_for_next_solution, start_time)
     return solution
 end

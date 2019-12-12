@@ -140,7 +140,9 @@ function main()
             solutions = Array{RRB.Solution, 1}([solution, solution_pcc])
 
             solutions = RRB.VNS_MO(solutions, instance, start_time)
-
+            println(map(sol -> sol.saved_costs, solutions))
+            solutions = RRB.filter_dominate_point(solutions)
+            println(map(sol -> sol.saved_costs, solutions))
 
             println()
             end #@time

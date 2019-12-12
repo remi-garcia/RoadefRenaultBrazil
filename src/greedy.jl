@@ -57,6 +57,7 @@ end
 Takes an `Instance` and return a valid `Solution`.
 """
 function greedy(instance::Instance)
+    global WEIGHTS_OBJECTIVE_FUNCTION = [1000000, 1000, 1]
     # The constructive greedy heuristic starts with a partial sequence formed
     # by the remaining cars from the previous day. We compute an empty sequence
     # with some cars already scheduled
@@ -190,6 +191,7 @@ end
 Takes an `Instance` and return a valid `Solution`.
 """
 function greedy_pcc(instance::Instance)
+    global WEIGHTS_OBJECTIVE_FUNCTION = [1000, 1, 1000000]
     # The constructive greedy heuristic starts with a partial sequence formed
     # by the remaining cars from the previous day. We compute an empty sequence
     # with some cars already scheduled

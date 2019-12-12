@@ -6,7 +6,7 @@
 #         Boualem Lamraoui, Benoît Le Badezet, Benoit Loger
 #-------------------------------------------------------------------------------
 
-const WEIGHTS_OBJECTIVE_FUNCTION = [1000000, 1000, 1]
+global WEIGHTS_OBJECTIVE_FUNCTION = [1000000, 1000, 1]
 
 # TIME
 const TIME_LIMIT_LEX = 10.0

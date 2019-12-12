@@ -106,11 +106,13 @@ function local_search_intensification_VNS_MO_exchange!(solution::Solution, insta
                     if is_sequence_valid(sequence, instance.nb_cars, instance)
                         cost_move = cost_move_exchange(solution, index_car_a, index_car_b, instance, 3)
                         delta = weighted_sum(cost_move, 2)
-                        if delta < best_delta && cost_move[3] < max_possible_delta
-                            best_positions = Array{Int, 1}([index_car_b])
-                            best_delta = delta
-                        elseif delta == best_delta
-                            push!(best_positions, index_car_b)
+                        if cost_move[3] < max_possible_delta
+                            if delta < best_delta
+                                best_positions = Array{Int, 1}([index_car_b])
+                                best_delta = delta
+                            elseif delta == best_delta
+                                push!(best_positions, index_car_b)
+                            end
                         end
                     end
                     sequence[index_car_a], sequence[index_car_b] = sequence[index_car_b], sequence[index_car_a]
@@ -180,7 +182,7 @@ end
 Calls both intensification.
 """
 function intensification_VNS_MO!(solution::Solution, instance::Instance, max_possible_delta::Int, time_for_next_solution, start_time::UInt)
-    local_search_intensification_VNS_MO_insertion!(solution, instance, max_possible_delta, time_for_next_solution, start_time)
+    #local_search_intensification_VNS_MO_insertion!(solution, instance, max_possible_delta, time_for_next_solution, start_time)
     local_search_intensification_VNS_MO_exchange!(solution, instance, max_possible_delta, time_for_next_solution, start_time)
     return solution
 end
@@ -225,13 +227,18 @@ end
 """
 
 """
-function VNS_MO(solutions::Array{Solution, 1}, instance::Instance, start_time::UInt)
-    while TIME_LIMIT > (time_ns() - start_time) / 1.0e9 && solutions[1].saved_costs[3] != solutions[end].saved_costs[3]
+function VNS_MO(solutions_init::Array{Solution, 1}, instance::Instance, start_time::UInt)
+    solutions = deepcopy(solutions_init)
+
+    while TIME_LIMIT > (time_ns() - start_time) / 1.0e9 && solutions[1].saved_costs[3] > solutions[end].saved_costs[3]
         max_possible_delta = 4
         time_left = TIME_LIMIT - ((time_ns() - start_time) / 1.0e9)
-        time_for_solution = min(time_left, time_left*4 / (solutions[1].saved_costs[3] - solutions[end].saved_costs[3]))
+        time_for_solution = min(time_left, time_left*max_possible_delta / (solutions[1].saved_costs[3] - solutions[end].saved_costs[3]))
         time_for_next_solution = time_for_solution + ((time_ns() - start_time) / 1.0e9)
         solution = deepcopy(solutions[end])
+        solution.M1 = zeros(Int, instance.nb_HPRC + instance.nb_LPRC, instance.nb_cars)
+        solution.M2 = zeros(Int, instance.nb_HPRC + instance.nb_LPRC, instance.nb_cars)
+        solution.M3 = zeros(Int, instance.nb_HPRC + instance.nb_LPRC, instance.nb_cars)
         update_matrices!(solution, instance)
         initialize_batches!(solution, instance)
         improved = false
@@ -246,22 +253,29 @@ function VNS_MO(solutions::Array{Solution, 1}, instance::Instance, start_time::U
             while (k <= VNS_MO_MINMAX[p+1][2]) && time_for_next_solution > (time_ns() - start_time) / 1.0e9
                 solution_perturbation = perturbation_VNS_MO(solution, p, k, instance)
                 costs_perturbation = cost(solution_perturbation, instance, 3)
-                if (costs_perturbation[3] - cost_MO_solution) > max_possible_delta
+                if (costs_perturbation[3] - cost_MO_solution_init) > max_possible_delta
                     solution_perturbation = deepcopy(solution)
                 end
                 local_search_VNS_MO!(solution_perturbation, instance, time_for_next_solution, start_time)
-                cost_solution_perturbation = weighted_sum(solution_perturbation, instance, 2)
-                if cost_solution_perturbation < cost_solution
+                costs_perturbation = cost(solution_perturbation, instance, 3)
+                cost_solution_perturbation = weighted_sum(costs_perturbation, 2)
+                if cost_solution_perturbation < cost_solution && (costs_perturbation[3] - cost_MO_solution_init) <= max_possible_delta
                     k = VNS_MO_MINMAX[p+1][1]
                 else
                     k += 1
                 end
-                if cost_solution_perturbation <= cost_solution
+                if cost_solution_perturbation <= cost_solution && (costs_perturbation[3] - cost_MO_solution_init) <= max_possible_delta
                     solution = deepcopy(solution_perturbation)
                     costs_solution = cost(solution, instance, 3)
                     cost_solution = copy(cost_solution_perturbation)
                     cost_MO_solution = costs_solution[3]
                 end
+            end
+            if !improved && cost_solution < cost_solution_init && (costs_solution[3] - cost_MO_solution_init) <= max_possible_delta
+                improved = true
+            end
+            if time_for_next_solution < (time_ns() - start_time) / 1.0e9 && !improved
+                time_for_next_solution = min(time_left, time_left*max_possible_delta / (solutions[1].saved_costs[3] - solutions[end].saved_costs[3])) + ((time_ns() - start_time) / 1.0e9)
             end
             intensification_VNS_MO!(solution, instance, max_possible_delta-(cost_MO_solution-cost_MO_solution_init), time_for_next_solution, start_time)
             costs_solution = cost(solution, instance, 3)
@@ -269,12 +283,12 @@ function VNS_MO(solutions::Array{Solution, 1}, instance::Instance, start_time::U
             cost_MO_solution = costs_solution[3]
             p = 1 - p
             k = VNS_MO_MINMAX[p+1][1]
-            if !improved && cost_solution < cost_solution_init
+            if !improved && cost_solution < cost_solution_init && (costs_solution[3] - cost_MO_solution_init) <= max_possible_delta
                 improved = true
             end
-            if time_for_next_solution > (time_ns() - start_time) / 1.0e9 && !improved
-                time_for_next_solution = time_for_solution + ((time_ns() - start_time) / 1.0e9)
+            if time_for_next_solution < (time_ns() - start_time) / 1.0e9 && !improved
                 max_possible_delta += 4
+                time_for_next_solution = min(time_left, time_left*max_possible_delta / (solutions[1].saved_costs[3] - solutions[end].saved_costs[3])) + ((time_ns() - start_time) / 1.0e9)
             end
         end
 
@@ -285,6 +299,7 @@ function VNS_MO(solutions::Array{Solution, 1}, instance::Instance, start_time::U
         solution.M3 = nothing
         solution.colors = nothing
         push!(solutions, solution)
+        println(costs_solution)
     end
 
     return solutions

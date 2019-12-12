@@ -124,7 +124,6 @@ function main()
             end #@time
             println()
 
-
             # Balayage
             @time begin
             start_time = time_ns()
@@ -140,6 +139,7 @@ function main()
             solution_pcc.colors = nothing
             solutions = Array{RRB.Solution, 1}([solution, solution_pcc])
 
+            solutions = RRB.VNS_MO(solutions, instance, start_time)
 
 
             println()

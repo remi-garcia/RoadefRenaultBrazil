@@ -1,6 +1,6 @@
 # Project in Multi-objective metaheuristiques
 
-**Work in progress.**
+**Although this work has been stopped, what we needed to work worked. Now that this project is archived, any follow-up would take the form of a new repository.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)  [![Build Status](https://travis-ci.org/remi-garcia/RoadefRenaultBrazil.svg?branch=master)](https://travis-ci.org/remi-garcia/RoadefRenaultBrazil)
 
